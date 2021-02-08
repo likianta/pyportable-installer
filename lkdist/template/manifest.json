@@ -1,0 +1,11 @@
+{
+    "app_name": "",
+    "app_version": "0.1.0",
+    "icon": "",
+    "author": "",
+    "dependencies": [],
+    "check_pip_repo": true,
+    "install_dependencies": true,
+    "venv": "",
+    "python_version": ""
+}

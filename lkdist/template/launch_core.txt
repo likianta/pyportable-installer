@@ -1,0 +1,68 @@
+"""
+Template placeholders:
+    SITE_PACKAGES
+    EXTRA_SYS_PATHS
+    TARGET_PATH
+    TARGET_DIR
+    TARGET_NAME
+
+References:
+    pyinstaller_for_intranet.prebuild._create_launcher
+"""
+import os
+import sys
+
+if site_packages := '{SITE_PACKAGES}':  # see `prebuild._copy_venv`
+    # 当使用 venv 时, 这意味着我们在用 embed python. 对于 embed python, 我们需要
+    # 显式地添加当前目录到 sys.path, 否则 embed python 无法识别从当前目录开始的
+    # 模块搜寻
+    sys.path.append(os.path.abspath('.'))
+    sys.path.append(os.path.abspath(site_packages))
+
+if extra_paths := {EXTRA_SYS_PATHS}:
+    sys.path.extend(map(os.path.abspath, extra_paths))
+
+# ------------------------------------------------------------------------------
+
+def launch(func, *args, **kwargs):
+    """
+    Usage:
+        # my_main.py
+        from lk_utils.easy_launcher import launch
+
+        def main(a, b):
+            print(a + b)
+
+        launch(main, a=1, b=2)
+    """
+
+    # noinspection PyUnusedLocal
+    def show_err_on_console(err):
+        print('Runtime Error:', err)
+        input('Press any key to leave...')
+
+    def show_err_on_msgbox(err):
+        # https://stackoverflow.com/questions/17280637/tkinter-messagebox
+        # -without-window
+        from tkinter import Tk, messagebox
+        root = Tk()
+        root.withdraw()
+        messagebox.showerror(title='Runtime Error', message=err)
+
+    try:
+        func(*args, **kwargs)
+    except:
+        # To obtain more message about this error.
+        #   https://stackoverflow.com/questions/1278705/when-i-catch-an
+        #   -exception-how-do-i-get-the-type-file-and-line-number
+        import traceback
+        msg = traceback.format_exc()
+        show_err_on_msgbox(msg)
+        #   show_err_on_console(msg)
+
+
+if __name__ == '__main__':
+    from {TARGET_PATH} import {TARGET_NAME} as myapp
+    # 确保所有引用文件时的相对路径都是相对于 TARGET_DIR 的
+    os.chdir('{TARGET_DIR}')
+    launch(myapp.main)
