@@ -5,16 +5,20 @@
     "author": "",
     "required": {
         "python_version": "3.8",
-        "check_pip_repo": true,
         "enable_venv": true,
         "venv": ""
     },
     "build": {
         "idir": "",
-        "odir": "",
+        "odir": "dist/{app_name}_{app_version}",
         "main_script": "",
-        "readme": "",
+        "target": {
+            "function": "main",
+            "args": [],
+            "kwargs": {}
+        },
+        "readme": "README.md",
         "module_paths": [],
-        "attached_dirs": []
+        "attachments": {}
     }
 }
