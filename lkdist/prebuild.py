@@ -103,7 +103,6 @@ def process_pyproject(pyproj_file):
     
     # run conf_o
     lk.logp(conf_o)
-    input('continue?')
     _apply_config(conf_o['app_name'], **conf_o['build'], icon=conf_o['icon'])
 
 
@@ -171,7 +170,8 @@ def _apply_config(app_name, idir, odir, target, required,
         #   include_tkinter: 考虑到我们的 bootloader 有用到 tkinter 的 msgbox, 所
         #   以这里选用有 tkinter 模块的版本
     
-    lk.logt("[I2501]", f'See distributed project at \n\t"{rootdir}:0"')
+    m, n = ospath.split(rootdir)
+    lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0 >> {n}"')
 
 
 # ------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ def _precheck_args(idir, odir, attachments, pyversion):
                 '请注意确认删除后内容无法恢复! (y/n): '.format(odir)
         ).lower() == 'y':
             shutil.rmtree(odir)
-            os.mkdir(odir)
+            # os.mkdir(odir)  # we'll make dir laterly in `_apply_config`
         else:
             raise FileExistsError
     
@@ -241,10 +241,6 @@ def _copy_assets(attachments, srcdir):
             lk.logax(idir, odir)
             valid_dirs.append((idir, odir))
         lk.reset_count()
-        
-        # test
-        lk.loga(valid_dirs[:10])
-        if len(valid_dirs) > 10: raise Exception(len(valid_dirs))
         
         for (i, o) in valid_dirs:
             filesniff.force_create_dirpath(o)
@@ -429,8 +425,10 @@ def _create_launcher(app_name, icon, target, rootdir,
     dumps(code, bat_file)
     
     from .bat_2_exe import bat_2_exe
+    lk.loga('converting bat to exe... it may take several seconds ~ one minute')
     bat_2_exe(bat_file, f'{rootdir}/{app_name}.exe',
               icon, '/x64')
+    lk.loga('convertion bat-to-exe done')
     os.remove(bat_file)
 
 
