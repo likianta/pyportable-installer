@@ -1,6 +1,7 @@
 import re
 import os
 import shutil
+from compileall import compile_dir
 from os import path as ospath
 from threading import Thread
 
@@ -54,10 +55,17 @@ def process_pyproject(pyproj_file):
         if p[1] == ':': return pretty_path(p)  # FIXME: doesn't work in macOS
         return pretty_path(ospath.abspath(f'{pyproj_dir}/{p}'))
     
-    def relpath(p: str):
+    def relpath(p: str, start):
+        # 注意: pyproj_dir 与 start 可能是不同的. 在 conf_i 中, 所有相对路径均是指
+        # 相对于 pyproj_dir 的, 而在本函数中, 相对路径的计算是相对于
+        # conf_i['build']['idir'] 的父目录而言 (该目录相当于 `_apply_config:vars
+        # :srcdir`)
+        # 当 pyproject.json 位于要打包的项目源代码的父目录时, pyproj_dir 与 start
+        # 相同 (这是推荐的放置位置); 如果 pyproject.json 放置不当, 比如放在了其他
+        # 目录, 那么就会不同.
         if p == '': return ''
-        if p[1] == ':': return pretty_path(ospath.relpath(p, pyproj_dir))
-        return pretty_path(p)
+        if p[1] == ':': return pretty_path(ospath.relpath(p, start))
+        return pretty_path(ospath.relpath(abspath(p), start))
     
     # --------------------------------------------------------------------------
     
@@ -69,7 +77,13 @@ def process_pyproject(pyproj_file):
     assert conf_i['app_version']
     if pyver := conf_i['build']['required']['python_version']:
         assert pyver.replace('.', '').isdigit() and len(pyver.split('.')) == 2
-    
+    build_idir = abspath(conf_i['build']['idir'])
+    build_idir_parent = ospath.dirname(build_idir)
+    #   该值相当于 `_apply_config:vars:srcdir`
+    # # del build_idir
+
+    # --------------------------------------------------------------------------
+
     # assign conf_i to conf_o
     conf_o['app_name'] = conf_i['app_name']
     conf_o['app_version'] = conf_i['app_version']
@@ -84,7 +98,7 @@ def process_pyproject(pyproj_file):
     ))
     conf_o['build']['readme'] = abspath(conf_i['build']['readme'])
     conf_o['build']['module_paths'] = [
-        relpath(p) for p in conf_i['build']['module_paths']
+        relpath(p, build_idir_parent) for p in conf_i['build']['module_paths']
     ]
     conf_o['build']['attachments'] = {
         abspath(k): v for (k, v) in conf_i['build']['attachments'].items()
@@ -92,7 +106,7 @@ def process_pyproject(pyproj_file):
     
     conf_o['build']['target'] = conf_i['build']['target']
     conf_o['build']['target']['file'] = relpath(
-        conf_i['build']['target']['file']
+        conf_i['build']['target']['file'], build_idir_parent
     )
     
     conf_o['build']['required'] = conf_i['build']['required']
@@ -130,7 +144,7 @@ def _apply_config(app_name, idir, odir, target, required,
     if attachments is None: attachments = {}
     
     # precheck
-    _precheck_args(idir, odir, attachments, required['python_version'])
+    _precheck_args(idir, odir, readme, attachments, required['python_version'])
     
     # if output dirs not exist, create them
     rootdir, srcdir = odir, f'{odir}/src'
@@ -178,8 +192,7 @@ def _apply_config(app_name, idir, odir, target, required,
 
 # ------------------------------------------------------------------------------
 
-def _precheck_args(idir, odir, attachments, pyversion):
-    # TODO: assert readme == '' or ospath.exists(readme)
+def _precheck_args(idir, odir, readme, attachments, pyversion):
     assert ospath.exists(idir)
     
     if ospath.exists(odir) and os.listdir(odir):
@@ -192,7 +205,9 @@ def _precheck_args(idir, odir, attachments, pyversion):
             # os.mkdir(odir)  # we'll make dir laterly in `_apply_config`
         else:
             raise FileExistsError
-    
+        
+    assert readme == '' or ospath.exists(readme)
+
     assert all(map(ospath.exists, attachments.keys()))
     
     from .checkup import check_pyversion
@@ -390,7 +405,8 @@ def _create_launcher(app_name, icon, target, rootdir,
     bootloader_name = 'bootloader'
     
     target_path = target['file']  # type: str
-    target_pkg = target_path.rsplit('/', 1)[0].replace('/', '.')
+    target_dir = target_path.rsplit('/', 1)[0]
+    target_pkg = target_dir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
     template = loads('template/bootloader.txt')
@@ -399,6 +415,7 @@ def _create_launcher(app_name, icon, target, rootdir,
         SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
         EXTEND_SYS_PATHS=str(extend_sys_paths),
         TARGET_PATH=target_path,
+        TARGET_DIR=target_dir,
         TARGET_PKG=target_pkg,
         TARGET_NAME=target_name,
         TARGET_FUNC=target['function'],
@@ -419,7 +436,7 @@ def _create_launcher(app_name, icon, target, rootdir,
         # 当前编译的 pyc 版本相同.
         template = loads('template/launch_by_system.bat')
     code = template.format(
-        LAUNCHER=f'{bootloader_name}.pyc'
+        LAUNCHER=f'{bootloader_name}.py'  # FIXME: use .pyc
         #   注意是 '{boot_name}.pyc' 而不是 '{boot_name}.cpython-38.pyc', 原因见
         #   `_compile_py_files:vars:ofp`
     )
@@ -431,8 +448,8 @@ def _create_launcher(app_name, icon, target, rootdir,
         from .bat_2_exe import bat_2_exe
         lk.loga('converting bat to exe... '
                 'it may take several seconds ~ one minute...')
-        ret = bat_2_exe(bat_file, exe_file, icon_file, *options)
-        lk.loga('convertion bat-to-exe done', ret)
+        bat_2_exe(bat_file, exe_file, icon_file, *options)
+        lk.loga('convertion bat-to-exe done')
         os.remove(bat_file)
     
     thread = Thread(
@@ -441,7 +458,7 @@ def _create_launcher(app_name, icon, target, rootdir,
               '/x64', 'invisible')
     )
     thread.start()
-    thread.join()
+    # thread.join()
 
 
 def _create_readme(ifile: str, distdir):
@@ -454,7 +471,6 @@ def _compile_py_files(idir):
     References:
         https://blog.csdn.net/weixin_38314865/article/details/90443135
     """
-    from compileall import compile_dir
     compile_dir(idir)
     
     for fp, fn in filesniff.findall_files(idir, suffix='.pyc', fmt='zip'):
