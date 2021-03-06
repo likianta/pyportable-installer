@@ -5,9 +5,9 @@
     "author": "",
     "build": {
         "idir": "",
-        "odir": "dist/{app_name}_{app_version}",
+        "odir": "dist/{app_name_lower}_{app_version}",
         "target": {
-            "main_script": "",
+            "file": "",
             "function": "main",
             "args": [],
             "kwargs": {}

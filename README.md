@@ -5,10 +5,10 @@
 它的流程可以概括如下:
 
 1. 准备您要打包的项目
-2. 在项目的根目录下新建一个 all-in-one 配置文件: pyproject.json ([这里](TODO) 有一个模板文件可供使用)
+2. 在项目的根目录下新建一个 all-in-one 配置文件: pyproject.json ([这里](lkdist/template/pyproject.json) 有一个模板文件可供使用)
 3. 通过 lkdist 处理此配置文件, 完成打包
 4. lkdist 会为您的项目生成:
-    1. 编译后的字节码文件 (.pyc), 这样用户无法直接查看到您的项目源代码
+    1. 编译后的字节码文件 (.pyc)
     2. 一个 exe 格式的启动器
     3. 自定义的启动器图标
     4. 一个干净的虚拟环境 (这是可选的)
@@ -17,7 +17,7 @@
 
 `lkdist` 具有以下特点:
 
-1. 打包后的体积极小 (在不附带虚拟环境的情况下, 与您的源代码体积相当 (这通常只有几百 KB))
+1. 打包后的体积很小 (在不附带虚拟环境的情况下, 与您的源代码体积相当 (这通常只有几百 KB))
 2. 方便. 您只需要维护一个 pyproject.json 配置文件即可
 3. 开箱即用. lkdist 打包后的目录结构非常清晰, 如下示例:
 
@@ -66,9 +66,44 @@ myproj
 |- README.md
 ```
 
+main.py 内容如下:
+
+```py
+def greeting(name):
+    print(f'Hello {name}!')
+```
+
 在 myproj 目录下新建 'pyproject.json' ([这里](TODO) 有一个模板文件可供使用), 填写以下内容:
 
-参考: [Pyproject Template](docs/pyproject%20template.md).
+```json
+{
+    "app_name": "Hello World",
+    "app_version": "0.1.0",
+    "icon": "",
+    "author": "Likianta <likianta@foxmail.com>",
+    "build": {
+        "idir": "hello_world",
+        "odir": "dist/{app_name}_{app_version}",
+        "target": {
+            "main_script": "hello_world/main.py",
+            "function": "greeting",
+            "args": [],
+            "kwargs": {"name": "Likia"}
+        },
+        "readme": "README.md",
+        "module_paths": [],
+        "attachments": {},
+        "required": {
+            "python_version": "3.9",
+            "enable_venv": false,
+            "venv": ""
+        }
+    },
+    "note": ""
+}
+```
+
+*参考: [Pyproject Template](docs/pyproject%20template.md).*
 
 # 进阶场景
 

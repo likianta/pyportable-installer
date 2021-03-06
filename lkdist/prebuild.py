@@ -51,7 +51,7 @@ def process_pyproject(pyproj_file):
     def abspath(p: str):
         if p == '': return ''
         if p[1] == ':': return pretty_path(p)  # FIXME: doesn't work in macOS
-        return pretty_path(f'{pyproj_dir}/{p}')
+        return pretty_path(ospath.abspath(f'{pyproj_dir}/{p}'))
     
     def relpath(p: str):
         if p == '': return ''
@@ -66,8 +66,8 @@ def process_pyproject(pyproj_file):
     
     # check conf_i
     assert conf_i['app_version']
-    if pyver := conf_i['required']['python_version']:
-        assert pyver.isdecimal() and len(pyver.split('.')) == 2
+    if pyver := conf_i['build']['required']['python_version']:
+        assert pyver.replace('.', '').isdigit() and len(pyver.split('.')) == 2
     
     # assign conf_i to conf_o
     conf_o['app_name'] = conf_i['app_name']
@@ -77,7 +77,9 @@ def process_pyproject(pyproj_file):
     
     conf_o['build']['idir'] = abspath(conf_i['build']['idir'])
     conf_o['build']['odir'] = abspath(conf_i['build']['odir'].format(
-        app_name=conf_i['app_name'], app_version=conf_i['app_version']
+        app_name=conf_i['app_name'],
+        app_name_lower=conf_i['app_name'].lower().replace(' ', '_'),
+        app_version=conf_i['app_version']
     ))
     conf_o['build']['readme'] = abspath(conf_i['build']['readme'])
     conf_o['build']['module_paths'] = [
@@ -94,13 +96,14 @@ def process_pyproject(pyproj_file):
     
     conf_o['build']['required'] = conf_i['build']['required']
     conf_o['build']['required']['venv'] = abspath(
-        conf_i['build']['target']['venv']
+        conf_i['build']['required']['venv']
     )
     
     conf_o['note'] = conf_i['note']
     
     # run conf_o
     lk.logp(conf_o)
+    input('continue?')
     _apply_config(conf_o['app_name'], **conf_o['build'], icon=conf_o['icon'])
 
 
@@ -174,6 +177,7 @@ def _apply_config(app_name, idir, odir, target, required,
 # ------------------------------------------------------------------------------
 
 def _precheck_args(idir, odir, attachments, pyversion):
+    # TODO: assert readme == '' or ospath.exists(readme)
     assert ospath.exists(idir)
     
     if ospath.exists(odir) and os.listdir(odir):
@@ -189,7 +193,7 @@ def _precheck_args(idir, odir, attachments, pyversion):
     
     assert all(map(ospath.exists, attachments.keys()))
     
-    from checkup import check_pyversion
+    from .checkup import check_pyversion
     curr_ver, result = check_pyversion(*map(int, pyversion.split('.')))
     assert result is True, \
         f'prebuild 使用的 Python 版本 ({curr_ver}) ' \
@@ -222,25 +226,25 @@ def _copy_assets(attachments, srcdir):
         dirpath
     """
     
-    def copy_tree_excludes_protected_folders(idir, odir):
+    def copy_tree_excludes_protected_folders(irootdir, orootdir):
         invalid_pattern = re.compile(r'/(\.|__?)\w+')
         #   e.g. '/.git', '/__pycache__'
         
         valid_dirs = []  # [(i, o), ...]
-        for idir0 in idir:
-            odir0 = f'{odir}/{ospath.basename(idir0)}'
-            valid_dirs.append((idir0, odir0))
-            
-            # FIXME: 1.4.4 版本的 lk-utils.filesniff.findall_dirs 不完善, 无法完
-            #   全地过滤掉需要被排除的文件, 所以我们自定义一个 invalid_pattern 来
-            #   处理
-            for idir1 in filesniff.findall_dirs(idir0):
-                if invalid_pattern.search(idir1):
-                    continue
-                odir1 = f'{odir0}/{idir1.replace(idir0 + "/", "", 1)}'
-                lk.logax(idir1, odir1)
-                valid_dirs.append((idir1, odir1))
+        # FIXME: 1.4.4 版本的 lk-utils.filesniff.findall_dirs 不完善, 无法完
+        #   全地过滤掉需要被排除的文件, 所以我们自定义一个 invalid_pattern 来
+        #   处理
+        for idir in filesniff.findall_dirs(irootdir):
+            if invalid_pattern.search(idir):
+                continue
+            odir = f'{orootdir}/{idir.replace(irootdir + "/", "", 1)}'
+            lk.logax(idir, odir)
+            valid_dirs.append((idir, odir))
         lk.reset_count()
+        
+        # test
+        lk.loga(valid_dirs[:10])
+        if len(valid_dirs) > 10: raise Exception(len(valid_dirs))
         
         for (i, o) in valid_dirs:
             filesniff.force_create_dirpath(o)
@@ -424,9 +428,9 @@ def _create_launcher(app_name, icon, target, rootdir,
     bat_file = f'{rootdir}/{launcher_name}.bat'
     dumps(code, bat_file)
     
-    from lkdist.bat_2_exe import bat_2_exe
+    from .bat_2_exe import bat_2_exe
     bat_2_exe(bat_file, f'{rootdir}/{app_name}.exe',
-              icon, '/x64', '/invisible')
+              icon, '/x64')
     os.remove(bat_file)
 
 
