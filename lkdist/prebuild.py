@@ -15,20 +15,20 @@ class GlobalConf:
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
     create_venv_shell = True
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
-    create_launch_bat = True  # True|False
+    create_launcher = True  # True|False
 
 
 def full_build(file):
     GlobalConf.create_checkup_tool = True
     GlobalConf.create_venv_shell = True
-    GlobalConf.create_launch_bat = True
+    GlobalConf.create_launcher = True
     process_pyproject(file)
 
 
 def min_build(file):
     GlobalConf.create_checkup_tool = False
     GlobalConf.create_venv_shell = False
-    GlobalConf.create_launch_bat = False
+    GlobalConf.create_launcher = False
     process_pyproject(file)
 
 
@@ -101,11 +101,11 @@ def process_pyproject(pyproj_file):
     
     # run conf_o
     lk.logp(conf_o)
-    _apply_config(conf_o['app_name'], **conf_o['build'])
+    _apply_config(conf_o['app_name'], **conf_o['build'], icon=conf_o['icon'])
 
 
 def _apply_config(app_name, idir, odir, target, required,
-                  readme='', module_paths=None, attachments=None):
+                  readme='', module_paths=None, attachments=None, **kwargs):
     """
     
     Args:
@@ -119,6 +119,8 @@ def _apply_config(app_name, idir, odir, target, required,
         module_paths (list): see `_create_launcher()`
         attachments (dict): 其他要加入的目录
         required (dict)
+        **kwargs:
+            icon
     """
     # adjust args
     if module_paths is None: module_paths = []
@@ -128,8 +130,8 @@ def _apply_config(app_name, idir, odir, target, required,
     _precheck_args(idir, odir, attachments, required['python_version'])
     
     # if output dirs not exist, create them
-    rootdir, srcdir, buildir = odir, f'{odir}/src', f'{odir}/build'
-    #   'root directory', 'source code directory', and 'build (noun.) directory'
+    rootdir, srcdir = odir, f'{odir}/src'
+    #   'root directory', 'source code directory'
     filesniff.force_create_dirpath(srcdir)
     
     # --------------------------------------------------------------------------
@@ -141,11 +143,11 @@ def _apply_config(app_name, idir, odir, target, required,
     dirs_to_compile.extend(_copy_assets(attachments, srcdir))
     
     if GlobalConf.create_checkup_tool:
-        filesniff.force_create_dirpath(buildir)
-        _copy_checkup_tool(buildir)
+        os.mkdir(f'{odir}/build')
+        _copy_checkup_tool(f'{odir}/build')
     
     _create_launcher(
-        app_name, target, rootdir,
+        app_name, kwargs.get('icon', 'template/python.ico'), target, rootdir,
         extend_sys_paths=module_paths,
         enable_venv=required['enable_venv']
     )
@@ -157,12 +159,14 @@ def _apply_config(app_name, idir, odir, target, required,
         _compile_py_files(d)
         _cleanup_py_files(d)
         #   you can comment this line to remain .py files for debugging purpose
-    # # [_compile_py_files(d) for d in dirs_to_compile]
-    # # [_cleanup_py_files(d) for d in dirs_to_compile]
     
     if required['enable_venv'] and GlobalConf.create_venv_shell:
+        os.mkdir(f'{odir}/venv')
         _copy_venv(required['venv'], f'{rootdir}/venv',
-                   required['python_version'])
+                   required['python_version'],
+                   include_tkinter=True)
+        #   include_tkinter: 考虑到我们的 bootloader 有用到 tkinter 的 msgbox, 所
+        #   以这里选用有 tkinter 模块的版本
     
     lk.logt("[I2501]", f'See distributed project at \n\t"{rootdir}:0"')
 
@@ -282,6 +286,7 @@ def _copy_assets(attachments, srcdir):
 
 
 def _copy_checkup_tool(buildir):
+    # buildir: 'build (noun.) directory'
     shutil.copyfile('checkup.py', f'{buildir}/checkup.py')
     shutil.copyfile('pretty_print.py', f'{buildir}/pretty_print.py')
 
@@ -292,26 +297,24 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
         src_venv_dir: 'source virtual environment directory'.
             tip: you can pass an empty to this argument, see reason at `Notes:3`
         dst_venv_dir: 'distributed virtual environment directory'
-        pyversion
+        pyversion: e.g. '3.8'. 请确保该版本与 lkdist 所用的 Python 编译器, 以及
+            src_venv_dir 所用的 Python 版本一致 (修订号可以不一样), 否则
+            _compile_py_files 编译出来的 .pyc 文件无法运行!
         include_tkinter: 默认的 embed python 安装包是不带 tkinter 模块的, 如果需
             要, 则会使用一个修改过的 embed python 安装包 (修改只涉及复制了 tkinter
             相关的模块到原生 embed python 安装目录内)
     
     Notes:
-        1. 如果您使用了虚拟环境, 则确保本项目 (lkdist) 的 Python 编译器版本与虚
-           拟环境的 Python 版本 (即 GlobalConf.proj_required_python_version) 一
-           致! 否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
-        2. 不能简单地把源 venv 拷贝到打包目录, 因为源 venv 里面的 Python 是不可
-           独立使用的. 这意味着, 在一个没有安装过 Python 的用户电脑上, 调用此
-           venv 下的 Python 将失败! 我们需要的是一个嵌入版的 Python (在 Python
-           官网下载带有 "embed" 字样的压缩包, 并解压, 我在 lib 目录下已经做到
-           了), 并且需要在 launch_core.py (see `_create_launcher`) 中显式地引入
-           launch_core.py 所在的目录路径和 venv 下的 site-packages 目录的路径 --
-           源 venv/Lib/site-packages 拷贝到此处
-        3. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
-           数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
-           但 '{dst_venv_dir}/site-packages' 会留空. 稍后您可以手动地复制, 或剪
-           切所需的依赖到 '{dst_venv_dir}/site-packages'
+        1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
+           拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
+           也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下的
+           Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在 Python 官
+           网下载带有 "embed" 字样的压缩包, 并解压, 我在 lkdist 项目下已经准备了一
+           份)
+        2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参数
+           传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir), 并让
+           '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪切所需
+           的依赖到 '{dst_venv_dir}/site-packages'
            
     Results:
         copy source dir to target dir:
@@ -319,9 +322,11 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
             {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
     """
     # create venv shell
-    embed_python_dir0 = '../assets/embed_python_with_tkinter' \
-        if include_tkinter else '../assets/embed_python'
+    embed_python_dir0 = '../python_embed/tkinter_edition' \
+        if include_tkinter else '../python_embed'
     embed_python_dir = {
+        # note: 我只准备了 amd64 版的 embed python, 如果您要生成 32 位的, 请手动
+        # 修改这里! (暂不支持通过 pyproject.json 修改)
         '3.8': f'{embed_python_dir0}/python-3.8.5-embed-amd64',
         '3.9': f'{embed_python_dir0}/python-3.9.0-embed-amd64'
     }[pyversion]
@@ -336,11 +341,13 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
         os.mkdir(f'{dst_venv_dir}/site-packages')
 
 
-def _create_launcher(app_name, target, rootdir,
+def _create_launcher(app_name, icon, target, rootdir,
                      extend_sys_paths=None, enable_venv=True):
     """ 创建启动器.
     
     Args:
+        app_name (str)
+        icon (str)
         target (dict): {
             'file': filepath,
             'function': str,
@@ -400,7 +407,7 @@ def _create_launcher(app_name, target, rootdir,
     
     # --------------------------------------------------------------------------
     
-    if not GlobalConf.create_launch_bat:
+    if not GlobalConf.create_launcher:
         return
     
     if enable_venv:  # suggest
@@ -414,7 +421,13 @@ def _create_launcher(app_name, target, rootdir,
         #   注意是 '{boot_name}.pyc' 而不是 '{boot_name}.cpython-38.pyc', 原因见
         #   `_compile_py_files:vars:ofp`
     )
-    dumps(code, f'{rootdir}/{launcher_name}.bat')
+    bat_file = f'{rootdir}/{launcher_name}.bat'
+    dumps(code, bat_file)
+    
+    from lkdist.bat_2_exe import bat_2_exe
+    bat_2_exe(bat_file, f'{rootdir}/{app_name}.exe',
+              icon, '/x64', '/invisible')
+    os.remove(bat_file)
 
 
 def _create_readme(ifile: str, distdir):
