@@ -1,3 +1,4 @@
+import re
 import os
 import shutil
 from os import path as ospath
@@ -10,227 +11,291 @@ from lk_utils.read_and_write import dumps, loads
 class GlobalConf:
     # 对于一些修改较为频繁, 但用途很小的参数, 放在了这里. 您可以按需修改
     # 使用 Pycharm 的搜索功能查看它在哪里被用到
-    proj_required_python_version = '3.8'
-    app_version_to_suffix = True  # True|False
     create_checkup_tool = True  # True|False
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
-    create_launch_bat = True  # True|False
     create_venv_shell = True
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
+    create_launch_bat = True  # True|False
 
 
 def full_build(file):
-    GlobalConf.app_version_to_suffix = True
     GlobalConf.create_checkup_tool = True
+    GlobalConf.create_venv_shell = True
     GlobalConf.create_launch_bat = True
-    main_from_pyproject(file)
+    process_pyproject(file)
 
 
 def min_build(file):
-    GlobalConf.app_version_to_suffix = True
     GlobalConf.create_checkup_tool = False
     GlobalConf.create_venv_shell = False
     GlobalConf.create_launch_bat = False
-    main_from_pyproject(file)
+    process_pyproject(file)
 
 
-def main_from_pyproject(file):
+def process_pyproject(pyproj_file):
     """
     Args:
-        file: see 'template/pyproject.json'
+        pyproj_file: pyproject.json.
+        
+    References:
+        docs/pyproject template.md
+        lkdist/template/pyproject.json
     """
-    from copy import deepcopy
     
     def pretty_path(p):
         return p.replace('\\', '/')
     
-    def formatify_path(p: str):
-        if p == '':  # empty
-            return ''
-        elif p[1] == ':':  # absolute path
-            return pretty_path(p)
-        else:  # relative path
-            return pretty_path(f'{adir}/{p}')
+    pyproj_dir = pretty_path(ospath.abspath(f'{pyproj_file}/../'))
+    lk.loga(pyproj_dir)
     
-    adir = pretty_path(ospath.abspath(f'{file}/../'))
-    lk.loga(adir)
+    def abspath(p: str):
+        if p == '': return ''
+        if p[1] == ':': return pretty_path(p)  # FIXME: doesn't work in macOS
+        return pretty_path(f'{pyproj_dir}/{p}')
     
-    ikwargs = loads(file)
-    if GlobalConf.app_version_to_suffix:
-        ikwargs['odir'] += '_' + ikwargs['manifest']['app_version']
-    okwargs = deepcopy(ikwargs)  # type: dict
-    if 'note' in okwargs: okwargs.pop('note')
+    def relpath(p: str):
+        if p == '': return ''
+        if p[1] == ':': return pretty_path(ospath.relpath(p, pyproj_dir))
+        return pretty_path(p)
     
     # --------------------------------------------------------------------------
     
-    # 1/2
-    node = []
-    for p in ikwargs['idirs']:
-        node.append(formatify_path(p))
-    okwargs['idirs'] = node
+    conf_i = loads(pyproj_file)
+    conf_o = loads('template/pyproject.json')  # type: dict
+    #   conf_o has the same struct with conf_i
     
-    # 2/2
-    okwargs['odir'] = formatify_path(okwargs['odir'])
-    okwargs['readme'] = formatify_path(okwargs['readme'])
-    # noinspection PyTypeChecker
-    okwargs['manifest']['venv'] = formatify_path(okwargs['manifest']['venv'])
+    # check conf_i
+    assert conf_i['app_version']
+    if pyver := conf_i['required']['python_version']:
+        assert pyver.isdecimal() and len(pyver.split('.')) == 2
     
-    lk.logp(okwargs)
-    main(**okwargs)
+    # assign conf_i to conf_o
+    conf_o['app_name'] = conf_i['app_name']
+    conf_o['app_version'] = conf_i['app_version']
+    conf_o['icon'] = abspath(conf_i['icon'])
+    conf_o['author'] = conf_i['author']
+    
+    conf_o['build']['idir'] = abspath(conf_i['build']['idir'])
+    conf_o['build']['odir'] = abspath(conf_i['build']['odir'].format(
+        app_name=conf_i['app_name'], app_version=conf_i['app_version']
+    ))
+    conf_o['build']['readme'] = abspath(conf_i['build']['readme'])
+    conf_o['build']['module_paths'] = [
+        relpath(p) for p in conf_i['build']['module_paths']
+    ]
+    conf_o['build']['attachments'] = {
+        abspath(k): v for (k, v) in conf_i['build']['attachments'].items()
+    }
+    
+    conf_o['build']['target'] = conf_i['build']['target']
+    conf_o['build']['target']['file'] = relpath(
+        conf_i['build']['target']['file']
+    )
+    
+    conf_o['build']['required'] = conf_i['build']['required']
+    conf_o['build']['required']['venv'] = abspath(
+        conf_i['build']['target']['venv']
+    )
+    
+    conf_o['note'] = conf_i['note']
+    
+    # run conf_o
+    lk.logp(conf_o)
+    _apply_config(conf_o['app_name'], **conf_o['build'])
 
 
-def main(idir, odir, main_script,
-         readme='', extra_sys_paths=None, extra_idirs=None,
-         manifest=None):
+def _apply_config(app_name, idir, odir, target, required,
+                  readme='', module_paths=None, attachments=None):
     """
     
     Args:
-        idir: 文件夹的绝对路径或相对路径. 路径分隔符使用正斜杠
+        app_name (str)
+        idir (str): 文件夹的绝对路径或相对路径. 路径分隔符使用正斜杠
         odir (str): 'output directory'. 建议填 '../dist/xxx' (xxx 为你要发布的项
             目的名字, 可以带上版本号. 例如 '../dist/ufs_testcases_0.1.0')
-        main_script (str): 主脚本的路径
-            要求:
-                1. 必须是相对路径. 相对于 f'{odir}/src' 的路径
-                2. 该脚本的启动函数必须是 `main` (即 `def main(): ...`)
-            示例:
-                假设有项目:
-                    myproj
-                    |- src
-                        |- main.py
-                    |- pyproject.json
-                则 main_script 的相对路径为 'src/main.py' (相对于 'pyproject
-                .json' 所在的目录)
+        target (dict)
         readme (str): str endswith '.md'. 读我文档, 请确保后缀是 .md (markdown
             格式的文件), 本程序会把它转换为 html 格式并放在 odir 目录下
-        extra_sys_paths: see `_create_launcher()`
-        extra_idirs (dict): 其他要加入的目录
-        manifest (dict): see `_save_build_info()`
+        module_paths (list): see `_create_launcher()`
+        attachments (dict): 其他要加入的目录
+        required (dict)
     """
     # adjust args
-    if extra_sys_paths is None: extra_sys_paths = ()
-    if extra_idirs is None: extra_idirs = {}
-    if manifest is None: manifest = {}
-    idirs = (idir, *extra_idirs)
+    if module_paths is None: module_paths = []
+    if attachments is None: attachments = {}
     
     # precheck
-    _precheck_args(idirs, manifest)
+    _precheck_args(idir, odir, attachments, required['python_version'])
     
-    # gen dirs
+    # if output dirs not exist, create them
     rootdir, srcdir, buildir = odir, f'{odir}/src', f'{odir}/build'
     #   'root directory', 'source code directory', and 'build (noun.) directory'
-    filesniff.force_create_dirpath(buildir)
     filesniff.force_create_dirpath(srcdir)
-    
-    module_path, module_name = main_script[:-3].replace('/', '.').rsplit('.', 1)
-    #   main_script: 'xxx/yyy/zzz.py' -> 'xxx/yyy/zzz' -> 'xxx.yyy.zzz'
-    #   -> ('xxx.yyy', 'zzz') -> module_path: 'xxx.yyy', module_name: 'zzz'
     
     # --------------------------------------------------------------------------
     
-    # copy 1/2
-    _copy_sources(idirs, srcdir)
+    dirs_to_compile = []
     
-    # create 1/3
+    dirs_to_compile.extend(_copy_sources(idir, srcdir))
+    
+    dirs_to_compile.extend(_copy_assets(attachments, srcdir))
+    
     if GlobalConf.create_checkup_tool:
+        filesniff.force_create_dirpath(buildir)
         _copy_checkup_tool(buildir)
-    # create 2/3
+    
     _create_launcher(
-        target_path=module_path,
-        target_name=module_name,
-        rootdir=rootdir,
-        extra_sys_paths=extra_sys_paths,
-        enable_venv=manifest['enable_venv']
+        app_name, target, rootdir,
+        extend_sys_paths=module_paths,
+        enable_venv=required['enable_venv']
     )
-    # create 3/3
-    _create_readme(readme, rootdir)
     
-    # compile 1/1
-    _compile_py_files(odir)
-    _cleanup_py_files(odir)
-    # ↑ You can comment this line to remain .py files for debugging
+    if readme:
+        _create_readme(readme, rootdir)
     
-    # copy 2/2: 注意这一步必须放在 `_compile_py_files` 步骤之后
-    if manifest['enable_venv'] and GlobalConf.create_venv_shell:
-        _copy_venv(manifest['venv'], f'{rootdir}/venv')
+    for d in dirs_to_compile:
+        _compile_py_files(d)
+        _cleanup_py_files(d)
+        #   you can comment this line to remain .py files for debugging purpose
+    # # [_compile_py_files(d) for d in dirs_to_compile]
+    # # [_cleanup_py_files(d) for d in dirs_to_compile]
     
-    # save 1/1
-    _save_build_info(buildir, manifest or {})
+    if required['enable_venv'] and GlobalConf.create_venv_shell:
+        _copy_venv(required['venv'], f'{rootdir}/venv',
+                   required['python_version'])
     
     lk.logt("[I2501]", f'See distributed project at \n\t"{rootdir}:0"')
 
 
 # ------------------------------------------------------------------------------
 
-def _precheck_args(idirs, manifest):
-    assert all(map(ospath.exists, idirs))
-    assert manifest['app_name'] and manifest['app_version']
+def _precheck_args(idir, odir, attachments, pyversion):
+    assert ospath.exists(idir)
+    
+    if ospath.exists(odir) and os.listdir(odir):
+        if input(
+                '警告: 要打包的目录已存在!\n'
+                '您是否确认清空目标目录以重构: "{}"\n'
+                '请注意确认删除后内容无法恢复! (y/n): '.format(odir)
+        ).lower() == 'y':
+            shutil.rmtree(odir)
+            os.mkdir(odir)
+        else:
+            raise FileExistsError
+    
+    assert all(map(ospath.exists, attachments.keys()))
     
     from checkup import check_pyversion
-    curr_ver, result = check_pyversion(*map(
-        int,
-        (target_ver := GlobalConf.proj_required_python_version).split('.')
-    ))
+    curr_ver, result = check_pyversion(*map(int, pyversion.split('.')))
     assert result is True, \
         f'prebuild 使用的 Python 版本 ({curr_ver}) ' \
-        f'不符合目标编译版本 ({target_ver})!'
-    #   如遇到此报错, 请切换 pyinstaller_for_intranet 项目的 Python 版本至
-    #   target_ver. 示意图: 'docs/如何切换pycharm编译器版本.png'
+        f'不符合目标编译版本 ({pyversion})!'
 
 
-def _copy_sources(idirs, srcdir, force_rebuild=False):
-    """ 将选择的 idirs 全部拷贝到 odir.
+def _copy_sources(idir, srcdir):
+    """ 将 idir 的内容全部拷贝到 srcdir 下.
     
     Args:
-        idirs: see `main()`
-        srcdir: 'source code dir'. 传入 f'{odir}/src' <- x: `main:args:odir`
-        force_rebuild:
-            True: 删除 odir 中已存在的内容, 再创建 odir 空文件夹
+        idir: see `main()`
+        srcdir: 'source code dir'. 传入 `main:vars:srcdir`
     """
-    if force_rebuild and os.listdir(srcdir):
-        # 预先清空 '~/build/sources' 中的全部内容
-        if input('您确认删除文件夹 "{}" 吗? 请注意确认删除后内容无法恢复! '
-                 '(y/n): '.format(srcdir)) == 'y':
-            shutil.rmtree(srcdir)
-            os.mkdir(srcdir)
+    yield from _copy_assets({idir: 'assets,compile'}, srcdir)
+    # odir = f'{srcdir}/{ospath.basename(idir)}'
+    # shutil.copytree(idir, odir)
+    # return odir
+
+
+def _copy_assets(attachments, srcdir):
+    """
+    Args:
+        attachments (dict): {idir: type, ...}
+            idir (str)
+            type (str): 'assets'|'root_folder'|'root_assets'|'tree_folders'
+                |'compile'|'assets,compile,...' (多个值组合时, 用逗号分隔)
+        srcdir
     
-    # --------------------------------------------------------------------------
+    Yields:
+        dirpath
+    """
     
-    import re
-    pattern = re.compile(r'/(\.|__?)\w+')
-    
-    valid_dirs = []
-    for idir0 in idirs:
-        odir0 = f'{srcdir}/{ospath.basename(idir0)}'
-        valid_dirs.append((idir0, odir0))
+    def copy_tree_excludes_protected_folders(idir, odir):
+        invalid_pattern = re.compile(r'/(\.|__?)\w+')
+        #   e.g. '/.git', '/__pycache__'
         
-        for idir1 in filesniff.findall_dirs(idir0):
-            if pattern.search(idir1):
-                continue
-            odir1 = f'{odir0}/{idir1.replace(idir0 + "/", "", 1)}'
-            lk.logax(idir1, odir1)
-            valid_dirs.append((idir1, odir1))
-    lk.reset_count()
+        valid_dirs = []  # [(i, o), ...]
+        for idir0 in idir:
+            odir0 = f'{odir}/{ospath.basename(idir0)}'
+            valid_dirs.append((idir0, odir0))
+            
+            # FIXME: 1.4.4 版本的 lk-utils.filesniff.findall_dirs 不完善, 无法完
+            #   全地过滤掉需要被排除的文件, 所以我们自定义一个 invalid_pattern 来
+            #   处理
+            for idir1 in filesniff.findall_dirs(idir0):
+                if invalid_pattern.search(idir1):
+                    continue
+                odir1 = f'{odir0}/{idir1.replace(idir0 + "/", "", 1)}'
+                lk.logax(idir1, odir1)
+                valid_dirs.append((idir1, odir1))
+        lk.reset_count()
+        
+        for (i, o) in valid_dirs:
+            filesniff.force_create_dirpath(o)
+            for fp, fn in filesniff.find_files(i, fmt='zip'):
+                ifp, ofp = fp, f'{o}/{fn}'
+                shutil.copyfile(ifp, ofp)
+        del valid_dirs
     
-    for (i, o) in valid_dirs:
-        filesniff.force_create_dirpath(o)
-        for fp, fn in filesniff.find_files(i, fmt='zip'):
-            ifp, ofp = fp, f'{o}/{fn}'
-            shutil.copyfile(ifp, ofp)
+    for idir, type_ in attachments.items():
+        dirname = ospath.basename(idir)
+        odir = f'{srcdir}/{dirname}'
+        
+        ''' pyswitch
+        from pyswitch import switch
+        
+        switch(lambda v: bool(v in type_), """
+            case 'assets':
+                pass
+            case 'root_folder':
+                pass
+            ...
+        """)
+        '''
+        
+        if 'assets' in type_:
+            if 'compile' in type_:
+                copy_tree_excludes_protected_folders(idir, odir)
+            else:
+                shutil.copytree(idir, odir)
+        elif 'root_folder' in type_:
+            os.mkdir(odir)
+        elif 'root_assets' in type_:
+            for fp, fn in filesniff.find_files(idir, fmt='zip'):
+                shutil.copyfile(fp, f'{odir}/{fn}')
+            for dp, dn in filesniff.find_dirs(idir, fmt='zip'):
+                os.mkdir(f'{odir}/{dn}')
+        elif 'tree_folders' in type_:
+            for dp, dn in filesniff.findall_dirs(idir, fmt='zip'):
+                os.mkdir(dp.replace(idir, odir, 1))
+        
+        if 'compile' in type_:
+            yield odir
 
 
 def _copy_checkup_tool(buildir):
-    shutil.copyfile('../pyinstaller_for_intranet/checkup.py',
-                    f'{buildir}/checkup.py')
-    shutil.copyfile('../pyinstaller_for_intranet/pretty_print.py',
-                    f'{buildir}/pretty_print.py')
+    shutil.copyfile('checkup.py', f'{buildir}/checkup.py')
+    shutil.copyfile('pretty_print.py', f'{buildir}/pretty_print.py')
 
 
-def _copy_venv(src_venv_dir, dst_venv_dir):
+def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
     """
     Args:
         src_venv_dir: 'source virtual environment directory'.
             tip: you can pass an empty to this argument, see reason at `Notes:3`
         dst_venv_dir: 'distributed virtual environment directory'
+        pyversion
+        include_tkinter: 默认的 embed python 安装包是不带 tkinter 模块的, 如果需
+            要, 则会使用一个修改过的 embed python 安装包 (修改只涉及复制了 tkinter
+            相关的模块到原生 embed python 安装目录内)
     
     Notes:
         1. 如果您使用了虚拟环境, 则确保本项目 (lkdist) 的 Python 编译器版本与虚
@@ -254,71 +319,84 @@ def _copy_venv(src_venv_dir, dst_venv_dir):
             {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
     """
     # create venv shell
-    if (v := GlobalConf.proj_required_python_version) == '3.8':
-        embed_python_dir = '../lib/python-3.8.5-embed-amd64'
-    elif v == '3.9':
-        embed_python_dir = '../lib/python-3.9.0-embed-amd64'
-    else:
-        raise Exception('Unsupported target python version!', v)
+    embed_python_dir0 = '../assets/embed_python_with_tkinter' \
+        if include_tkinter else '../assets/embed_python'
+    embed_python_dir = {
+        '3.8': f'{embed_python_dir0}/python-3.8.5-embed-amd64',
+        '3.9': f'{embed_python_dir0}/python-3.9.0-embed-amd64'
+    }[pyversion]
+    
     shutil.copytree(embed_python_dir, dst_venv_dir)
     
     # copy site-packages
     if ospath.exists(src_venv_dir):
         shutil.copytree(f'{src_venv_dir}/Lib/site-packages',
                         f'{dst_venv_dir}/site-packages')
-    else:  # just create a empty dir
+    else:  # just create an empty folder
         os.mkdir(f'{dst_venv_dir}/site-packages')
 
 
-def _create_launcher(target_path, target_name, rootdir, extra_sys_paths=None,
-                     enable_venv=False):
-    """
-    创建一个启动器, 启动器分为两部分, 一个位于 '{rootdir}' 目录, 一个位于
-    '{rootdir}/src' 目录. 前者生成的文件是 '{rootdir}/launcher.bat', 后者生成的
-    文件是 '{rootdir}/src/launcher_core.py' (后面会编译成 launcher_core.pyc). 我
-    们可从 '{rootdir}/launcher.bat' 双击启动程序.
-    
-    Notes:
-        1. 启动器的名字暂不支持自定义
-        2. 启动器的目录与 target_path 的目录可能不一样, 需要修改为 target_path
-           的目录 (即在启动器中调用 `os.chdir` 切换到 target_path 的目录)
-           为什么? -- 源码中的相对路径都是相对 target_path 而言的, 所以我们必须
-           确保 Python 能把 target_path 所在的目录认作 current working dir (通过
-           `os.getcwd` 来验证)
+def _create_launcher(app_name, target, rootdir,
+                     extend_sys_paths=None, enable_venv=True):
+    """ 创建启动器.
     
     Args:
-        target_path: see `main:args:main_script`
-        target_name: see `main:args:main_script`
-        rootdir: 建议放在发布包的根目录下, 创建名为 'launcher.py' (推荐) 的文件
-        extra_sys_paths: tuple|list|None. 该路径会被作为 sys.path 添加到启动模块.
-            当使用 空元祖/空列表/None 时, 表示没有额外的导入路径要添加.
-            当使用元组/列表时, 每个元素都需要符合以下要求:
-                1. 文件夹的路径 (str)
-                2. 必须是相对路径. 相对于 srcdir 的路径
-        enable_venv: 推荐为 True
+        target (dict): {
+            'file': filepath,
+            'function': str,
+            'args': [...],
+            'kwargs': {...}
+        }
+        rootdir (str): 打包的根目录
+        extend_sys_paths (list):. 模块搜索路径, 该路径会被添加到 sys.path.
+            列表中的元素是相对于 srcdir 的文件夹路径 (必须是相对路径格式. 参考
+            `process_pyproject:conf_o['build']['module_paths']`)
+        enable_venv (bool): 推荐为 True
+    
+    详细说明:
+        启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
+        启动器图标位于: '{rootdir}/{app_name}.exe'
+        引导装载程序位于: '{rootdir}/src/bootloader.pyc'
+        
+        1. 二者的体积都非常小
+        2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的路
+           径和 bootloader 的路径, 通过调用编译器执行 bootloader.pyc
+        3. bootloader 主要完成了以下两项工作:
+            1. 向 sys.path 中添加当前工作目录和自定义的模块目录
+            2. 对主脚本加了一个 try catch 结构, 以便于捕捉主程序报错时的信息, 并以
+               tkinter 弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
+               件表现得更像是一款软件
+    
+    Notes:
+        1. 启动器在调用主脚本 (main:args:main_script) 之前, 会通过 `os.chdir` 切
+           换到主脚本所在的目录, 这样我们项目源代码中的所有相对路径, 相对引用都能正
+           常工作
     
     References:
         template/launch_by_system.bat
         template/launch_by_venv.bat
-        template/launch_core.txt
-        
-    Results:
-        在 '{rootdir}/src' 目录生成一个 launch_core.py (后面会编译成 launch_core
-        .pyc); 在  '{rootdir}' 目录生成一个 launch.bat. 然后我们可从 '{rootdir}/
-        launch.bat' 双击启动.
+        template/bootloader.txt
     """
-    bat_name = 'launch'
-    core_name = 'launch_core'
+    launcher_name = app_name
+    bootloader_name = 'bootloader'
     
-    template = loads('template/launch_core.txt')
-    launch_code = template.format(
+    target_path = target['file']  # type: str
+    target_pkg = target_path.rsplit('/', 1)[0].replace('/', '.')
+    target_name = filesniff.get_filename(target_path, suffix=False)
+    
+    template = loads('template/bootloader.txt')
+    code = template.format(
+        # see `template/bootloader.txt:Template placeholders`
         SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
-        EXTRA_SYS_PATHS=str(extra_sys_paths),
+        EXTEND_SYS_PATHS=str(extend_sys_paths),
         TARGET_PATH=target_path,
-        TARGET_DIR=target_path.replace('.', '/'),
+        TARGET_PKG=target_pkg,
         TARGET_NAME=target_name,
+        TARGET_FUNC=target['function'],
+        TARGET_ARGS=str(target['args']),
+        TARGET_KWARGS=str(target['kwargs']),
     )
-    dumps(launch_code, f'{rootdir}/src/{core_name}.py')
+    dumps(code, f'{rootdir}/src/{bootloader_name}.py')
     
     # --------------------------------------------------------------------------
     
@@ -328,21 +406,20 @@ def _create_launcher(target_path, target_name, rootdir, extra_sys_paths=None,
     if enable_venv:  # suggest
         template = loads('template/launch_by_venv.bat')
     else:
-        # 注意: 这个不太安全, 因为我们不能确定用户系统安装默认的 Python 版本是否
-        # 与当前编译的 pyc 版本相同.
+        # 注意: 这个不太安全, 因为我们不能确定用户系统安装默认的 Python 版本是否与
+        # 当前编译的 pyc 版本相同.
         template = loads('template/launch_by_system.bat')
-    bat_code = template.format(
-        LAUNCHER=f'{core_name}.pyc'
-        #   注意是 'launch_core.pyc' 而不是 'launch_core.cpython-38.pyc', 原因见
+    code = template.format(
+        LAUNCHER=f'{bootloader_name}.pyc'
+        #   注意是 '{boot_name}.pyc' 而不是 '{boot_name}.cpython-38.pyc', 原因见
         #   `_compile_py_files:vars:ofp`
     )
-    dumps(bat_code, f'{rootdir}/{bat_name}.bat')
+    dumps(code, f'{rootdir}/{launcher_name}.bat')
 
 
-def _create_readme(ifile: str, distdir):  # TODO: generate a .html file
-    if ifile:
-        ofile = f'{distdir}/{ospath.basename(ifile)}'
-        shutil.copyfile(ifile, ofile)
+def _create_readme(ifile: str, distdir):
+    ofile = f'{distdir}/{ospath.basename(ifile)}'
+    shutil.copyfile(ifile, ofile)
 
 
 def _compile_py_files(idir):
@@ -352,15 +429,15 @@ def _compile_py_files(idir):
     """
     from compileall import compile_dir
     compile_dir(idir)
+    
     for fp, fn in filesniff.findall_files(idir, suffix='.pyc', fmt='zip'):
         #   fp: 'filepath', fn: 'filename', e.g. 'xxx.cpython-38.pyc'
         ifp = fp
         ofp = f'{fp}/../../{fn.split(".", 1)[0]}.pyc'
-        #   注意:
-        #       1. 第一个 '../' 表示自身所在的目录, 第二个 '../' 指向上一级目录
-        #       2. 不能直接使用 fn, 因为 fn 的后缀是 '.cpython-38.pyc', 会导致
-        #          Python 的导入语法不能正常工作 (提示 "ImportError: No module
-        #          named 'model'"), 为了解决此问题, 将后缀改为 '.pyc' 即可.
+        #   1. 第一个 '../' 表示自身所在的目录, 第二个 '../' 指向上一级目录
+        #   2. 不能直接使用 fn, 因为 fn 的后缀是 '.cpython-38.pyc', 会导致 Python
+        #      的导入语法不能正常工作 (提示 "ImportError: No module named
+        #      'model'"), 为了解决此问题, 将后缀改为 '.pyc' 即可.
         shutil.move(ifp, ofp)
 
 
@@ -368,58 +445,10 @@ def _cleanup_py_files(idir):
     # delete __pycache__ folders (the folders are empty)
     for dp in filesniff.findall_dirs(  # dp: 'dirpath'
             idir, suffix='__pycache__',
-            exclude_protected_folder=False
+            exclude_protected_folders=False
     ):
         os.rmdir(dp)
     
     # and delete .py files
     for fp in filesniff.findall_files(idir, suffix='.py'):
         os.remove(fp)
-
-
-def _save_build_info(buildir, manifest: dict):
-    """
-    
-    Args:
-        buildir:
-        manifest: {str k: str v, ...}
-            见 `vars:default_manifest`. 其中 'suggest filling it' 的部分是推荐您
-            传入的, 其他则推荐使用默认值或自动生成的值.
-            关于每个键的解释, 见 `vars:default_manifest` 的注释
-            See Also "template/manifest.json"
-    """
-    from sys import version_info as ver
-    pyversion = f'{ver.major}.{ver.minor}.0'  # e.g. '3.9.0'
-    #   注意是从 buildir 的父目录开始计算的. 它最终的目的是, 描述 launcher_file
-    #   相对于 f'{odir}/setup.pyc' 的路径
-    
-    # update build manifest
-    default_manifest = {
-        # suggest filling it
-        'app_name'      : '',  # 建议首字母大写, 空格分隔的标题命名法
-        'app_version'   : '0.1.0',
-        'icon'          : '',  # base64 string or bundled file
-        'author'        : '',
-        'venv'          : '',
-        
-        # suggest using default
-        'enable_venv'   : True,
-        'check_pip_repo': True,
-        
-        # auto generated
-        'python_version': pyversion,
-    }
-    default_manifest.update(manifest)
-    manifest = default_manifest
-    
-    # output
-    dumps(manifest, f'{buildir}/manifest.json')
-
-
-if __name__ == '__main__':
-    # main_from_pyproject(
-    #     r'D:\Likianta\workspace\com_huawei_likianta\autotest_visual_modeling\pyproject.json'
-    # )
-    main_from_pyproject(
-        r'D:\Likianta\temp\test_20210201_202712\pyproject.json'
-    )

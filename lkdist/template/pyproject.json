@@ -3,22 +3,23 @@
     "app_version": "0.1.0",
     "icon": "",
     "author": "",
-    "required": {
-        "python_version": "3.8",
-        "enable_venv": true,
-        "venv": ""
-    },
     "build": {
         "idir": "",
         "odir": "dist/{app_name}_{app_version}",
-        "main_script": "",
         "target": {
+            "main_script": "",
             "function": "main",
             "args": [],
             "kwargs": {}
         },
         "readme": "README.md",
         "module_paths": [],
-        "attachments": {}
-    }
+        "attachments": {},
+        "required": {
+            "python_version": "3.8",
+            "enable_venv": true,
+            "venv": ""
+        }
+    },
+    "note": ""
 }

@@ -78,10 +78,4 @@ TODO
 
 1. 安装路径不能包含中文, 这会导致无法从自带的虚拟环境启动 Python 解释器 (可能与 embed python edition 有关)
 2. pyc 有被反编的风险, 请阅读 [此文](TODO) 了解更多
-3. 要启动的 py 文件必须包含 main 函数, 即:
-
-    ```python
-    # main.py
-    def main(*args **kwargs):
-        pass
-    ```
+3. 本项目仅在 Windows 系统上测试通过

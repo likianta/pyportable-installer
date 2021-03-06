@@ -1,10 +1,13 @@
 """
 Template placeholders:
     SITE_PACKAGES
-    EXTRA_SYS_PATHS
+    EXTEND_SYS_PATHS
     TARGET_PATH
-    TARGET_DIR
+    TARGET_PKG
     TARGET_NAME
+    TARGET_FUNC
+    TARGET_ARGS
+    TARGET_KWARGS
 
 References:
     pyinstaller_for_intranet.prebuild._create_launcher
@@ -19,7 +22,7 @@ if site_packages := '{SITE_PACKAGES}':  # see `prebuild._copy_venv`
     sys.path.append(os.path.abspath('.'))
     sys.path.append(os.path.abspath(site_packages))
 
-if extra_paths := {EXTRA_SYS_PATHS}:
+if extra_paths := {EXTEND_SYS_PATHS}:
     sys.path.extend(map(os.path.abspath, extra_paths))
 
 # ------------------------------------------------------------------------------
@@ -63,6 +66,6 @@ def launch(func, *args, **kwargs):
 
 if __name__ == '__main__':
     from {TARGET_PATH} import {TARGET_NAME} as myapp
-    # 确保所有引用文件时的相对路径都是相对于 TARGET_DIR 的
-    os.chdir('{TARGET_DIR}')
-    launch(myapp.main)
+    # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
+    os.chdir('{TARGET_PKG}')
+    launch(myapp.{TARGET_FUNC}, *{TARGET_ARGS}, **{TARGET_KWARGS})

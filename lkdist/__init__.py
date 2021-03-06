@@ -1,5 +1,3 @@
-__all__ = [
-    'checkup',
-    'prebuild',
-    'pretty_print',
-]
+from .prebuild import full_build, min_build
+
+__version__ = '2.0.0'

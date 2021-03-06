@@ -13,26 +13,6 @@ pyproject.json 可从 'lkdist/template/pyproject.json' 获取. 下面是添加�
     // 作者, 格式没有做严格限制, 推荐您使用 '{作者名}' 或 '{作者名}<{邮件}>' 这两
     // 种格式
     "author": "Likianta<likianta@foxmail.com>",
-    // 软件依赖
-    "required": {
-        // Python 编译器的版本
-        // 1. 必须指明大版本号和中版本号, 不要小版本号
-        // 2. 填与您的项目的 Python 编译器一致的版本号
-        "python_version": "3.8",
-        // 是否启用虚拟环境
-        // 1. 该值会影响 lkdist 生成的启动器的功能
-        // 2. 为 false 时, 客户机只有在 1) 已安装 'python_version' 指定的 python
-        //    版本; 2) 在全局 python site-packages 中自主安装好所需的第三方依赖 的
-        //    情况下, 才能正常运行您的程序
-        "enable_venv": true,
-        // 您的项目所用的虚拟环境 (文件夹路径)
-        // 1. 填绝对路径或相对于本配置文件的路径
-        // 2. 仅在 'enable_venv' 选项为 true 时有效
-        // 3. 这里支持一种特殊情况: 如果 'enable_venv' 为 true 而这个路径留空的
-        //    话, 则 lkdist 会创建一个没有第三方依赖, 只包含 python 编译器的虚拟
-        //    环境
-        "venv": "./venv"
-    },
     // 构建选项
     "build": {
         // 项目的主目录
@@ -45,11 +25,11 @@ pyproject.json 可从 'lkdist/template/pyproject.json' 获取. 下面是添加�
         // 3. 可以使用特殊词 '{app_name}' 和 '{app_version}' 来引用其他键
         // 4. 如果 'enable_venv' 是 true, 则不能使用含中文的路径
         "odir": "dist/{app_name}_{app_version}",
-        // 主脚本文件
-        // 1. 填绝对路径或相对于本配置文件的路径
-        // 2. 其必须是 'idir' 下的某个 py 文件
-        "main_script": "hello_world/main.py",
         "target": {
+            // 主脚本文件
+            // 1. 填绝对路径或相对于本配置文件的路径 (推荐相对路径)
+            // 2. 必须是 'idir' 下的某个 py 文件
+            "file": "hello_world/main.py",
             // 'main_script' 文件中要调用的目标函数
             "function": "main",
             // 目标函数的参数
@@ -66,7 +46,7 @@ pyproject.json 可从 'lkdist/template/pyproject.json' 获取. 下面是添加�
         // 1. 填绝对路径或相对于本配置文件的路径
         "readme": "README.md",
         // 要导入到 sys.path 的模块搜索路径 (文件夹路径)
-        // 1. 填绝对路径或相对于本配置文件的路径 (一般来说填的是相对路径)
+        // 1. 填绝对路径或相对于本配置文件的路径 (推荐相对路径)
         // 2. 例如, 对于 "hello_world/utils/xxx.py", 如果没有加入 'module_paths',
         //    则只能通过 `from hello_world.utils import xxx` 导入; 若将
         //    'hello_world' 加入, 则可以通过 `from utils import xxx` 来导入; 若将
@@ -98,7 +78,31 @@ pyproject.json 可从 'lkdist/template/pyproject.json' 获取. 下面是添加�
             "data": "root_folder",
             "tests": "root_assets,compile",
             "model": "tree_folders"
+        },
+        // 软件依赖
+        "required": {
+            // Python 编译器的版本
+            // 1. 必须指明大版本号和中版本号, 不要小版本号
+            // 2. 填与您的项目的 Python 编译器一致的版本号
+            "python_version": "3.8",
+            // 是否启用虚拟环境
+            // 1. 该值会影响 lkdist 生成的启动器的功能
+            // 2. 为 false 时, 客户机只有在 1) 已安装 'python_version' 指定的 python
+            //    版本; 2) 在全局 python site-packages 中自主安装好所需的第三方依赖 的
+            //    情况下, 才能正常运行您的程序
+            "enable_venv": true,
+            // 您的项目所用的虚拟环境 (文件夹路径)
+            // 1. 填绝对路径或相对于本配置文件的路径
+            // 2. 仅在 'enable_venv' 选项为 true 时有效
+            // 3. 这里支持一种特殊情况: 如果 'enable_venv' 为 true 而这个路径留空的
+            //    话, 则 lkdist 会创建一个没有第三方依赖, 只包含 python 编译器的虚拟
+            //    环境
+            "venv": "./venv"
         }
-    }
+    },
+    // 备忘
+    // 1. 值可以是任意类型, 字符串, 列表, 字典等均可
+    // 2. 备忘不会被 lkdist 解析
+    "note": "一些备忘内容..."
 }
 ```
