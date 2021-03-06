@@ -83,9 +83,9 @@ def process_pyproject(pyproj_file):
     build_idir_parent = ospath.dirname(build_idir)
     #   该值相当于 `_apply_config:vars:srcdir`
     # # del build_idir
-
+    
     # --------------------------------------------------------------------------
-
+    
     # assign conf_i to conf_o
     conf_o['app_name'] = conf_i['app_name']
     conf_o['app_version'] = conf_i['app_version']
@@ -119,7 +119,7 @@ def process_pyproject(pyproj_file):
     conf_o['note'] = conf_i['note']
     
     # run conf_o
-    lk.logp(conf_o)
+    # lk.logp(conf_o)
     _apply_config(conf_o['app_name'], **conf_o['build'], icon=conf_o['icon'])
 
 
@@ -174,10 +174,13 @@ def _apply_config(app_name, idir, odir, target, required,
     if readme:
         _create_readme(readme, rootdir)
     
+    #: compile '{srcdir}/bootloader.py'
+    _compile_py_files(srcdir, recursive=False)
+    _cleanup_py_files(srcdir, recursive=False)
     lk.loga(dirs_to_compile)
     for d in dirs_to_compile:
-        _compile_py_files(d)
-        _cleanup_py_files(d)
+        _compile_py_files(d, recursive=True)
+        _cleanup_py_files(d, recursive=True)
         #   you can comment this line to remain .py files for debugging purpose
     
     if required['enable_venv'] and GlobalConf.create_venv_shell:
@@ -211,9 +214,9 @@ def _precheck_args(idir, odir, readme, attachments, pyversion):
                 # os.mkdir(odir)  # we'll make dir laterly in `_apply_config`
             else:
                 raise FileExistsError
-        
+    
     assert readme == '' or ospath.exists(readme)
-
+    
     assert all(map(ospath.exists, attachments.keys()))
     
     from .checkup import check_pyversion
@@ -231,9 +234,6 @@ def _copy_sources(idir, srcdir):
         srcdir: 'source code dir'. 传入 `main:vars:srcdir`
     """
     yield from _copy_assets({idir: 'assets,compile'}, srcdir)
-    # odir = f'{srcdir}/{ospath.basename(idir)}'
-    # shutil.copytree(idir, odir)
-    # return odir
 
 
 def _copy_assets(attachments, srcdir):
@@ -429,6 +429,9 @@ def _create_launcher(app_name, icon, target, rootdir,
         TARGET_KWARGS=str(target['kwargs']),
     )
     dumps(code, f'{rootdir}/src/{bootloader_name}.py')
+    #   这里生成的是 .py 文件. 我们会在 `_apply_config` 的后期做编译工作, 届时会将
+    #   它转换为 .pyc, 并删除 .py 文件. (见 `_apply_config:#:compile '{srcdir}
+    #   /bootloader.py'`)
     
     # --------------------------------------------------------------------------
     
@@ -442,9 +445,9 @@ def _create_launcher(app_name, icon, target, rootdir,
         # 当前编译的 pyc 版本相同.
         template = loads('template/launch_by_system.bat')
     code = template.format(
-        LAUNCHER=f'{bootloader_name}.py'  # FIXME: use .pyc
+        LAUNCHER=f'{bootloader_name}.pyc'
         #   注意是 '{boot_name}.pyc' 而不是 '{boot_name}.cpython-38.pyc', 原因见
-        #   `_compile_py_files:vars:ofp`
+        #   `_compile_py_files:vars:ofp:comment:#2`
     )
     bat_file = f'{rootdir}/{launcher_name}.bat'
     dumps(code, bat_file)
@@ -472,12 +475,14 @@ def _create_readme(ifile: str, distdir):
     shutil.copyfile(ifile, ofile)
 
 
-def _compile_py_files(idir):
+def _compile_py_files(idir, recursive=True):
     """
     References:
         https://blog.csdn.net/weixin_38314865/article/details/90443135
     """
-    compile_dir(idir)
+    compile_dir(idir, maxlevels=None if recursive else 0, quiet=1)
+    #   maxlevels: None 编译全部文件 (包含子文件夹); 0 只编译当前目录下的 py 文件
+    #   quiet: 1 表示只在有错误时向控制台打印信息
     
     for fp, fn in filesniff.findall_files(idir, suffix='.pyc', fmt='zip'):
         #   fp: 'filepath', fn: 'filename', e.g. 'xxx.cpython-38.pyc'
@@ -490,14 +495,19 @@ def _compile_py_files(idir):
         shutil.move(ifp, ofp)
 
 
-def _cleanup_py_files(idir):
-    # delete __pycache__ folders (the folders are empty)
-    for dp in filesniff.findall_dirs(  # dp: 'dirpath'
-            idir, suffix='__pycache__',
-            exclude_protected_folders=False
-    ):
-        os.rmdir(dp)
+def _cleanup_py_files(idir, recursive=True):
+    if recursive:
+        # delete __pycache__ folders (the folders are empty)
+        for dp in filesniff.findall_dirs(  # dp: 'dirpath'
+                idir, suffix='__pycache__',
+                exclude_protected_folders=False
+        ):
+            os.rmdir(dp)
     
-    # and delete .py files
-    for fp in filesniff.findall_files(idir, suffix='.py'):
-        os.remove(fp)
+        # and delete .py files
+        for fp in filesniff.findall_files(idir, suffix='.py'):
+            os.remove(fp)
+    else:
+        os.rmdir(f'{idir}/__pycache__')
+        for fp in filesniff.find_files(idir, suffix='.py'):
+            os.remove(fp)
