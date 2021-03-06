@@ -41,7 +41,7 @@ def process_pyproject(pyproj_file):
         
     References:
         docs/pyproject template.md
-        lkdist/template/pyproject.json
+        pyportable_installer/template/pyproject.json
     """
     
     def pretty_path(p):
@@ -320,9 +320,9 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
         src_venv_dir: 'source virtual environment directory'.
             tip: you can pass an empty to this argument, see reason at `Notes:3`
         dst_venv_dir: 'distributed virtual environment directory'
-        pyversion: e.g. '3.8'. 请确保该版本与 lkdist 所用的 Python 编译器, 以及
-            src_venv_dir 所用的 Python 版本一致 (修订号可以不一样), 否则
-            _compile_py_files 编译出来的 .pyc 文件无法运行!
+        pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python 
+            编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样), 
+            否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
         include_tkinter: 默认的 embed python 安装包是不带 tkinter 模块的, 如果需
             要, 则会使用一个修改过的 embed python 安装包 (修改只涉及复制了 tkinter
             相关的模块到原生 embed python 安装目录内)
@@ -332,8 +332,8 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
            拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
            也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下的
            Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在 Python 官
-           网下载带有 "embed" 字样的压缩包, 并解压, 我在 lkdist 项目下已经准备了一
-           份)
+           网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable_installer 项目
+           下已经准备了一份)
         2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参数
            传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir), 并让
            '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪切所需

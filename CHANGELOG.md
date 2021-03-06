@@ -1,3 +1,7 @@
+### 2.2.0
+
+- 变更: 项目重命名: "lkdist" -> "pyportable-installer"
+
 ### 2.1.2
 
 - 新增: 图片 (jpg, png, etc.) 转 ico 模块

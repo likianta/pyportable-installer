@@ -5,8 +5,8 @@ Command:
     bat_to_exe_converter /bat {file.bat} /exe {file.exe} {options}
 
 Options:
-    see: open 'lkdist/bat_2_exe/bat_to_exe_converter.exe' -> menu bar -> tool
-    -> cmd interface
+    see: open 'pyportable_installer/bat_2_exe/bat_to_exe_converter.exe'
+         -> menu bar -> tools -> cmd tools
 
 Examples:
     bat_to_exe_converter /bat xxx.bat /exe xxx.exe
@@ -33,10 +33,6 @@ def main(bat_file, exe_file, icon='', *options):
             /password {your_password}
             /uac-admin
             /uac-user
-    
-    Notes:
-        the caller is 'lkdist/prebuild.py', so the bat_to_exe_converter.exe path
-        should be 'bat_2_exe/bat_to_exe_converter.exe'
     """
     if icon: assert icon.endswith('.ico')
     cmd = '"{}" /bat "{}" /exe "{}" {} {}'.format(
