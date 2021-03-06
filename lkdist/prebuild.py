@@ -75,8 +75,10 @@ def process_pyproject(pyproj_file):
     
     # check conf_i
     assert conf_i['app_version']
+    
     if pyver := conf_i['build']['required']['python_version']:
         assert pyver.replace('.', '').isdigit() and len(pyver.split('.')) == 2
+    
     build_idir = abspath(conf_i['build']['idir'])
     build_idir_parent = ospath.dirname(build_idir)
     #   该值相当于 `_apply_config:vars:srcdir`
@@ -195,16 +197,20 @@ def _apply_config(app_name, idir, odir, target, required,
 def _precheck_args(idir, odir, readme, attachments, pyversion):
     assert ospath.exists(idir)
     
-    if ospath.exists(odir) and os.listdir(odir):
-        if input(
-                '警告: 要打包的目录已存在!\n'
-                '您是否确认清空目标目录以重构: "{}"\n'
-                '请注意确认删除后内容无法恢复! (y/n): '.format(odir)
-        ).lower() == 'y':
-            shutil.rmtree(odir)
-            # os.mkdir(odir)  # we'll make dir laterly in `_apply_config`
-        else:
-            raise FileExistsError
+    if not odir.isascii():
+        lk.loga('警告: 您的输出路径包含有中文字符, 这可能导致软件启动失败! '
+                '(特别在使用虚拟环境的情况下)', odir)
+    if ospath.exists(odir):
+        if os.listdir(odir):
+            if input(
+                    '警告: 要打包的目录已存在!\n'
+                    '您是否确认清空目标目录以重构: "{}"\n'
+                    '请注意确认删除后内容无法恢复! (y/n): '.format(odir)
+            ).lower() == 'y':
+                shutil.rmtree(odir)
+                # os.mkdir(odir)  # we'll make dir laterly in `_apply_config`
+            else:
+                raise FileExistsError
         
     assert readme == '' or ospath.exists(readme)
 
