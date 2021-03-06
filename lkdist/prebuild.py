@@ -230,7 +230,7 @@ def _copy_assets(attachments, srcdir):
         invalid_pattern = re.compile(r'/(\.|__?)\w+')
         #   e.g. '/.git', '/__pycache__'
         
-        valid_dirs = []  # [(i, o), ...]
+        valid_dirs = [(irootdir, orootdir)]  # [(i, o), ...]
         # FIXME: 1.4.4 版本的 lk-utils.filesniff.findall_dirs 不完善, 无法完
         #   全地过滤掉需要被排除的文件, 所以我们自定义一个 invalid_pattern 来
         #   处理
