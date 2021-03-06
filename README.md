@@ -90,7 +90,7 @@ def greeting(name):
             "args": [],
             "kwargs": {"name": "Likia"}
         },
-        "readme": "README.md",
+        "readme": "",
         "module_paths": [],
         "attachments": {},
         "required": {

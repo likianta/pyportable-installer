@@ -2,6 +2,7 @@ import re
 import os
 import shutil
 from os import path as ospath
+from threading import Thread
 
 from lk_logger import lk
 from lk_utils import filesniff
@@ -72,7 +73,7 @@ def process_pyproject(pyproj_file):
     # assign conf_i to conf_o
     conf_o['app_name'] = conf_i['app_name']
     conf_o['app_version'] = conf_i['app_version']
-    conf_o['icon'] = abspath(conf_i['icon'])
+    conf_o['icon'] = abspath(conf_i['icon'] or 'template/python.ico')
     conf_o['author'] = conf_i['author']
     
     conf_o['build']['idir'] = abspath(conf_i['build']['idir'])
@@ -107,7 +108,7 @@ def process_pyproject(pyproj_file):
 
 
 def _apply_config(app_name, idir, odir, target, required,
-                  readme='', module_paths=None, attachments=None, **kwargs):
+                  readme='', module_paths=None, attachments=None, **misc):
     """
     
     Args:
@@ -121,7 +122,7 @@ def _apply_config(app_name, idir, odir, target, required,
         module_paths (list): see `_create_launcher()`
         attachments (dict): 其他要加入的目录
         required (dict)
-        **kwargs:
+        **misc:
             icon
     """
     # adjust args
@@ -149,7 +150,7 @@ def _apply_config(app_name, idir, odir, target, required,
         _copy_checkup_tool(f'{odir}/build')
     
     _create_launcher(
-        app_name, kwargs.get('icon', 'template/python.ico'), target, rootdir,
+        app_name, misc.get('icon'), target, rootdir,
         extend_sys_paths=module_paths,
         enable_venv=required['enable_venv']
     )
@@ -157,6 +158,7 @@ def _apply_config(app_name, idir, odir, target, required,
     if readme:
         _create_readme(readme, rootdir)
     
+    lk.loga(dirs_to_compile)
     for d in dirs_to_compile:
         _compile_py_files(d)
         _cleanup_py_files(d)
@@ -171,7 +173,7 @@ def _apply_config(app_name, idir, odir, target, required,
         #   以这里选用有 tkinter 模块的版本
     
     m, n = ospath.split(rootdir)
-    lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0 >> {n}"')
+    lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
 
 
 # ------------------------------------------------------------------------------
@@ -424,12 +426,22 @@ def _create_launcher(app_name, icon, target, rootdir,
     bat_file = f'{rootdir}/{launcher_name}.bat'
     dumps(code, bat_file)
     
-    from .bat_2_exe import bat_2_exe
-    lk.loga('converting bat to exe... it may take several seconds ~ one minute')
-    bat_2_exe(bat_file, f'{rootdir}/{app_name}.exe',
-              icon, '/x64')
-    lk.loga('convertion bat-to-exe done')
-    os.remove(bat_file)
+    # 这是一个耗时操作 (大约需要 10s), 我们把它放在子线程执行
+    def generate_exe(bat_file, exe_file, icon_file, *options):
+        from .bat_2_exe import bat_2_exe
+        lk.loga('converting bat to exe... '
+                'it may take several seconds ~ one minute...')
+        ret = bat_2_exe(bat_file, exe_file, icon_file, *options)
+        lk.loga('convertion bat-to-exe done', ret)
+        os.remove(bat_file)
+    
+    thread = Thread(
+        target=generate_exe,
+        args=(bat_file, f'{rootdir}/{launcher_name}.exe', icon,
+              '/x64', 'invisible')
+    )
+    thread.start()
+    thread.join()
 
 
 def _create_readme(ifile: str, distdir):

@@ -39,10 +39,22 @@ def main(bat_file, exe_file, icon='', *options):
         should be 'bat_2_exe/bat_to_exe_converter.exe'
     """
     if icon: assert icon.endswith('.ico')
-    popen('{} /bat {} /exe {} {} {}'.format(
+    cmd = '"{}" /bat "{}" /exe "{}" {} {}'.format(
         _bat_2_exe_converter,
         bat_file,
         exe_file,
-        '' if not icon else '/icon ' + icon,
+        '' if not icon else f'/icon "{icon}"',
         ' '.join(options)
-    )).read()
+    ).strip()
+    print('cmd', cmd)
+    return popen(cmd).read()
+
+
+if __name__ == '__main__':
+    cmd = '{} /bat {} /exe {}'.format(
+        _bat_2_exe_converter,
+        abspath('../template/launch_by_venv.bat'),
+        abspath('../../tests/test1.exe')
+    )
+    print(cmd)
+    print(popen(cmd).read())
