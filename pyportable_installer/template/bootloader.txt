@@ -49,12 +49,21 @@ def launch(func, *args, **kwargs):
         input('Press any key to leave...')
 
     def show_err_on_msgbox(err):
+        # notes: not recommend to use
         # https://stackoverflow.com/questions/17280637/tkinter-messagebox
         # -without-window
         from tkinter import Tk, messagebox
         root = Tk()
         root.withdraw()
         messagebox.showerror(title='Runtime Error', message=err)
+
+    def alert(title, msg):
+        # https://www.cnblogs.com/freeweb/p/5048833.html
+        os.popen(
+            r'echo msgbox "{msg}", 64, "{title}" > '
+            r'alert.vbs && start '
+            r'alert.vbs && ping -n 2 127.1>nul && del alert.vbs'
+        ).format(title=title, msg=msg).read()
 
     try:
         func(*args, **kwargs)
@@ -64,8 +73,10 @@ def launch(func, *args, **kwargs):
         #   -exception-how-do-i-get-the-type-file-and-line-number
         import traceback
         msg = traceback.format_exc()
-        show_err_on_msgbox(msg)
-        #   show_err_on_console(msg)
+        alert('Runtime Error', msg)
+        # # show_err_on_msgbox(msg)
+        # # show_err_on_console(msg)
+        input('Progress failed, press enter to leave...')
 
 
 if __name__ == '__main__':

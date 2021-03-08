@@ -112,7 +112,10 @@ def process_pyproject(pyproj_file):
     
     conf_o['build']['target'] = conf_i['build']['target']
     conf_o['build']['target']['file'] = relpath(
-        conf_i['build']['target']['file'], proj_dir_parent
+        conf_i['build']['target']['file'].format(
+            dist_dir=conf_o['build']['dist_dir']
+        ),
+        proj_dir_parent
     )
     
     conf_o['build']['required'] = conf_i['build']['required']
@@ -124,7 +127,7 @@ def process_pyproject(pyproj_file):
     
     # run conf_o
     # lk.logp(conf_o)
-    _apply_config(conf_o['app_name'], **conf_o['build'], icon=conf_o['icon'])
+    _apply_config(conf_o['app_name'], **conf_o['build'])
     dumps(conf_o, conf_o['build']['dist_dir'] + '/build/manifest.json')
 
 
@@ -184,7 +187,7 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
     #: compile '{srcdir}/bootloader.py'
     _compile_py_files(srcdir, recursive=False)
     _cleanup_py_files(srcdir, recursive=False)
-    lk.loga(dirs_to_compile)
+    # lk.loga(dirs_to_compile)
     for d in dirs_to_compile:
         _compile_py_files(d, recursive=True)
         _cleanup_py_files(d, recursive=True)
@@ -192,10 +195,7 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
     
     if required['enable_venv'] and GlobalConf.create_venv_shell:
         _copy_venv(required['venv'], f'{rootdir}/venv',
-                   required['python_version'],
-                   include_tkinter=True)
-        #   include_tkinter: 考虑到我们的 bootloader 有用到 tkinter 的 msgbox,
-        #   所以这里选用有 tkinter 模块的版本
+                   required['python_version'])
     
     m, n = ospath.split(rootdir)
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
@@ -248,8 +248,11 @@ def _copy_assets(attachments, srcdir):
     Args:
         attachments (dict): {dir_i: type, ...}
             dir_i (str)
-            type (str): 'assets'|'root_folder'|'root_assets'|'tree_folders'
-                |'compile'|'assets,compile,...' (多个值组合时, 用逗号分隔)
+            type (str): 'assets'|'root_assets'|'only_folder'|'only_folders'
+                |'assets,compile'|'root_assets,compile'|'only_folder,compile'
+                |'only_folders,compile'
+                note: 当 type 为 'assets' 时, 需要判断是 file 还是 dir. (其他情
+                况均是 dir, 不用判断)
         srcdir
     
     Yields:
@@ -296,15 +299,18 @@ def _copy_assets(attachments, srcdir):
         if 'assets' in type_:
             if 'compile' in type_:
                 copy_tree_excludes_protected_folders(dir_i, dir_o)
+            elif ospath.isfile(dir_i):
+                file_i, file_o = dir_i, dir_o
+                shutil.copyfile(file_i, file_o)
             else:
                 shutil.copytree(dir_i, dir_o)
-        elif 'only_folder' in type_:
-            os.mkdir(dir_o)
         elif 'root_assets' in type_:
             for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
                 shutil.copyfile(fp, f'{dir_o}/{fn}')
-            for dp, dn in filesniff.find_dirs(dir_i, fmt='zip'):
-                os.mkdir(f'{dir_o}/{dn}')
+            # for dp, dn in filesniff.find_dirs(dir_i, fmt='zip'):
+            #     os.mkdir(f'{dir_o}/{dn}')
+        elif 'only_folder' in type_:
+            os.mkdir(dir_o)
         elif 'only_folders' in type_:
             for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
                 os.mkdir(dp.replace(dir_i, dir_o, 1))
@@ -316,11 +322,16 @@ def _copy_assets(attachments, srcdir):
 def _copy_checkup_tool(buildir):
     # buildir: 'build (noun.) directory'
     if not ospath.exists(buildir): os.mkdir(buildir)
-    shutil.copyfile('checkup/doctor.py', f'{buildir}/doctor.py')
-    shutil.copyfile('checkup/pretty_print.py', f'{buildir}/pretty_print.py')
+    dir_i, dir_o = 'checkup', buildir
+    try:
+        shutil.copyfile(f'{dir_i}/doctor.py', f'{dir_o}/doctor.py')
+        shutil.copyfile(f'{dir_i}/pretty_print.py', f'{dir_o}/pretty_print.py')
+    except FileNotFoundError:
+        shutil.copyfile(f'{dir_i}/doctor.pyc', f'{dir_o}/doctor.pyc')
+        shutil.copyfile(f'{dir_i}/pretty_print.pyc', f'{dir_o}/pretty_print.pyc')
 
 
-def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
+def _copy_venv(src_venv_dir, dst_venv_dir, pyversion):
     """
     Args:
         src_venv_dir: 'source virtual environment directory'.
@@ -329,17 +340,14 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
         pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python 
             编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样), 
             否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
-        include_tkinter: 默认的 embed python 安装包是不带 tkinter 模块的, 如果需
-            要, 则会使用一个修改过的 embed python 安装包 (修改只涉及复制了
-            tkinter 相关的模块到原生 embed python 安装目录内)
     
     Notes:
         1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
            拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
            也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下
            的 Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在
-           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在
-           pyportable_installer 项目下已经准备了一份)
+           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable
+           _installer 项目下已经准备了一份)
         2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
            数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
            并让 '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪
@@ -351,13 +359,11 @@ def _copy_venv(src_venv_dir, dst_venv_dir, pyversion, include_tkinter=False):
             {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
     """
     # create venv shell
-    embed_python_dir0 = '../python_embed/tkinter_edition' \
-        if include_tkinter else '../python_embed'
+    conf = loads('../embed_python/conf.json')
     embed_python_dir = {
-        # note: 我只准备了 amd64 版的 embed python, 如果您要生成 32 位的, 请手动
-        # 修改这里! (暂不支持通过 pyproject.json 修改)
-        '3.8': f'{embed_python_dir0}/python-3.8.5-embed-amd64',
-        '3.9': f'{embed_python_dir0}/python-3.9.0-embed-amd64'
+        # see: 'embed_python/README.md'
+        '3.8': f'../embed_python/{conf["PY38"]}',
+        '3.9': f'../embed_python/{conf["PY39"]}'
     }[pyversion]
     
     shutil.copytree(embed_python_dir, dst_venv_dir)
@@ -401,8 +407,8 @@ def _create_launcher(app_name, icon, target, rootdir,
         3. bootloader 主要完成了以下两项工作:
             1. 向 sys.path 中添加当前工作目录和自定义的模块目录
             2. 对主脚本加了一个 try catch 结构, 以便于捕捉主程序报错时的信息, 并
-               以 tkinter 弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们
-               的软件表现得更像是一款软件
+               以系统弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
+               件表现得更像是一款软件
     
     Notes:
         1. 启动器在调用主脚本 (main:args:main_script) 之前, 会通过 `os.chdir` 切

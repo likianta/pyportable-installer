@@ -1,0 +1,31 @@
+{
+    "app_name": "PyPortable Installer",
+    "app_version": "2.2.1-alpha.1",
+    "description": "",
+    "author": "Likianta <likianta@foxmail.com>",
+    "build": {
+        "proj_dir": "../pyportable_installer",
+        "dist_dir": "../dist/{app_name_lower}_{app_version}_py39",
+        "icon": "../pyportable_installer/template/python.ico",
+        "target": {
+            "file": "../shortcut/full_build.py",
+            "function": "main",
+            "args": [],
+            "kwargs": {}
+        },
+        "readme": "../README.md",
+        "module_paths": [],
+        "attachments": {
+            "../shortcut": "assets,compile",
+            "../docs": "assets",
+            "../embed_python": "root_assets"
+        },
+        "required": {
+            "python_version": "3.9",
+            "enable_venv": false,
+            "venv": "D:\\Likianta\\workspace\\com_isoftstone_likianta\\weekly_report_generator\\venv"
+        },
+        "enable_console": true
+    },
+    "note": ""
+}
