@@ -1,18 +1,16 @@
 # PyPortable Installer
 
-* [x] launch bat C盘切D盘无效
-* [x] icon 打包失败的问题
 * [x] 使用 cmd 指令弹出对话框
     * [x] embed python 去掉 tkinter 依赖版
+* [ ] 环境变量 dll 文件
 * [ ] 更新 readme 的内容, 符合最新的 pyproject 情况
+* [ ] 由 filesniff 提供 mkdir 和 mktree 方法 (以及它的缓存特性), 使整个拷贝和创建过程更流畅
+* [ ] 修复 _precheck_args:rmtree 导致的目录创建权限报错
 * [ ] copy assets 时, 仍然维持原有的目录上下关系, 并以最深的路径为准
 
-## 反破解
+## sidework
 
-* [x] ~~pyc 太依赖 python 的版本了, 能否找到一个更好的编译方式~~
-    * [x] ~~nuitka 编译 py 为 c, 然后用 pythonlib 启动~~
-* [ ] 文件名混淆
-* [ ] 代码混淆
+* [ ] 纯创建启动器的活动
 
 ## checkup
 
@@ -30,6 +28,13 @@
     * [ ] 从一些常见的目录搜索
     * [ ] 由用户指定
 * [ ] license 激活
+
+## 反破解
+
+* [x] ~~pyc 太依赖 python 的版本了, 能否找到一个更好的编译方式~~
+    * [x] ~~nuitka 编译 py 为 c, 然后用 pythonlib 启动~~
+* [ ] 文件名混淆
+* [ ] 代码混淆
 
 ## all-in-one 配置文件 (pyproject.json)
 

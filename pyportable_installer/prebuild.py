@@ -13,7 +13,7 @@ from lk_utils.read_and_write import dumps, loads
 class GlobalConf:
     # 对于一些修改较为频繁, 但用途很小的参数, 放在了这里. 您可以按需修改
     # 使用 Pycharm 的搜索功能查看它在哪里被用到
-    create_checkup_tool = True  # True|False
+    create_checkup_tools = True  # True|False
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
     create_venv_shell = True
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
@@ -21,16 +21,16 @@ class GlobalConf:
 
 
 def full_build(file):
-    GlobalConf.create_checkup_tool = True
+    GlobalConf.create_checkup_tools = True
     GlobalConf.create_venv_shell = True
     GlobalConf.create_launcher = True
     process_pyproject(file)
 
 
 def min_build(file):
-    GlobalConf.create_checkup_tool = False
+    GlobalConf.create_checkup_tools = False
     GlobalConf.create_venv_shell = False
-    GlobalConf.create_launcher = False
+    GlobalConf.create_launcher = True  # True(suggest)|False
     process_pyproject(file)
 
 
@@ -159,9 +159,12 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
     )
     
     # if output dirs not exist, create them
-    rootdir, srcdir = dist_dir, f'{dist_dir}/src'
-    #   'root directory', 'source code directory'
+    rootdir, srcdir, buildir = dist_dir, f'{dist_dir}/src', f'{dist_dir}/build'
+    #   rootdir: 'root directory'
+    #   srcdir: 'source code directory'
+    #   buildir: 'build (noun.) directory'
     filesniff.force_create_dirpath(srcdir)
+    filesniff.force_create_dirpath(buildir)
     
     # --------------------------------------------------------------------------
     
@@ -171,8 +174,8 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
     
     dirs_to_compile.extend(_copy_assets(attachments, srcdir))
     
-    if GlobalConf.create_checkup_tool:
-        _copy_checkup_tool(f'{dist_dir}/build')
+    if GlobalConf.create_checkup_tools:
+        _copy_checkup_tool(buildir)
     
     _create_launcher(
         app_name, misc.get('icon'), target, rootdir,
@@ -294,32 +297,40 @@ def _copy_assets(attachments, srcdir):
         """)
         '''
         
-        if 'assets' in type_:
+        # FIXME: 目前的 type_ 设计得不是很好, 比如 type_ = 'root_assets', 会导致
+        #   `'root_assets' in type_` 和 `'assets' in type_` 都判断为 True, 所以
+        #   不得不指定判断的先后顺序来解决这个歧义.
+        #   要消除这个歧义并不难, 我们已经通过指定判断的先后顺序解决了此歧义 (尽
+        #   管这不够优雅); 我们仍在评估将 type_ 拆分为元组的必要性, 目前持观望态
+        #   度.
+        # # type_ = tuple(type_.split(','))
+        
+        if 'root_assets' in type_:
+            if not ospath.exists(dir_o): os.mkdir(dir_o)
+            for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+                shutil.copyfile(fp, f'{dir_o}/{fn}')
+            # for dp, dn in filesniff.find_dirs(dir_i, fmt='zip'):
+            #     os.mkdir(f'{dir_o}/{dn}')
+        elif 'assets' in type_:
             if 'compile' in type_:
                 copy_tree_excludes_protected_folders(dir_i, dir_o)
             elif ospath.isfile(dir_i):
                 file_i, file_o = dir_i, dir_o
                 shutil.copyfile(file_i, file_o)
             else:
+                filesniff.force_create_dirpath(ospath.dirname(dir_o))
                 shutil.copytree(dir_i, dir_o)
-        elif 'root_assets' in type_:
-            for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
-                shutil.copyfile(fp, f'{dir_o}/{fn}')
-            # for dp, dn in filesniff.find_dirs(dir_i, fmt='zip'):
-            #     os.mkdir(f'{dir_o}/{dn}')
-        elif 'only_folder' in type_:
-            os.mkdir(dir_o)
         elif 'only_folders' in type_:
             for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
                 os.mkdir(dp.replace(dir_i, dir_o, 1))
+        elif 'only_folder' in type_:
+            os.mkdir(dir_o)
         
         if 'compile' in type_:
             yield dir_o
 
 
 def _copy_checkup_tool(buildir):
-    # buildir: 'build (noun.) directory'
-    if not ospath.exists(buildir): os.mkdir(buildir)
     dir_i, dir_o = 'checkup', buildir
     try:
         shutil.copyfile(f'{dir_i}/doctor.py', f'{dir_o}/doctor.py')

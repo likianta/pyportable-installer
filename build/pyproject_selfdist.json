@@ -18,7 +18,8 @@
         "attachments": {
             "../shortcut": "assets,compile",
             "../docs": "assets",
-            "../embed_python": "root_assets"
+            "../embed_python": "root_assets",
+            "../embed_python/tkinter_edition/python-3.9.0-embed-amd64": "assets"
         },
         "required": {
             "python_version": "3.9",
@@ -27,5 +28,5 @@
         },
         "enable_console": true
     },
-    "note": ""
+    "note": "build:target:file 分两次传入 `full_build` 和 `min_build`, 均使用 `shortcut/full_build.py` 打包 (处理二者的输出目录重叠, 建议将后者改为 '../dist/temp'). 最后, 将 min_build 打包目录的启动器复制到 full_build 目录中. 注意处理两个启动器的命名冲突: 前者命名为 'Full Build.exe', 后者命名为 'Min Build.exe'."
 }

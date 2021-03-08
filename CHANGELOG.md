@@ -57,7 +57,8 @@
     * 移除: 对 tkinter 的依赖
     * 移除: 从 prebuild 中移除中文路径的检查
     * 优化: launch_by_system.bat 模板
-
+    * 修复: prebuild._copy_assets 拷贝时的范围选取过大
+    * 优化: 调整 prebuild.min_build 的行为
 
 
 

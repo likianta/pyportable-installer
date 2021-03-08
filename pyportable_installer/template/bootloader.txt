@@ -59,11 +59,14 @@ def launch(func, *args, **kwargs):
 
     def alert(title, msg):
         # https://www.cnblogs.com/freeweb/p/5048833.html
-        os.popen(
-            r'echo msgbox "{msg}", 64, "{title}" > '
-            r'alert.vbs && start '
-            r'alert.vbs && ping -n 2 127.1>nul && del alert.vbs'
-        ).format(title=title, msg=msg).read()
+        return os.popen(
+            'echo msgbox "{{msg}}", 64, "{{title}}" > '
+            'alert.vbs && start '
+            'alert.vbs && ping -n 2 127.1 > '
+            'nul && del alert.vbs'.format(
+                title=title, msg=msg
+            )
+        ).read()
 
     try:
         func(*args, **kwargs)
@@ -76,7 +79,8 @@ def launch(func, *args, **kwargs):
         alert('Runtime Error', msg)
         # # show_err_on_msgbox(msg)
         # # show_err_on_console(msg)
-        input('Progress failed, press enter to leave...')
+    finally:
+        input('Press enter to leave...')
 
 
 if __name__ == '__main__':
