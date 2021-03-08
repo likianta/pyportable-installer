@@ -50,9 +50,20 @@
         * 新增: pyproject.json:build:enable_console 选项
         * 新增: pyportable-installer 通过自举的方式完成项目打包
 
-### 2.3.0 | 2021-03-08
+### 2.2.2
 
 * [ ] PyPortable Installer
-    * [ ] 反破解
-        * 优化: 使用 vbscript 弹窗替代 tkinter 弹窗
-        * 移除: 对 tkinter 的依赖
+    * 优化: 使用 vbscript 弹窗替代 tkinter 弹窗
+    * 移除: 对 tkinter 的依赖
+    * 移除: 从 prebuild 中移除中文路径的检查
+    * 优化: launch_by_system.bat 模板
+
+
+
+
+
+
+
+
+
+

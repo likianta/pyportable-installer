@@ -99,7 +99,7 @@ def process_pyproject(pyproj_file):
         app_version=conf_i['app_version']
     ))
     conf_o['build']['icon'] = abspath(
-        conf_i['build']['icon'] or 'template/python.ico'
+        conf_i['build']['icon'] or ospath.abspath('template/python.ico')
     )
     conf_o['build']['readme'] = abspath(conf_i['build']['readme'])
     conf_o['build']['module_paths'] = [
@@ -176,6 +176,7 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
     
     _create_launcher(
         app_name, misc.get('icon'), target, rootdir,
+        pyversion=required['python_version'],
         extend_sys_paths=module_paths,
         enable_venv=required['enable_venv'],
         enable_console=misc.get('enable_console', True),
@@ -206,9 +207,6 @@ def _apply_config(app_name, proj_dir, dist_dir, target, required,
 def _precheck_args(proj_dir, dist_dir, readme, attachments, pyversion):
     assert ospath.exists(proj_dir)
     
-    if not dist_dir.isascii():
-        lk.loga('警告: 您的输出路径包含有中文字符, 这可能导致软件启动失败! '
-                '(特别在使用虚拟环境的情况下)', dist_dir)
     if ospath.exists(dist_dir):
         if os.listdir(dist_dir):
             if input(
@@ -331,52 +329,7 @@ def _copy_checkup_tool(buildir):
         shutil.copyfile(f'{dir_i}/pretty_print.pyc', f'{dir_o}/pretty_print.pyc')
 
 
-def _copy_venv(src_venv_dir, dst_venv_dir, pyversion):
-    """
-    Args:
-        src_venv_dir: 'source virtual environment directory'.
-            tip: you can pass an empty to this argument, see reason at `Notes:3`
-        dst_venv_dir: 'distributed virtual environment directory'
-        pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python 
-            编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样), 
-            否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
-    
-    Notes:
-        1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
-           拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
-           也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下
-           的 Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在
-           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable
-           _installer 项目下已经准备了一份)
-        2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
-           数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
-           并让 '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪
-           切所需的依赖到 '{dst_venv_dir}/site-packages'
-           
-    Results:
-        copy source dir to target dir:
-            lib/python-{version}-embed-amd64 -> {dst_venv_dir}
-            {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
-    """
-    # create venv shell
-    conf = loads('../embed_python/conf.json')
-    embed_python_dir = {
-        # see: 'embed_python/README.md'
-        '3.8': f'../embed_python/{conf["PY38"]}',
-        '3.9': f'../embed_python/{conf["PY39"]}'
-    }[pyversion]
-    
-    shutil.copytree(embed_python_dir, dst_venv_dir)
-    
-    # copy site-packages
-    if ospath.exists(src_venv_dir):
-        shutil.copytree(f'{src_venv_dir}/Lib/site-packages',
-                        f'{dst_venv_dir}/site-packages')
-    else:  # just create an empty folder
-        os.mkdir(f'{dst_venv_dir}/site-packages')
-
-
-def _create_launcher(app_name, icon, target, rootdir,
+def _create_launcher(app_name, icon, target, rootdir, pyversion,
                      extend_sys_paths=None, enable_venv=True,
                      enable_console=True):
     """ 创建启动器.
@@ -391,6 +344,7 @@ def _create_launcher(app_name, icon, target, rootdir,
             'kwargs': {...}
         }
         rootdir (str): 打包的根目录
+        pyversion (str)
         extend_sys_paths (list):. 模块搜索路径, 该路径会被添加到 sys.path.
             列表中的元素是相对于 srcdir 的文件夹路径 (必须是相对路径格式. 参考
             `process_pyproject:conf_o['build']['module_paths']`)
@@ -458,6 +412,7 @@ def _create_launcher(app_name, icon, target, rootdir,
         # 与当前编译的 pyc 版本相同.
         template = loads('template/launch_by_system.bat')
     code = template.format(
+        PYVERSION=pyversion.replace('.', ''),  # ...|'37'|'38'|'39'|...
         LAUNCHER=f'{bootloader_name}.pyc'
         #   注意是 '{boot_name}.pyc' 而不是 '{boot_name}.cpython-38.pyc', 原因见
         #   `_compile_py_files:vars:ofp:comment:#2`
@@ -481,6 +436,51 @@ def _create_launcher(app_name, icon, target, rootdir,
     )
     thread.start()
     # thread.join()
+
+
+def _copy_venv(src_venv_dir, dst_venv_dir, pyversion):
+    """
+    Args:
+        src_venv_dir: 'source virtual environment directory'.
+            tip: you can pass an empty to this argument, see reason at `Notes:3`
+        dst_venv_dir: 'distributed virtual environment directory'
+        pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python
+            编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样),
+            否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
+
+    Notes:
+        1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
+           拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
+           也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下
+           的 Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在
+           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable
+           _installer 项目下已经准备了一份)
+        2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
+           数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
+           并让 '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪
+           切所需的依赖到 '{dst_venv_dir}/site-packages'
+
+    Results:
+        copy source dir to target dir:
+            lib/python-{version}-embed-amd64 -> {dst_venv_dir}
+            {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
+    """
+    # create venv shell
+    conf = loads('../embed_python/conf.json')
+    embed_python_dir = {
+        # see: 'embed_python/README.md'
+        '3.8': f'../embed_python/{conf["PY38"]}',
+        '3.9': f'../embed_python/{conf["PY39"]}'
+    }[pyversion]
+    
+    shutil.copytree(embed_python_dir, dst_venv_dir)
+    
+    # copy site-packages
+    if ospath.exists(src_venv_dir):
+        shutil.copytree(f'{src_venv_dir}/Lib/site-packages',
+                        f'{dst_venv_dir}/site-packages')
+    else:  # just create an empty folder
+        os.mkdir(f'{dst_venv_dir}/site-packages')
 
 
 def _create_readme(file_i: str, distdir):
