@@ -10,7 +10,7 @@ from .pretty_print import printer
 def main(file='manifest.json'):
     """
     Args:
-        file: 在发布时, checkup.py 会产生一个编译文件到 {dist}/build/checkup
+        file: 在发布时, doctor.py 会产生一个编译文件到 {dist}/build/checkup
             .pyc, 在同目录下还有一个 {dist}/build/manifest.json, 就是本参数要传
             入的文件
     

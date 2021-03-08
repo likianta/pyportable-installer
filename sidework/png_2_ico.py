@@ -11,7 +11,7 @@ from PIL import Image
 
 
 def main(file_i, file_o):
-    img = Image(file_i)
+    img = Image.open(file_i)
     img.save(file_o)
     img.close()
     

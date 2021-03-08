@@ -1,11 +1,12 @@
 {
     "app_name": "",
     "app_version": "0.1.0",
-    "icon": "",
+    "description": "",
     "author": "",
     "build": {
-        "idir": "",
-        "odir": "dist/{app_name_lower}_{app_version}",
+        "proj_dir": "",
+        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "icon": "",
         "target": {
             "file": "",
             "function": "main",
@@ -16,10 +17,11 @@
         "module_paths": [],
         "attachments": {},
         "required": {
-            "python_version": "3.8",
+            "python_version": "",
             "enable_venv": true,
             "venv": ""
-        }
+        },
+        "enable_console": true
     },
     "note": ""
 }

@@ -1,3 +1,9 @@
+### 2.2.1
+
+- 修复: shutils.copytree 拷贝 venv 时报 "目录已存在" 错误
+- 变更: 重构 pyproject.json 的结构
+- 新增: pyproject.json:build:enable_console 选项
+
 ### 2.2.0
 
 - 变更: 项目重命名: "lkdist" -> "pyportable-installer"
