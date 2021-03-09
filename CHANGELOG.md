@@ -60,8 +60,11 @@
     * 修复: prebuild._copy_assets 拷贝时的范围选取过大
     * 优化: 调整 prebuild.min_build 的行为
 
+### 2.2.3
 
-
+* [ ] PyPortable Installer
+    * [ ] 编译优化 
+        * 优化: compile_dir 的编译结果直接放在与 py 同目录下
 
 
 

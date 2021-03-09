@@ -321,6 +321,7 @@ def _copy_assets(attachments, srcdir):
                 filesniff.force_create_dirpath(ospath.dirname(dir_o))
                 shutil.copytree(dir_i, dir_o)
         elif 'only_folders' in type_:
+            if not ospath.exists(dir_o): os.mkdir(dir_o)
             for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
                 os.mkdir(dp.replace(dir_i, dir_o, 1))
         elif 'only_folder' in type_:
@@ -504,21 +505,14 @@ def _compile_py_files(dir_i, recursive=True):
     References:
         https://blog.csdn.net/weixin_38314865/article/details/90443135
     """
-    compile_dir(dir_i, maxlevels=10 if recursive else 0, quiet=1)
+    compile_dir(dir_i, maxlevels=10 if recursive else 0, quiet=1, legacy=True)
     #   maxlevels: int. 指定遍历的深度, 最小为 0 (0 只编译当前目录下的 py 文件).
     #       注意该值在 Python 3.8 下默认是 10, 在 Python 3.9 下默认是 None. 为了
     #       能够在 3.8 及以下正常工作, 所以我用了 10.
     #   quiet: 1 表示只在有错误时向控制台打印信息.
-    
-    for fp, fn in filesniff.findall_files(dir_i, suffix='.pyc', fmt='zip'):
-        #   fp: 'filepath', fn: 'filename', e.g. 'xxx.cpython-38.pyc'
-        fp_i = fp
-        fp_o = f'{fp}/../../{fn.split(".", 1)[0]}.pyc'
-        #   1. 第一个 '../' 表示自身所在的目录, 第二个 '../' 指向上一级目录
-        #   2. 不能直接使用 fn, 因为 fn 的后缀是 '.cpython-38.pyc', 会导致
-        #      Python 的导入语法不能正常工作 (提示 "ImportError: No module named
-        #      'model'"), 为了解决此问题, 将后缀改为 '.pyc' 即可.
-        shutil.move(fp_i, fp_o)
+    #   legacy: True 令生成的 pyc 文件位于与 py 的同一目录下, 并且后缀为 '.pyc';
+    #       False 令生成的 pyc 文件位于 py 同目录下的 '__pycache__' 目录, 并且后
+    #       缀为 '.cpython-xx.pyc'
 
 
 def _cleanup_py_files(dir_i, recursive=True):
@@ -534,6 +528,7 @@ def _cleanup_py_files(dir_i, recursive=True):
         for fp in filesniff.findall_files(dir_i, suffix='.py'):
             os.remove(fp)
     else:
-        os.rmdir(f'{dir_i}/__pycache__')
+        if ospath.exists(d := f'{dir_i}/__pycache__'):
+            os.rmdir(d)
         for fp in filesniff.find_files(dir_i, suffix='.py'):
             os.remove(fp)
