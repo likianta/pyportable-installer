@@ -2,7 +2,7 @@
 
 pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下面是添加了注释的版本:
 
-```json
+```json5
 {
     // 软件的名字, 使用正常的大小写和空格
     "app_name": "Hello World",
