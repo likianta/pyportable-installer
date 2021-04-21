@@ -70,7 +70,7 @@ def launch():
 
     try:
         from {TARGET_PKG} import {TARGET_NAME} as myapp
-        if '{TARGET_FUNC}' != '':
+        if '{TARGET_FUNC}' != '_':
             myapp.{TARGET_FUNC}(*{TARGET_ARGS}, **{TARGET_KWARGS})
     except:
         # To obtain more message about this error.
