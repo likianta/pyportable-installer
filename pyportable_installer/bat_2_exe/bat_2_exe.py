@@ -42,7 +42,7 @@ def main(bat_file, exe_file, icon='', *options):
         '' if not icon else f'/icon "{icon}"',
         ' '.join(options)
     ).strip()
-    # print('cmd', cmd)
+    print('cmd', cmd)
     return popen(cmd).read()
 
 

@@ -31,7 +31,7 @@ if extra_paths:
 
 # ------------------------------------------------------------------------------
 
-def launch(func, *args, **kwargs):
+def launch():
     """
     Usage:
         # my_main.py
@@ -69,7 +69,9 @@ def launch(func, *args, **kwargs):
         ).read()
 
     try:
-        func(*args, **kwargs)
+        from {TARGET_PKG} import {TARGET_NAME} as myapp
+        if '{TARGET_FUNC}' != '':
+            myapp.{TARGET_FUNC}(*{TARGET_ARGS}, **{TARGET_KWARGS})
     except:
         # To obtain more message about this error.
         #   https://stackoverflow.com/questions/1278705/when-i-catch-an
@@ -84,7 +86,6 @@ def launch(func, *args, **kwargs):
 
 
 if __name__ == '__main__':
-    from {TARGET_PKG} import {TARGET_NAME} as myapp
     # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
     os.chdir('{TARGET_DIR}')
-    launch(myapp.{TARGET_FUNC}, *{TARGET_ARGS}, **{TARGET_KWARGS})
+    launch()

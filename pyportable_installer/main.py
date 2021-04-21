@@ -251,51 +251,56 @@ def _precheck_args(proj_dir, dist_dir, readme, attachments):
 def _create_launcher(app_name, icon, target, root_dir, pyversion,
                      extend_sys_paths=None, enable_venv=True,
                      enable_console=True):
-    """ 创建启动器.
+    """ Create launcher ({srcdir}/bootloader.py).
     
-    Args:
-        app_name (str)
-        icon (str)
-        target (dict): {
+    :param str app_name: application name, this will be used as exe file's name:
+        e.g. ``app_name = 'Hello World'`` -> will generate 'Hello World.exe'
+    :param str icon: *.ico file
+    :param dict target: {
             'file': filepath,
             'function': str,
             'args': [...],
             'kwargs': {...}
         }
-        root_dir (str): 打包的根目录
-        pyversion (str)
-        extend_sys_paths (list):. 模块搜索路径, 该路径会被添加到 sys.path.
+    :param str root_dir:
+    :param str pyversion: e.g. '3.8'
+    :param list[str] extend_sys_paths: 模块搜索路径, 该路径会被添加到 sys.path.
             列表中的元素是相对于 src_dir 的文件夹路径 (必须是相对路径格式. 参考
             `process_pyproject:conf_o['build']['module_paths']`)
-        enable_venv (bool): 推荐为 True
-    
-    详细说明:
-        启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
-        启动器图标位于: '{root_dir}/{app_name}.exe'
-        引导装载程序位于: '{root_dir}/src/bootloader.pyc'
-        
-        1. 二者的体积都非常小
-        2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的
-           路径和 bootloader 的路径, 通过调用编译器执行 bootloader.pyc
-        3. bootloader 主要完成了以下两项工作:
-            1. 向 sys.path 中添加当前工作目录和自定义的模块目录
-            2. 对主脚本加了一个 try catch 结构, 以便于捕捉主程序报错时的信息, 并
-               以系统弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
-               件表现得更像是一款软件
-    
-    Notes:
-        1. 启动器在调用主脚本 (main:args:main_script) 之前, 会通过 `os.chdir` 切
-           换到主脚本所在的目录, 这样我们项目源代码中的所有相对路径, 相对引用都
-           能正常工作
-    
-    References:
-        template/launch_by_system.bat
-        template/launch_by_venv.bat
-        template/bootloader.txt
-        
-    Returns:
+    :param bool enable_venv:
+    :param bool enable_console:
+    :return:
         launch_file: '{root_dir}/src/{bootloader_name}.py'.
-            e.g. '~/src/bootloader.py'
+    
+    详细说明
+    ========
+
+    启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
+    启动器图标位于: '{root_dir}/{app_name}.exe'
+    引导装载程序位于: '{root_dir}/src/bootloader.pyc'
+    
+    1. 二者的体积都非常小
+    2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的
+       路径和 bootloader 的路径, 通过调用编译器执行 bootloader.pyc
+    3. bootloader 主要完成了以下两项工作:
+        1. 向 sys.path 中添加当前工作目录和自定义的模块目录
+        2. 对主脚本加了一个 try catch 结构, 以便于捕捉主程序报错时的信息, 并
+           以系统弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
+           件表现得更像是一款软件
+    
+    Notes
+    =====
+    
+    1. 启动器在调用主脚本 (``main:args:main_script``) 之前, 会通过 ``os.chdir``
+       切换到主脚本所在的目录, 这样我们项目源代码中的所有相对路径, 相对引用都能
+       正常工作
+    
+    References
+    ==========
+    
+    - template/launch_by_system.bat
+    - template/launch_by_venv.bat
+    - template/bootloader.txt
     """
     launcher_name = app_name
     bootloader_name = 'bootloader'
@@ -334,6 +339,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         LAUNCHER=f'{bootloader_name}.py'
     )
     bat_file = f'{root_dir}/{launcher_name}.bat'
+    # lk.logt('[D3432]', code)
     dumps(code, bat_file)
     
     # 这是一个耗时操作 (大约需要 10s), 我们把它放在子线程执行
@@ -343,7 +349,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
                 'it may take several seconds ~ one minute...')
         bat_2_exe(bat_file, exe_file, icon_file, *options)
         lk.loga('convertion bat-to-exe done')
-        os.remove(bat_file)
+        # os.remove(bat_file)
     
     thread = Thread(
         target=generate_exe,
