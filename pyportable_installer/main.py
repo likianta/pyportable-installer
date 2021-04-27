@@ -319,8 +319,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         TARGET_DIR=target_dir,
         TARGET_PKG=target_pkg,
         TARGET_NAME=target_name,
-        TARGET_FUNC=target['function'] or '_',  # if no function name defined,
-        #   use underline instead
+        TARGET_FUNC=target['function'],
         TARGET_ARGS=str(target['args']),
         TARGET_KWARGS=str(target['kwargs']),
     )

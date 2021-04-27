@@ -48,6 +48,7 @@ def launch():
         print('Runtime Error:', err)
         input('Press any key to leave...')
 
+    # noinspection PyUnusedLocal
     def show_err_on_msgbox(err):
         # notes: not recommend to use
         # https://stackoverflow.com/questions/17280637/tkinter-messagebox
@@ -57,6 +58,7 @@ def launch():
         root.withdraw()
         messagebox.showerror(title='Runtime Error', message=err)
 
+    # noinspection PyUnusedLocal
     def alert(title, msg):
         # https://www.cnblogs.com/freeweb/p/5048833.html
         return os.popen(
@@ -69,9 +71,9 @@ def launch():
         ).read()
 
     try:
-        from {TARGET_PKG} import {TARGET_NAME} as myapp
-        if '{TARGET_FUNC}' != '_':
-            myapp.{TARGET_FUNC}(*{TARGET_ARGS}, **{TARGET_KWARGS})
+        if '{TARGET_FUNC}' != '':
+            from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as start
+            start(*{TARGET_ARGS}, **{TARGET_KWARGS})
     except:
         # To obtain more message about this error.
         #   https://stackoverflow.com/questions/1278705/when-i-catch-an
