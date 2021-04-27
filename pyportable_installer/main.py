@@ -2,9 +2,7 @@ from threading import Thread
 
 from lk_utils.read_and_write import dumps, loads
 
-from .aftermath import main as aftermath
 from .assets_copy import *
-from .compiler import compile1
 
 curr_dir = ospath.dirname(__file__).replace('\\', '/')
 
@@ -17,6 +15,8 @@ class GlobalConf:
     create_venv_shell = True
     #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
     create_launch_bat = True  # True|False
+    compile_scripts = True
+    do_aftermath = True
 
 
 def full_build(file):
@@ -33,6 +33,15 @@ def min_build(file):
     main(file)
 
 
+def debug_build(file):
+    GlobalConf.create_checkup_tools = False
+    GlobalConf.create_venv_shell = False
+    GlobalConf.create_launch_bat = True
+    GlobalConf.compile_scripts = False
+    GlobalConf.do_aftermath = False
+    main(file)
+
+
 def main(file):
     conf_o = extract_pyproject(file)
     root_dir = build_pyproject(app_name=conf_o['app_name'], **conf_o['build'])
@@ -41,7 +50,10 @@ def main(file):
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
     
     dumps(conf_o, f'{root_dir}/build/manifest.json')
-    aftermath(root_dir)
+    
+    if GlobalConf.do_aftermath:
+        from .aftermath import main as aftermath
+        aftermath(root_dir)
 
 
 def extract_pyproject(pyproj_file):
@@ -203,20 +215,8 @@ def build_pyproject(
     )
     dirs_to_compile.append(ospath.dirname(launch_file))
     
-    # compile source code
-    for i, d in enumerate(dirs_to_compile):
-        files1 = filesniff.find_files(d, '.py')
-        names1 = filesniff.find_filenames(d, '.py')
-        if not files1:
-            continue
-        else:
-            assert len(files1) == len(names1)
-            os.mkdir(f'{cache_dir}/{i}')
-        files2 = [f'{cache_dir}/{i}/{n}' for n in names1]
-        [shutil.move(f1, f2) for f1, f2 in zip(files1, files2)]
-        compile1(files2, d)
-    
-    copy_runtime(f'{curr_dir}/template', src_dir)
+    if GlobalConf.compile_scripts:
+        _compile(dirs_to_compile, src_dir, cache_dir)
     
     if required['enable_venv'] and GlobalConf.create_venv_shell:
         copy_venv(
@@ -360,3 +360,22 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     thread.start()
     
     return launch_file
+
+
+def _compile(dirs_to_compile, src_dir: str, cache_dir: str):
+    from .compiler import compile1
+    
+    # compile source code
+    for i, d in enumerate(dirs_to_compile):
+        files1 = filesniff.find_files(d, '.py')
+        names1 = filesniff.find_filenames(d, '.py')
+        if not files1:
+            continue
+        else:
+            assert len(files1) == len(names1)
+            os.mkdir(f'{cache_dir}/{i}')
+        files2 = [f'{cache_dir}/{i}/{n}' for n in names1]
+        [shutil.move(f1, f2) for f1, f2 in zip(files1, files2)]
+        compile1(files2, d)
+    
+    copy_runtime(f'{curr_dir}/template', src_dir)

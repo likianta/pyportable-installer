@@ -1,3 +1,3 @@
-from .main import full_build, min_build
+from .main import debug_build, full_build, min_build
 
-__version__ = '2.3.0'
+__version__ = '2.3.1'
