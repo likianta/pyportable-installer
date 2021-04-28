@@ -3,8 +3,7 @@ from threading import Thread
 from lk_utils.read_and_write import dumps, loads
 
 from .assets_copy import *
-
-curr_dir = ospath.dirname(__file__).replace('\\', '/')
+from .pyarmor_compile import main as compile_
 
 
 class GlobalConf:
@@ -92,7 +91,7 @@ def extract_pyproject(pyproj_file):
     # --------------------------------------------------------------------------
     
     conf_i = loads(pyproj_file)
-    conf_o = loads(f'{curr_dir}/template/pyproject.json')  # type: dict
+    conf_o = loads(f'{CURR_DIR}/template/pyproject.json')  # type: dict
     #   conf_o has the same struct with conf_i
     
     # check conf_i
@@ -123,7 +122,7 @@ def extract_pyproject(pyproj_file):
     ))
     conf_o['build']['icon'] = abspath(
         conf_i['build']['icon'] or
-        ospath.abspath(f'{curr_dir}/template/python.ico')
+        ospath.abspath(f'{CURR_DIR}/template/python.ico')
     )
     conf_o['build']['readme'] = abspath(
         conf_i['build']['readme']
@@ -197,7 +196,7 @@ def build_pyproject(
     # --------------------------------------------------------------------------
     
     if GlobalConf.create_checkup_tools:
-        copy_checkup_tool(f'{curr_dir}/checkup', build_dir)
+        copy_checkup_tool(f'{CURR_DIR}/checkup', build_dir)
     
     if readme:
         create_readme(readme, root_dir)
@@ -216,12 +215,12 @@ def build_pyproject(
     dirs_to_compile.append(ospath.dirname(launch_file))
     
     if GlobalConf.compile_scripts:
-        _compile(dirs_to_compile, src_dir, cache_dir)
+        compile_(dirs_to_compile, src_dir, cache_dir)
     
     if required['enable_venv'] and GlobalConf.create_venv_shell:
         copy_venv(
             required['venv'], f'{root_dir}/venv', required['python_version'],
-            embed_python_dir=ospath.dirname(f'{curr_dir}/../embed_python')
+            embed_python_dir=ospath.dirname(f'{CURR_DIR}/../embed_python')
         )
     
     return root_dir
@@ -310,7 +309,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     target_pkg = target_dir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
-    template = loads(f'{curr_dir}/template/bootloader.txt')
+    template = loads(f'{CURR_DIR}/template/bootloader.txt')
     code = template.format(
         # see `template/bootloader.txt:Template placeholders`
         SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
@@ -331,9 +330,9 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         return launch_file
     
     if enable_venv:  # suggest
-        template = loads(f'{curr_dir}/template/launch_by_venv.bat')
+        template = loads(f'{CURR_DIR}/template/launch_by_venv.bat')
     else:
-        template = loads(f'{curr_dir}/template/launch_by_system.bat')
+        template = loads(f'{CURR_DIR}/template/launch_by_system.bat')
     code = template.format(
         PYVERSION=pyversion.replace('.', ''),  # ...|'37'|'38'|'39'|...
         LAUNCHER=f'{bootloader_name}.py'
@@ -359,22 +358,3 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     thread.start()
     
     return launch_file
-
-
-def _compile(dirs_to_compile, src_dir: str, cache_dir: str):
-    from .compiler import compile1
-    
-    # compile source code
-    for i, d in enumerate(dirs_to_compile):
-        files1 = filesniff.find_files(d, '.py')
-        names1 = filesniff.find_filenames(d, '.py')
-        if not files1:
-            continue
-        else:
-            assert len(files1) == len(names1)
-            os.mkdir(f'{cache_dir}/{i}')
-        files2 = [f'{cache_dir}/{i}/{n}' for n in names1]
-        [shutil.move(f1, f2) for f1, f2 in zip(files1, files2)]
-        compile1(files2, d)
-    
-    copy_runtime(f'{curr_dir}/template', src_dir)

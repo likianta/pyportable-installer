@@ -1,0 +1,1 @@
+from {PYTRANSFORM_RELPKG} import pyarmor_runtime

@@ -6,6 +6,39 @@ from os import path as ospath
 from lk_logger import lk
 from lk_utils import filesniff
 
+CURR_DIR = ospath.dirname(__file__).replace('\\', '/')
+
+
+# def _fmt_curr_dir(func):
+#     """
+#     Notes:
+#         All public functions in this module support a plug-in keyword for path:
+#
+#         `{CURR_DIR}/some/subfolder/name/bla/bla`
+#
+#         `{CURR_DIR}` points to `(this_project)/pyportable_installer`, i.e. the
+#         directory this module belongs to.
+#     """
+#     
+#     def wrap(*args, **kwargs):
+#         new_args = []
+#         for e in args:
+#             if isinstance(e, str) and '{CURR_DIR}' in e:
+#                 new_args.append(e.format(CURR_DIR=CURR_DIR))
+#             else:
+#                 new_args.append(e)
+#                 
+#         new_kwargs = {}
+#         for k, v in kwargs:
+#             if isinstance(v, str) and '{CURR_DIR}' in v:
+#                 new_kwargs[k] = v.format(CURR_DIR=CURR_DIR)
+#             else:
+#                 new_kwargs[k] = v
+#                 
+#         return func(*new_args, **new_kwargs)
+#     
+#     return wrap
+
 
 def copy_checkup_tool(assets_dir, build_dir):
     """
@@ -33,22 +66,40 @@ def copy_sources(proj_dir, src_dir):
     yield from copy_assets({proj_dir: 'assets,compile'}, src_dir)
 
 
-def copy_runtime(assets_dir, src_dir):
+def copy_runtime(template_dir, src_dir, dirs_to_compile):
     """
-    assets_dir                               src_dir
+    template_dir                             src_dir
     |= pytransform ========= copy =========> |= pytransform
         |- __init__.py                           |- __init__.py
         |- _pytransform.dll                      |- _pytransform.dll
     
     Args:
-        assets_dir: `pyportable_installer/template`
-        src_dir:
+        template_dir: `{globals:CURR_DIR}/template`
+        src_dir: see `pyarmor_compile.py > main > params:src_dir`
+        dirs_to_compile: see `pyarmor_compile.py > main > params:dirs_to_compile`
     """
-    if ospath.exists(f'{assets_dir}/pytransform'):
-        shutil.copytree(f'{assets_dir}/pytransform', f'{src_dir}/pytransform')
-    else:  # FIXME: 不要使用环境变量. 自带一个 pyarmor.exe
+    from lk_utils.read_and_write import loads, dumps
+    
+    if ospath.exists(f'{template_dir}/pytransform'):
+        shutil.copytree(f'{template_dir}/pytransform', f'{src_dir}/pytransform')
+    else:
         os.popen(f'pyarmor runtime -O "{src_dir}"')
         #   see `cmd:pyarmor runtime -h`
+    
+    pytransform_package_dir = f'{src_dir}/pytransform'
+    #   this is an abspath
+    pytransform_file_template = loads(f'{template_dir}/pytransform.txt')
+    
+    for d in dirs_to_compile:
+        if os.listdir(d):
+            dumps(
+                data=pytransform_file_template.format(
+                    PYTRANSFORM_RELPKG=ospath.relpath(
+                        d, pytransform_package_dir
+                    ).replace('../', '..', 1).replace('../', '.')
+                ),
+                file=f'{d}/pytransform.py'
+            )
 
 
 def copy_venv(src_venv_dir, dst_venv_dir, pyversion, embed_python_dir):

@@ -16,12 +16,10 @@ References:
 import os
 import sys
 
+sys.path.append(os.path.abspath('.'))
+
 site_packages = '{SITE_PACKAGES}'
-if site_packages:  # see `prebuild._copy_venv`
-    # 当使用 venv 时, 这意味着我们在用 embed python. 对于 embed python, 我们需要
-    # 显式地添加当前目录到 sys.path, 否则 embed python 无法识别从当前目录开始的
-    # 模块搜寻
-    sys.path.append(os.path.abspath('.'))
+if site_packages:  # see `pyportable_installer/main.py:_copy_venv`
     sys.path.append(os.path.abspath(site_packages))
 
 extra_paths = {EXTEND_SYS_PATHS}
@@ -71,10 +69,16 @@ def launch():
         ).read()
 
     try:
-        if '{TARGET_FUNC}' != '':
+        if '{TARGET_FUNC}' == '':
+            raise ImportError('No target found')
+        elif '{TARGET_FUNC}' == '*':
+            from {TARGET_PKG}.{TARGET_NAME} import *
+        else:
             from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as start
             start(*{TARGET_ARGS}, **{TARGET_KWARGS})
-    except:
+
+    except Exception as e:
+        print(e)
         # To obtain more message about this error.
         #   https://stackoverflow.com/questions/1278705/when-i-catch-an
         #   -exception-how-do-i-get-the-type-file-and-line-number
@@ -83,6 +87,7 @@ def launch():
         alert('Runtime Error', msg)
         # # show_err_on_msgbox(msg)
         # # show_err_on_console(msg)
+
     finally:
         input('Press enter to leave...')
 
