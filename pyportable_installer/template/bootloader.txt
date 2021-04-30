@@ -29,7 +29,7 @@ if extra_paths:
 
 # ------------------------------------------------------------------------------
 
-def launch():
+def launch(main_func, *args, **kwargs):
     """
     Usage:
         # my_main.py
@@ -69,14 +69,7 @@ def launch():
         ).read()
 
     try:
-        if '{TARGET_FUNC}' == '':
-            raise ImportError('No target found')
-        elif '{TARGET_FUNC}' == '*':
-            from {TARGET_PKG}.{TARGET_NAME} import *
-        else:
-            from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as start
-            start(*{TARGET_ARGS}, **{TARGET_KWARGS})
-
+        main_func(*args, **kwargs)
     except Exception as e:
         print(e)
         # To obtain more message about this error.
@@ -95,4 +88,11 @@ def launch():
 if __name__ == '__main__':
     # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
     os.chdir('{TARGET_DIR}')
-    launch()
+
+    if '{TARGET_FUNC}' == '':
+        raise ImportError('No target found')
+    elif '{TARGET_FUNC}' == '*':
+        from {TARGET_PKG}.{TARGET_NAME} import *
+    else:
+        from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
+        launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})

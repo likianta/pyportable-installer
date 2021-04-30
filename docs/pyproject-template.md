@@ -67,17 +67,24 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
         //     1. 如需使用多个预设值, 用英文逗号分隔 (逗号后面不要有空格)
         //     2. 如需使用多个预设值, 则请自行保证每个预设值之间的功能不是矛盾的
         //     3. 完整的预设值清单如下:
-        //        assets: 表示全量复制该资产
-        //        root_assets: 只复制根目录的资产 (子目录以空文件夹的形式创建, 
-        //                     文件则复制过去)
-        //        only_folder: 只创建一个空的根目录
-        //        only_folders: 只创建根目录和它的所有子目录 (以空文件夹的形式),
-        //                      不包含文件
-        //        compile: 该资产中包含了 py 文件, 需要在打包时被编译为字节码文
-        //                 件
+        //        assets                复制目录下的全部文件 (夹)
+        //        assets,compile        复制目录下的全部文件 (夹), 并对 *.py 文
+        //                              件编译
+        //        root_assets           只复制根目录下的文件
+        //        root_assets,compile   只复制根目录下的文件, 并对 *.py 文件编译
+        //        only_folder           只复制根目录, 相当于在打包目录下创建相应
+        //                              的空目录
+        //        only_folders          只复制根目录和全部子目录, 相当于在打包目
+        //                              录下创建相应的空目录树
+        //        compile               此时它对应的路径必为 python 脚本文件. 对
+        //                              该文件进行编译
+        //        asset                 此时它对应的路径必为一个文件. 将该文件复
+        //                              制到打包目录下对应的位置
+        //                              注: 这个标记我们一般不用, 而是用 assets 
+        //                              替代
         "attachments": {
             "docs/manual": "assets",
-            "CHANGELOG.md": "assets",
+            "CHANGELOG.md": "asset",
             "demo": "assets,compile",
             "gallery": "assets",
             "tests": "root_assets,compile",

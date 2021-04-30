@@ -1,48 +1,42 @@
-import os
 import shutil
+from os import mkdir, popen
+from os.path import dirname
 
 from lk_logger import lk
 from lk_utils import filesniff
+from lk_utils.read_and_write import dumps, loads
 
-from .assets_copy import CURR_DIR, copy_runtime
+from .global_dirs import global_dirs
 
 
-def main(dirs_to_compile: list[str], src_dir: str, cache_dir: str):
+def pyarmor_compile(pyfiles: list[str], lib_dir: str):
     """
     
-    Args:
-        dirs_to_compile: see `main.py > build_pyproject > vars:dirs_to_compile`
-        src_dir: 'source code directory'. see `main.py > build_pyproject >
-            vars:src_dir`
-        cache_dir: 'cache directory'. see `main.py > build_pyproject >
-            vars:cache_dir`
-            
     References:
         docs/devnote/how-does-pytransform-work.md
     """
-    for i, d in enumerate(dirs_to_compile):
-        for src_files in _move_src_files_to_cache_dir(d, f'{cache_dir}/{i}'):
-            if not src_files:
-                continue
-            else:
-                _compile_all(src_files, d)
+    # create bootstrap files
+    create_bootstrap_files(
+        set(map(dirname, pyfiles)), lib_dir
+    )
     
-    copy_runtime(f'{CURR_DIR}/template', src_dir, dirs_to_compile)
+    for src_file in pyfiles:
+        dst_file = global_dirs.to_dist(src_file)
+        _compile_one(src_file, dst_file)
 
 
-def _move_src_files_to_cache_dir(single_src_dir: str, cache_dir: str):
-    src_files_i = filesniff.find_files(single_src_dir, '.py')
-    if not src_files_i:
-        yield []
-    else:
-        os.mkdir(cache_dir)
-        src_files_o = [f'{cache_dir}/{n}'
-                       for n in map(filesniff.get_filename, src_files_i)]
-        [shutil.move(i, o) for i, o in zip(src_files_i, src_files_o)]
-        yield src_files_o
+def create_bootstrap_files(src_dirs, lib_dir: str):
+    dst_dirs = map(global_dirs.to_dist, src_dirs)
+    
+    template = loads(global_dirs.template('pytransform.txt'))
+    
+    for d in dst_dirs:
+        dumps(template.format(
+            LIB_PARENT_DIR=dirname(lib_dir),  # e.g. '../../'
+        ), f'{d}/pytransform.py')
 
 
-def _compile_all(files_i, dir_o):
+def _compile_one(src_file, dst_file):
     """
     References:
         `cmd:pyarmor obfuscate -h`
@@ -67,10 +61,34 @@ def _compile_all(files_i, dir_o):
         |  --bootstrap 3`    |                                                 |
         | ------------------ | ----------------------------------------------- |
         | `pyarmor obfuscate | *unknown*                                       |
-        |  --bootstrap 4`    |
+        |  --bootstrap 4`    |                                                 |
     """
+    r = popen(
+        f'pyarmor obfuscate '
+        f'-O "{dirname(dst_file)}" --bootstrap 2 --exact -n '
+        f'"{src_file}"'
+    )
+    lk.loga(r.read())
+
+
+# ------------------------------------------------------------------------------
+# DELETE
+
+def _move_src_files_to_cache_dir(single_src_dir: str, cache_dir: str):
+    src_files_i = filesniff.find_files(single_src_dir, '.py')
+    if not src_files_i:
+        yield []
+    else:
+        mkdir(cache_dir)
+        src_files_o = [f'{cache_dir}/{n}'
+                       for n in map(filesniff.get_filename, src_files_i)]
+        [shutil.move(i, o) for i, o in zip(src_files_i, src_files_o)]
+        yield src_files_o
+
+
+def _compile_all(files_i, dir_o):
     files_i = ' '.join([f'"{f}"' for f in files_i])
-    r = os.popen(
+    r = popen(
         f'pyarmor obfuscate '
         f'-O "{dir_o}" --bootstrap 2 --exact -n '
         f'{files_i}'

@@ -1,72 +1,51 @@
 import os
-import re
 import shutil
 from os import path as ospath
 
-from lk_logger import lk
 from lk_utils import filesniff
 
-CURR_DIR = ospath.dirname(__file__).replace('\\', '/')
-
-
-# def _fmt_curr_dir(func):
-#     """
-#     Notes:
-#         All public functions in this module support a plug-in keyword for path:
-#
-#         `{CURR_DIR}/some/subfolder/name/bla/bla`
-#
-#         `{CURR_DIR}` points to `(this_project)/pyportable_installer`, i.e. the
-#         directory this module belongs to.
-#     """
-#     
-#     def wrap(*args, **kwargs):
-#         new_args = []
-#         for e in args:
-#             if isinstance(e, str) and '{CURR_DIR}' in e:
-#                 new_args.append(e.format(CURR_DIR=CURR_DIR))
-#             else:
-#                 new_args.append(e)
-#                 
-#         new_kwargs = {}
-#         for k, v in kwargs:
-#             if isinstance(v, str) and '{CURR_DIR}' in v:
-#                 new_kwargs[k] = v.format(CURR_DIR=CURR_DIR)
-#             else:
-#                 new_kwargs[k] = v
-#                 
-#         return func(*new_args, **new_kwargs)
-#     
-#     return wrap
+from .global_dirs import global_dirs
 
 
 def copy_checkup_tool(assets_dir, build_dir):
     """
+    TODO: add `update.py`
+    
     Args:
         assets_dir: `pyportable_installer/checkup`
         build_dir
     """
     dir_i, dir_o = assets_dir, build_dir
-    shutil.copyfile(f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py')
-    shutil.copyfile(f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py')
+    shutil.copyfile(
+        f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py'
+    )
+    shutil.copyfile(
+        f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py'
+    )
     return f1, f2
 
 
-def copy_sources(proj_dir, src_dir):
+def copy_sources(proj_dir):
     """
     将 proj_dir 的内容全部拷贝到 src_dir 下, 并返回 src_dir 以及 src_dir 的所有
     子目录.
     
     Args:
-        proj_dir: 'project directory'. see `prebuild.py:_build_pyproject:params
-            :proj_dir`
-        src_dir: 'source code directory'. 传入 `prebuild.py:_build_pyproject
-            :vars:src_dir`
+        proj_dir: 'project directory'. see `prebuild.py > _build_pyproject >
+            params:proj_dir`
     """
-    yield from copy_assets({proj_dir: 'assets,compile'}, src_dir)
+    yield from copy_assets({proj_dir: 'assets,compile'})
 
 
-def copy_runtime(template_dir, src_dir, dirs_to_compile):
+def copy_pytransform_runtime(dir_i, dir_o):
+    if ospath.exists(dir_i):
+        shutil.copytree(dir_i, dir_o)
+    else:
+        os.popen(f'pyarmor runtime -O "{dir_o}"')
+        #   see `cmd:pyarmor runtime -h`
+
+
+def copy_runtime(template_dir, src_dir, dirs_to_compile):  # DELETE
     """
     template_dir                             src_dir
     |= pytransform ========= copy =========> |= pytransform
@@ -74,9 +53,9 @@ def copy_runtime(template_dir, src_dir, dirs_to_compile):
         |- _pytransform.dll                      |- _pytransform.dll
     
     Args:
-        template_dir: `{globals:CURR_DIR}/template`
-        src_dir: see `pyarmor_compile.py > main > params:src_dir`
-        dirs_to_compile: see `pyarmor_compile.py > main > params:dirs_to_compile`
+        template_dir: `{GlobalDirs.PyPortableDir}/template`
+        src_dir: see `compiler.py > main > params:src_dir`
+        dirs_to_compile: see `compiler.py > main > params:dirs_to_compile`
     """
     from lk_utils.read_and_write import loads, dumps
     
@@ -151,80 +130,129 @@ def copy_venv(src_venv_dir, dst_venv_dir, pyversion, embed_python_dir):
         os.mkdir(f'{dst_venv_dir}/site-packages')
 
 
-def copy_assets(attachments, src_dir) -> str:
-    """
+def copy_assets(attachments) -> str:
+    """ 将 `attachments` 中列出的 assets 类型的文件和文件夹复制到 `dst_dir`.
+    
+    关于 `attachments` 的标记:
+        `attachments` 的结构为 `{file_or_dirpath: mark, ...}`. 其中键都是原始路
+        径下的文件 (夹) (assert exist). 值 mark 有以下可选:
+        
+        'assets'                复制目录下的全部文件 (夹)
+        'assets,compile'        复制目录下的全部文件 (夹), 但对 *.py 文件不复制,
+                                而是作为待编译的文件 yield 给调用者
+        'root_assets'           只复制根目录下的文件
+        'root_assets,compile'   只复制根目录下的文件, 但对 *.py 文件不复制, 而是
+                                作为待编译的文件 yield 给调用者
+        'only_folder'           只复制根目录, 相当于在 `dst_dir` 创建相应的空目
+                                录
+        'only_folders'          只复制根目录和全部子目录, 相当于在 `dst_dir` 创
+                                建相应的空目录树
+        'compile'               此时它对应的路径必为 python 脚本文件. 对该文件不
+                                复制, 而是作为待编译的文件 yield 给调用者
+        'asset'                 此时它对应的路径必为一个文件. 将该文件复制到
+                                `dst_dir` 对应的位置
+                                注1: 这个标记我们一般不用, 而是用 'assets' 替代
+                                注2: 如果有此情况, 则参数 `GlobalDirs.SourceRoot`
+                                必须不为空
+                                
+        *注: 上表内容可能过时, 最终请以 `docs/pyproject-template.md` 为准!*
+
+    注意:
+        `attachments.keys` 在 `./main.py > func:main > step2` (i.e.
+        `./no2_prebuild_pyproject.py > func:main`) 期间就全部建立了 (空文件夹),
+        所以没必要再创建; 剩下没创建的是各目录下的 "子文件夹" ('assets',
+        'assets,compile', 'only_folders' 这三种情况).
+    
     Args:
-        attachments (dict): {dir_i: type_, ...}
-            dir_i (str)
-            type_ (str):
-                ('assets' |
-                 'root_assets' |
-                 'only_folder' |
-                 'only_folders' |
-                 'assets,compile' |
-                 'root_assets,compile')
-                note: 当 type_ 为 'assets' 时, 需要判断是 file 还是 dir. (其他情
-                况均是 dir, 不用判断)
-        src_dir
+        attachments (dict):
 
     Yields:
-        dirpath which needs to be compiled
+        *.py file which needs to be compiled
     """
     
-    for dir_i, type_ in attachments.items():
-        dirname = ospath.basename(dir_i)
-        dir_o = f'{src_dir}/{dirname}'
-        
-        type_ = tuple(type_.split(','))
-        
-        if 'root_assets' in type_:
-            if not ospath.exists(dir_o): os.mkdir(dir_o)
-            for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
-                shutil.copyfile(fp, f'{dir_o}/{fn}')
-        elif 'assets' in type_:
-            if 'compile' in type_:
-                _copy_tree_exclude_protected_folders(dir_i, dir_o)
-            elif ospath.isfile(dir_i):
-                file_i, file_o = dir_i, dir_o
-                shutil.copyfile(file_i, file_o)
+    def handle_assets(dir_i, dir_o):
+        shutil.copytree(dir_i, dir_o)
+
+    # noinspection PyUnusedLocal
+    def handle_assets_and_compile(dir_i, dir_o):
+        for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
+            os.mkdir(global_dirs.to_dist(dp))
+            for fp, fn in filesniff.find_files(dp, fmt='zip'):
+                if fn.endswith('.py'):
+                    yield fp
+                else:
+                    shutil.copyfile(fp, global_dirs.to_dist(fp))
+    
+    def handle_root_assets_and_compile(dir_i, dir_o):
+        for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+            if fn.endswith('.py'):
+                yield fp
             else:
-                filesniff.force_create_dirpath(ospath.dirname(dir_o))
-                shutil.copytree(dir_i, dir_o)
-        elif 'only_folders' in type_:
-            if not ospath.exists(dir_o): os.mkdir(dir_o)
-            for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
-                os.mkdir(dp.replace(dir_i, dir_o, 1))
-        elif 'only_folder' in type_:
-            os.mkdir(dir_o)
+                shutil.copyfile(fp, f'{dir_o}/{fn}')
+    
+    def handle_root_assets(dir_i, dir_o):
+        for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+            shutil.copyfile(fp, f'{dir_o}/{fn}')
+    
+    # noinspection PyUnusedLocal
+    def handle_only_folder(dir_i, dir_o):
+        assert ospath.exists(dir_o)
+    
+    def handle_only_folders(dir_i, dir_o):
+        for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
+            os.mkdir(dp.replace(dir_i, dir_o, 1))
+    
+    def handle_asset(file_i, file_o):
+        shutil.copyfile(file_i, file_o)
+    
+    # noinspection PyUnusedLocal
+    def handle_compile(file_i, file_o):
+        yield file_i
+    
+    for path_i, mark in attachments.items():
+        mark = tuple(mark.split(','))
+        #   e.g. ('assets', 'compile')
+        is_yield_pyfile = 'compile' in mark
+        #   True: yield pyfile; False: copy pyfile
         
-        if 'compile' in type_:
-            yield dir_o
-            for d in filesniff.findall_dirs(dir_o):
-                yield d
-
-
-def _copy_tree_exclude_protected_folders(rootdir_i, rootdir_o):
-    invalid_pattern = re.compile(r'/(\.|__?)\w+')
-    #   e.g. '/.git', '/__pycache__'
-    
-    valid_dirs = [(rootdir_i, rootdir_o)]  # [(i, o), ...]
-    # FIXME: 1.4.4 版本的 lk-utils.filesniff.findall_dirs 不完善, 无法完全地过滤
-    #   掉需要被排除的文件, 所以我们自定义一个 invalid_pattern 来处理
-    for dir_i in filesniff.findall_dirs(rootdir_i):
-        if invalid_pattern.match(dir_i):
+        if ospath.isfile(path_i):
+            if is_yield_pyfile:
+                yield from handle_compile(path_i, '')
+            else:
+                path_o = global_dirs.to_dist(path_i)
+                handle_asset(path_i, path_o)
             continue
-        dir_o = f'{rootdir_o}/{dir_i.replace(rootdir_i + "/", "", 1)}'
-        valid_dirs.append((dir_i, dir_o))
-    lk.reset_count()
-    
-    for (i, o) in valid_dirs:
-        filesniff.force_create_dirpath(o)
-        for fp, fn in filesniff.find_files(i, fmt='zip'):
-            fp_i, fp_o = fp, f'{o}/{fn}'
-            shutil.copyfile(fp_i, fp_o)
-    del valid_dirs
+        
+        # ----------------------------------------------------------------------
+        
+        dir_o = global_dirs.to_dist(path_i)
+        
+        if 'root_assets' in mark:
+            if is_yield_pyfile:
+                yield from handle_root_assets_and_compile(path_i, dir_o)
+            else:
+                handle_root_assets(path_i, dir_o)
+        
+        elif 'assets' in mark:
+            if is_yield_pyfile:
+                yield from handle_assets_and_compile(path_i, dir_o)
+            else:
+                handle_assets(path_i, dir_o)
+        
+        if 'only_folders' in mark:
+            assert is_yield_pyfile is False
+            handle_only_folders(path_i, dir_o)
+        
+        elif 'only_folder' in mark:
+            assert is_yield_pyfile is False
+            handle_only_folder(path_i, dir_o)
+        
+        # if any(x not in (
+        #         'asset', 'assets', 'compile', 'only_folder', 'only_folders',
+        #         'root_assets',
+        # ) for x in mark):
+        #     raise ValueError('Unknown mark', mark)
 
 
-def create_readme(file_i: str, distdir):
-    file_o = f'{distdir}/{ospath.basename(file_i)}'
+def create_readme(file_i: str, file_o: str):
     shutil.copyfile(file_i, file_o)

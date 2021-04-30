@@ -1,1 +1,8 @@
-from {PYTRANSFORM_RELPKG} import pyarmor_runtime
+from os.path import abspath
+from sys import path
+
+lib_parent_dir = abspath('{LIB_PARENT_DIR}')
+if lib_parent_dir not in path:
+    path.append(lib_parent_dir)
+
+from lib.pytransform import pyarmor_runtime

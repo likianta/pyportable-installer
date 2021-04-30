@@ -1,15 +1,13 @@
-import shutil
 import os
 from os import path as ospath
 
 from lk_utils import filesniff
 
 
-def main(root_dir):
-    if ospath.exists(d := f'{root_dir}/cache'):
-        shutil.rmtree(d)
-
+def main(root_dir):  # TODO
+    # os.remove(f'{root_dir}/Test New PyProject.bat')
     # cleanup_py_files()
+    pass
 
 
 def cleanup_py_files(dir_i, recursive=True):  # DELETE
