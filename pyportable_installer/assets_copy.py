@@ -225,34 +225,36 @@ def copy_assets(attachments) -> str:
         
         # ----------------------------------------------------------------------
         
+        dir_i = path_i
         dir_o = global_dirs.to_dist(path_i)
         
         if 'root_assets' in mark:
             if is_yield_pyfile:
-                yield from handle_root_assets_and_compile(path_i, dir_o)
+                yield from handle_root_assets_and_compile(dir_i, dir_o)
             else:
-                handle_root_assets(path_i, dir_o)
+                handle_root_assets(dir_i, dir_o)
         
         elif 'assets' in mark:
             if is_yield_pyfile:
-                yield from handle_assets_and_compile(path_i, dir_o)
+                yield from handle_assets_and_compile(dir_i, dir_o)
             else:
-                handle_assets(path_i, dir_o)
+                handle_assets(dir_i, dir_o)
         
         if 'only_folders' in mark:
             assert is_yield_pyfile is False
-            handle_only_folders(path_i, dir_o)
+            handle_only_folders(dir_i, dir_o)
         
         elif 'only_folder' in mark:
             assert is_yield_pyfile is False
-            handle_only_folder(path_i, dir_o)
+            handle_only_folder(dir_i, dir_o)
         
-        # if any(x not in (
-        #         'asset', 'assets', 'compile', 'only_folder', 'only_folders',
-        #         'root_assets',
-        # ) for x in mark):
+        # if set(mark) != {
+        #     'asset', 'assets', 'compile', 'only_folder', 'only_folders',
+        #     'root_assets',
+        # }:
         #     raise ValueError('Unknown mark', mark)
 
 
 def create_readme(file_i: str, file_o: str):
+    # TODO: import a markdown_2_html converter
     shutil.copyfile(file_i, file_o)
