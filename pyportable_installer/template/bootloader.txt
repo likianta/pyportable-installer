@@ -1,9 +1,8 @@
 """
-Template placeholders:
+Placeholders:
     SITE_PACKAGES
     EXTEND_SYS_PATHS
-    TARGET_PATH
-    TARGET_DIR
+    TARGET_RELDIR
     TARGET_PKG
     TARGET_NAME
     TARGET_FUNC
@@ -75,21 +74,20 @@ def launch(main_func, *args, **kwargs):
     except Exception as e:
         print(e)
         # To obtain more message about this error.
-        #   https://stackoverflow.com/questions/1278705/when-i-catch-an
+        # https://stackoverflow.com/questions/1278705/when-i-catch-an
         #   -exception-how-do-i-get-the-type-file-and-line-number
         import traceback
         msg = traceback.format_exc()
         alert('Runtime Error', msg)
         # # show_err_on_msgbox(msg)
         # # show_err_on_console(msg)
-
     finally:
         input('Press enter to leave...')
 
 
 if __name__ == '__main__':
     # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
-    os.chdir('{TARGET_DIR}')
+    os.chdir('{TARGET_RELDIR}')
 
     if '{TARGET_FUNC}' == '':
         raise ImportError('No target found')

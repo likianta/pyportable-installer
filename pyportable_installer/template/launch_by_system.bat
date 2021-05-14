@@ -1,3 +1,3 @@
 cd %~dp0
-cd src
-python {LAUNCHER}
+cd {LAUNCHER_RELDIR}
+python {LAUNCHER_NAME}

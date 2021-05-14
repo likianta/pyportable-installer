@@ -1,3 +1,3 @@
 cd %~dp0
-cd src
-..\venv\python.exe {LAUNCHER}
+cd {LAUNCHER_RELDIR}
+{VENV_RELDIR}\python.exe {LAUNCHER_NAME}

@@ -1,12 +1,12 @@
 import shutil
 from os import mkdir, popen
-from os.path import dirname, relpath
+from os.path import dirname
 
 from lk_logger import lk
 from lk_utils import filesniff
 from lk_utils.read_and_write import dumps, loads
 
-from .global_dirs import global_dirs, pretty_path
+from .global_dirs import global_dirs
 
 
 def pyarmor_compile(pyfiles: list[str], lib_dir: str):
@@ -33,13 +33,15 @@ def create_bootstrap_files(src_dirs, lib_dir: str):
     for d in dst_dirs:
         dumps(template.format(
             # this must be relative path
-            # e.g. '../../'
-            LIB_PARENT_DIR=pretty_path(relpath(dirname(lib_dir), d))
+            # e.g. '../..' (equals to '../../')
+            LIB_PARENT_RELDIR=global_dirs.relpath(dirname(lib_dir), d)
         ), f'{d}/pytransform.py')
 
 
 def _compile_one(src_file, dst_file):
     """
+    Compile `src_file` and generate `dst_file`.
+    
     References:
         `cmd:pyarmor obfuscate -h`
         `pyportable_installer/assets_copy.py:copy_runtime`
@@ -67,13 +69,27 @@ def _compile_one(src_file, dst_file):
     """
     popen(
         f'pyarmor obfuscate '
-        f'-O "{dirname(dst_file)}" --bootstrap 2 --exact -n '
+        f'--output "{dirname(dst_file)}" '
+        f'--bootstrap 2 '
+        f'--exact '
+        f'--no-runtime '
+        f'--silent '
         f'"{src_file}"'
     )
-
+    #   arguments:
+    #       --output            output path, pass `dst_file`'s dirname, it will
+    #                           generate a compiled file under and has the same
+    #                           name with `src_file`
+    #       --bootstrap 2       see `docstring:notes:table`
+    #       --exact             only obfuscate the listed script(s) (here we
+    #                           only obfuscate `src_file`)
+    #       --no-runtime        do not generate runtime files (cause we have
+    #                           generated runtime files in `{dst}/lib`)
+    #       --silent            do not print normal info
 
 # ------------------------------------------------------------------------------
 # DELETE
+
 
 def _move_src_files_to_cache_dir(single_src_dir: str, cache_dir: str):
     src_files_i = filesniff.find_files(single_src_dir, '.py')

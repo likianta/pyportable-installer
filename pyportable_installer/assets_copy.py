@@ -73,7 +73,7 @@ def copy_runtime(template_dir, src_dir, dirs_to_compile):  # DELETE
         if os.listdir(d):
             dumps(
                 data=pytransform_file_template.format(
-                    PYTRANSFORM_RELPKG=ospath.relpath(
+                    PYTRANSFORM_RELPKG=global_dirs.relpath(
                         d, pytransform_package_dir
                     ).replace('../', '..', 1).replace('../', '.')
                 ),

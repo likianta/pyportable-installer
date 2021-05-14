@@ -2,8 +2,9 @@
 
 * [x] 使用 cmd 指令弹出对话框
     * [x] embed python 去掉 tkinter 依赖版
-* [ ] 假如有 `src/aaa/aaa/main.py` 会导致 `from aaa import ...` 报错
-    * [ ] 将 BootLoader 放在 target_dir 的上一级
+* [x] 假如有 `src/aaa/aaa/main.py` 会导致 `from aaa import ...` 报错
+    * [x] 将 BootLoader 放在 target_dir 的上一级
+* [ ] pyarmor 不显示打印的消息
 * [ ] 更新 readme 的内容, 符合最新的 pyproject 情况
 * [ ] 由 filesniff 提供 mkdir 和 mktree 方法, 使整个拷贝和创建过程更流畅
     1. filesniff 静默删除

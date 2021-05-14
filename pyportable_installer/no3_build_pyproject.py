@@ -182,34 +182,38 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     bootloader_name = 'bootloader'
     
     target_path = target['file']  # type: str
-    # target_dir must be relative path
-    target_dir = ospath.relpath(
-        global_dirs.to_dist(target_path.rsplit('/', 1)[0]),
-        fr'{root_dir}/src'
-    ).replace('\\', '/')
-    target_pkg = target_dir.replace('/', '.')
+    target_dir = ospath.dirname(target_path)
+    launch_dir = ospath.dirname(target_dir)
+    #   the launcher dir is parent of target dir, i.e. we put the launcher file
+    #   in the parent folder of target file's folder.
+    
+    # target_reldir: 'target relative directory' (starts from `launch_dir`)
+    # PS: it is equivalent to f'{target_dir_name}/{target_file_name}'
+    target_reldir = global_dirs.relpath(
+        global_dirs.to_dist(target_dir), launch_dir
+    )
+    target_pkg = target_reldir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
     template = loads(global_dirs.template('bootloader.txt'))
     code = template.format(
-        # see `template/bootloader.txt:Template placeholders`
+        # see `template/bootloader.txt > docstring:placeholders`
         SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
         EXTEND_SYS_PATHS=str(extend_sys_paths),
-        TARGET_PATH=target_path,
-        TARGET_DIR=target_dir,
+        TARGET_RELDIR=target_reldir,
         TARGET_PKG=target_pkg,
         TARGET_NAME=target_name,
         TARGET_FUNC=target['function'],
         TARGET_ARGS=str(target['args']),
         TARGET_KWARGS=str(target['kwargs']),
     )
-    dumps(code, launch_file := f'{root_dir}/src/{bootloader_name}.py')
+    dumps(code, launch_file := f'{launch_dir}/{bootloader_name}.py')
     
     # --------------------------------------------------------------------------
     
     template = loads(global_dirs.template('pytransform.txt'))
     code = template.format(
-        LIB_PARENT_DIR='../'
+        LIB_PARENT_RELDIR='../'
     )
     dumps(code, f'{root_dir}/src/pytransform.py')
     
@@ -224,7 +228,9 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         template = loads(global_dirs.template('launch_by_system.bat'))
     code = template.format(
         PYVERSION=pyversion.replace('.', ''),  # ...|'37'|'38'|'39'|...
-        LAUNCHER=f'{bootloader_name}.py'
+        VENV_RELDIR=global_dirs.relpath(f'{root_dir}/venv', launch_dir),
+        LAUNCHER_RELDIR=global_dirs.relpath(launch_dir, root_dir),
+        LAUNCHER_NAME=f'{bootloader_name}.py',
     )
     bat_file = f'{root_dir}/{launcher_name}.bat'
     # lk.logt('[D3432]', code)

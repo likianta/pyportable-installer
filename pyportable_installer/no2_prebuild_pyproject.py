@@ -86,12 +86,13 @@ class DistTree:
                     mkdir(dir_)
         
         # part 2.
+        from .global_dirs import global_dirs
         if src_root == '':
             get_dst_path = lambda src_path: \
                 f'{dst_root}/{src_path.replace(":/", "/")}'
         else:
             get_dst_path = lambda src_path: \
-                f'{dst_root}/{ospath.relpath(src_path, src_root)}'
+                f'{dst_root}/{global_dirs.relpath(src_path, src_root)}'
         
         # part 3.
         self.paths.sort()

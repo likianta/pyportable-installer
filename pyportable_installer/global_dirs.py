@@ -24,8 +24,12 @@ class GlobalDirs:
     
     def to_dist(self, src_path: str):
         assert self.src_root and self.dst_root
-        rel_path = pretty_path(ospath.relpath(src_path, self.src_root))
+        rel_path = self.relpath(src_path, self.src_root)
         return f'{self.dst_root}/{rel_path}'
+    
+    @staticmethod
+    def relpath(path, start):
+        return pretty_path(ospath.relpath(path, start))
 
 
 def init_global_dirs(src_root, dst_root):

@@ -1,7 +1,7 @@
 from os.path import abspath
 from sys import path
 
-lib_parent_dir = abspath('{LIB_PARENT_DIR}')
+lib_parent_dir = abspath('{LIB_PARENT_RELDIR}')
 if lib_parent_dir not in path:
     path.append(lib_parent_dir)
 
