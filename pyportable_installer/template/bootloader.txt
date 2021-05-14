@@ -27,8 +27,8 @@ extra_paths = {EXTEND_SYS_PATHS}
 if extra_paths:
     sys.path.extend(map(os.path.abspath, extra_paths))
 
-
 # ------------------------------------------------------------------------------
+
 
 def launch(main_func, *args, **kwargs):
     """
@@ -83,6 +83,7 @@ def launch(main_func, *args, **kwargs):
         # # show_err_on_console(msg)
     finally:
         input('Press enter to leave...')
+        sys.exit()
 
 
 if __name__ == '__main__':

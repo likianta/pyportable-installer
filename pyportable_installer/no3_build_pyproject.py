@@ -182,7 +182,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     bootloader_name = 'bootloader'
     
     target_path = target['file']  # type: str
-    target_dir = ospath.dirname(target_path)
+    target_dir = global_dirs.to_dist(ospath.dirname(target_path))
     launch_dir = ospath.dirname(target_dir)
     #   the launcher dir is parent of target dir, i.e. we put the launcher file
     #   in the parent folder of target file's folder.
@@ -190,7 +190,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     # target_reldir: 'target relative directory' (starts from `launch_dir`)
     # PS: it is equivalent to f'{target_dir_name}/{target_file_name}'
     target_reldir = global_dirs.relpath(
-        global_dirs.to_dist(target_dir), launch_dir
+        target_dir, launch_dir
     )
     target_pkg = target_reldir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)

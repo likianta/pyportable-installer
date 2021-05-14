@@ -68,15 +68,15 @@ def _compile_one(src_file, dst_file):
         |  --bootstrap 4`    |                                                 |
     """
     popen(
-        f'pyarmor obfuscate '
+        f'pyarmor --silent obfuscate '
         f'--output "{dirname(dst_file)}" '
         f'--bootstrap 2 '
         f'--exact '
         f'--no-runtime '
-        f'--silent '
         f'"{src_file}"'
     )
     #   arguments:
+    #       --silent            do not print normal info
     #       --output            output path, pass `dst_file`'s dirname, it will
     #                           generate a compiled file under and has the same
     #                           name with `src_file`
@@ -85,7 +85,6 @@ def _compile_one(src_file, dst_file):
     #                           only obfuscate `src_file`)
     #       --no-runtime        do not generate runtime files (cause we have
     #                           generated runtime files in `{dst}/lib`)
-    #       --silent            do not print normal info
 
 # ------------------------------------------------------------------------------
 # DELETE
