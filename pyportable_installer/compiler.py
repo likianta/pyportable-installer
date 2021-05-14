@@ -1,12 +1,12 @@
 import shutil
 from os import mkdir, popen
-from os.path import dirname
+from os.path import dirname, relpath
 
 from lk_logger import lk
 from lk_utils import filesniff
 from lk_utils.read_and_write import dumps, loads
 
-from .global_dirs import global_dirs
+from .global_dirs import global_dirs, pretty_path
 
 
 def pyarmor_compile(pyfiles: list[str], lib_dir: str):
@@ -32,7 +32,9 @@ def create_bootstrap_files(src_dirs, lib_dir: str):
     
     for d in dst_dirs:
         dumps(template.format(
-            LIB_PARENT_DIR=dirname(lib_dir),  # e.g. '../../'
+            # this must be relative path
+            # e.g. '../../'
+            LIB_PARENT_DIR=pretty_path(relpath(dirname(lib_dir), d))
         ), f'{d}/pytransform.py')
 
 
@@ -63,12 +65,11 @@ def _compile_one(src_file, dst_file):
         | `pyarmor obfuscate | *unknown*                                       |
         |  --bootstrap 4`    |                                                 |
     """
-    r = popen(
+    popen(
         f'pyarmor obfuscate '
         f'-O "{dirname(dst_file)}" --bootstrap 2 --exact -n '
         f'"{src_file}"'
     )
-    lk.loga(r.read())
 
 
 # ------------------------------------------------------------------------------

@@ -22,7 +22,8 @@ def main(conf: dict):
         #   dist_dir 不属于 srd_dirs 范畴
         # # conf['build']['icon'],
         #   icon 仅用作生成 exe 时的图标, 不会加入到 src_dirs
-        conf['build']['readme'],
+        # # conf['build']['readme'],
+        #   readme 文件会放在根目录, 所以不加入到 src_dirs
         conf['build']['target']['file'],
         conf['build']['required']['venv'],
         *conf['build']['module_paths'],

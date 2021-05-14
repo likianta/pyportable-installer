@@ -106,7 +106,7 @@ def main(
     if required['enable_venv'] and misc.get('create_venv_shell'):
         copy_venv(
             required['venv'], f'{root_dir}/venv', required['python_version'],
-            embed_python_dir=ospath.dirname(  # FIXME
+            embed_python_dir=ospath.abspath(  # FIXME
                 f'{global_dirs.curr_dir}/../embed_python'
             )
         )
@@ -182,7 +182,11 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     bootloader_name = 'bootloader'
     
     target_path = target['file']  # type: str
-    target_dir = target_path.rsplit('/', 1)[0]
+    # target_dir must be relative path
+    target_dir = ospath.relpath(
+        global_dirs.to_dist(target_path.rsplit('/', 1)[0]),
+        fr'{root_dir}/src'
+    ).replace('\\', '/')
     target_pkg = target_dir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
@@ -200,6 +204,14 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         TARGET_KWARGS=str(target['kwargs']),
     )
     dumps(code, launch_file := f'{root_dir}/src/{bootloader_name}.py')
+    
+    # --------------------------------------------------------------------------
+    
+    template = loads(global_dirs.template('pytransform.txt'))
+    code = template.format(
+        LIB_PARENT_DIR='../'
+    )
+    dumps(code, f'{root_dir}/src/pytransform.py')
     
     # --------------------------------------------------------------------------
     

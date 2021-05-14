@@ -175,6 +175,9 @@ def copy_assets(attachments) -> str:
 
     # noinspection PyUnusedLocal
     def handle_assets_and_compile(dir_i, dir_o):
+        # first handle roots'
+        yield from handle_root_assets_and_compile(dir_i, dir_o)
+        # then handle subdirs'
         for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
             os.mkdir(global_dirs.to_dist(dp))
             for fp, fn in filesniff.find_files(dp, fmt='zip'):

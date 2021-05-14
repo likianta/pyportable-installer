@@ -16,6 +16,8 @@ References:
 import os
 import sys
 
+# add `../lib` to environment
+sys.path.append(os.path.abspath('../'))
 sys.path.append(os.path.abspath('.'))
 
 site_packages = '{SITE_PACKAGES}'
