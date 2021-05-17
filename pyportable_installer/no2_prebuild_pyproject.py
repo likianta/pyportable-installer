@@ -27,10 +27,12 @@ def main(conf: dict):
         conf['build']['target']['file'],
         conf['build']['required']['venv'],
         *conf['build']['module_paths'],
-        *conf['build']['attachments'].keys(),
+        *(k for k, v in conf['build']['attachments'].items()
+          if 'dist_lib' not in v and 'dist_root' not in v),
     )
     
     src_root = dist_tree.suggest_src_root()
+    lk.loga(src_root)
     dst_root = conf['build']['dist_dir'] + '/' + 'src'
     dist_tree.build_dst_dirs(src_root, dst_root)
     
@@ -62,7 +64,8 @@ class DistTree:
     def suggest_src_root(self):
         try:
             assert len(set(x.split(':', 1)[0] for x in self.paths)) == 1
-            return ospath.dirname(min(self.paths, key=lambda p: p.count('/')))
+            min_path = min(self.paths, key=lambda p: p.count('/'))
+            return ospath.dirname(min_path)
         except AssertionError:
             return ''
     

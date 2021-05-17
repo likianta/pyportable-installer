@@ -134,26 +134,53 @@ def copy_assets(attachments) -> str:
     """ 将 `attachments` 中列出的 assets 类型的文件和文件夹复制到 `dst_dir`.
     
     关于 `attachments` 的标记:
+        
         `attachments` 的结构为 `{file_or_dirpath: mark, ...}`. 其中键都是原始路
         径下的文件 (夹) (assert exist). 值 mark 有以下可选:
         
-        'assets'                复制目录下的全部文件 (夹)
-        'assets,compile'        复制目录下的全部文件 (夹), 但对 *.py 文件不复制,
-                                而是作为待编译的文件 yield 给调用者
-        'root_assets'           只复制根目录下的文件
-        'root_assets,compile'   只复制根目录下的文件, 但对 *.py 文件不复制, 而是
-                                作为待编译的文件 yield 给调用者
-        'only_folder'           只复制根目录, 相当于在 `dst_dir` 创建相应的空目
-                                录
-        'only_folders'          只复制根目录和全部子目录, 相当于在 `dst_dir` 创
-                                建相应的空目录树
-        'compile'               此时它对应的路径必为 python 脚本文件. 对该文件不
-                                复制, 而是作为待编译的文件 yield 给调用者
-        'asset'                 此时它对应的路径必为一个文件. 将该文件复制到
-                                `dst_dir` 对应的位置
-                                注1: 这个标记我们一般不用, 而是用 'assets' 替代
-                                注2: 如果有此情况, 则参数 `GlobalDirs.SourceRoot`
-                                必须不为空
+        单标记:
+        
+        'assets'            复制目录下的全部文件 (夹)
+        'root_assets'       只复制根目录下的文件
+        'only_folder'       只复制根目录, 相当于在 `dst_dir` 创建相应的空目录
+        'only_folders'      只复制根目录和全部子目录, 相当于在 `dst_dir` 创建相
+                            应的空目录树
+        
+        双标记:
+        
+        'assets,compile'            复制目录下的全部文件 (夹), 但对 *.py 文件不
+                                    复制, 而是作为待编译的文件 yield 给调用者
+        'root_assets,compile'       只复制根目录下的文件, 但对 *.py 文件不复制,
+                                    而是作为待编译的文件 yield 给调用者
+        'assets,dist_lib'           复制目录下的全部文件 (夹), 复制到打包目录下
+                                    的 'lib' 文件夹中
+        'assets,dist_root'          同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'root_assets,dist_lib'      只复制根目录下的文件, 复制到打包目录下的
+                                    'lib' 文件夹中
+        'root_assets,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'only_folder,dist_lib'      只复制根目录, 复制到打包目录下的 'lib' 文件
+                                    夹中 (相当于在 `dst_dir/lib` 创建相应的空目
+                                    录)
+        'only_folder,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'only_folders,dist_lib'     只复制根目录和全部子目录, 复制到打包目录下的
+                                    'lib' 文件夹中 (相当于在 `dst_dir/lib` 创建
+                                    相应的空目录树)
+        'only_folders,dist_root'    同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        
+        三标记:
+        
+        'assets,compile,dist_lib'           复制目录下的全部文件 (夹), 复制到打
+                                            包目录下的 'lib' 文件夹中, 但对 *.py
+                                            文件不复制, 而是作为待编译的文件
+                                            yield 给调用者
+        'assets,compile,dist_root'          同上, 将目标目录 `dst_dir/lib` 改为
+                                            `dit_dir`
+        'root_assets,compile,dist_lib'      只复制根目录下的文件, 复制到打包目录
+                                            下的 'lib' 文件夹中, 但对 *.py 文件
+                                            不复制, 而是作为待编译的文件 yield
+                                            给调用者
+        'root_assets,compile,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为
+                                            `dit_dir`
                                 
         *注: 上表内容可能过时, 最终请以 `docs/pyproject-template.md` 为准!*
 
@@ -172,7 +199,7 @@ def copy_assets(attachments) -> str:
     
     def handle_assets(dir_i, dir_o):
         shutil.copytree(dir_i, dir_o)
-
+    
     # noinspection PyUnusedLocal
     def handle_assets_and_compile(dir_i, dir_o):
         # first handle roots'
@@ -212,24 +239,37 @@ def copy_assets(attachments) -> str:
     def handle_compile(file_i, file_o):
         yield file_i
     
+    # --------------------------------------------------------------------------
+    
+    dst_root = ospath.dirname(global_dirs.dst_root)
+    #   note `global_dirs.dst_root` is not a real root of dist dir. it aims to
+    #   `{dist}/src`. so we use `ospath.dirname(global_dirs.dst_root)` to get
+    #   the real root of dist.
+    
     for path_i, mark in attachments.items():
         mark = tuple(mark.split(','))
         #   e.g. ('assets', 'compile')
         is_yield_pyfile = 'compile' in mark
         #   True: yield pyfile; False: copy pyfile
+        if 'dist_root' in mark:
+            get_target_dir = lambda p: f'{dst_root}/{ospath.basename(p)}'
+        elif 'dist_lib' in mark:
+            get_target_dir = lambda p: f'{dst_root}/lib/{ospath.basename(p)}'
+        else:
+            get_target_dir = lambda p: global_dirs.to_dist(p)
         
-        if ospath.isfile(path_i):
+        # 1. `path_i` is file
+        if 'asset' in mark or ospath.isfile(path_i):
             if is_yield_pyfile:
                 yield from handle_compile(path_i, '')
             else:
-                path_o = global_dirs.to_dist(path_i)
+                path_o = get_target_dir(path_i)
                 handle_asset(path_i, path_o)
             continue
         
-        # ----------------------------------------------------------------------
-        
+        # 2. `path_i` is dir
         dir_i = path_i
-        dir_o = global_dirs.to_dist(path_i)
+        dir_o = get_target_dir(path_i)
         
         if 'root_assets' in mark:
             if is_yield_pyfile:
@@ -243,7 +283,7 @@ def copy_assets(attachments) -> str:
             else:
                 handle_assets(dir_i, dir_o)
         
-        if 'only_folders' in mark:
+        elif 'only_folders' in mark:
             assert is_yield_pyfile is False
             handle_only_folders(dir_i, dir_o)
         
@@ -251,11 +291,8 @@ def copy_assets(attachments) -> str:
             assert is_yield_pyfile is False
             handle_only_folder(dir_i, dir_o)
         
-        # if set(mark) != {
-        #     'asset', 'assets', 'compile', 'only_folder', 'only_folders',
-        #     'root_assets',
-        # }:
-        #     raise ValueError('Unknown mark', mark)
+        else:
+            raise ValueError('unknown mark or incomplete mark', mark)
 
 
 def create_readme(file_i: str, file_o: str):

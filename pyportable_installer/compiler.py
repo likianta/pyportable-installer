@@ -1,14 +1,12 @@
-import shutil
-from os import mkdir, popen
+from os import popen
 from os.path import dirname
 
-from lk_logger import lk
-from lk_utils import filesniff
 from lk_utils.read_and_write import dumps, loads
 
 from .global_dirs import global_dirs
 
 
+# noinspection PyUnusedLocal
 def pyarmor_compile(pyfiles: list[str], lib_dir: str):
     """
     
@@ -16,16 +14,16 @@ def pyarmor_compile(pyfiles: list[str], lib_dir: str):
         docs/devnote/how-does-pytransform-work.md
     """
     # create bootstrap files
-    create_bootstrap_files(
-        set(map(dirname, pyfiles)), lib_dir
-    )
+    # create_bootstrap_files(
+    #     set(map(dirname, pyfiles)), lib_dir
+    # )
     
     for src_file in pyfiles:
         dst_file = global_dirs.to_dist(src_file)
         _compile_one(src_file, dst_file)
 
 
-def create_bootstrap_files(src_dirs, lib_dir: str):
+def create_bootstrap_files(src_dirs, lib_dir: str):  # DELETE
     dst_dirs = map(global_dirs.to_dist, src_dirs)
     
     template = loads(global_dirs.template('pytransform.txt'))
@@ -45,6 +43,15 @@ def _compile_one(src_file, dst_file):
     References:
         `cmd:pyarmor obfuscate -h`
         `pyportable_installer/assets_copy.py:copy_runtime`
+
+    Results:
+        the `dst_file` has the same content structure:
+            from pytransform import pyarmor_runtime
+            pyarmor_runtime()
+            __pyarmor__(__name__, __file__, b'\\x50\\x59\\x41...')
+        `pytransform` comes from `{dist}/lib`, it will be added to `sys.path` in
+        the startup (see `pyportable_installer/template/bootloader.txt` and
+        `pyportable_installer/no3_build_pyproject.py > func:_create_launcher`).
 
     Notes:
         table of `pyarmor obfuscate --bootstrap {0~4}`
@@ -85,28 +92,3 @@ def _compile_one(src_file, dst_file):
     #                           only obfuscate `src_file`)
     #       --no-runtime        do not generate runtime files (cause we have
     #                           generated runtime files in `{dst}/lib`)
-
-# ------------------------------------------------------------------------------
-# DELETE
-
-
-def _move_src_files_to_cache_dir(single_src_dir: str, cache_dir: str):
-    src_files_i = filesniff.find_files(single_src_dir, '.py')
-    if not src_files_i:
-        yield []
-    else:
-        mkdir(cache_dir)
-        src_files_o = [f'{cache_dir}/{n}'
-                       for n in map(filesniff.get_filename, src_files_i)]
-        [shutil.move(i, o) for i, o in zip(src_files_i, src_files_o)]
-        yield src_files_o
-
-
-def _compile_all(files_i, dir_o):
-    files_i = ' '.join([f'"{f}"' for f in files_i])
-    r = popen(
-        f'pyarmor obfuscate '
-        f'-O "{dir_o}" --bootstrap 2 --exact -n '
-        f'{files_i}'
-    )
-    lk.loga(r.read())

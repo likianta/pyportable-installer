@@ -1,5 +1,6 @@
 """
 Placeholders:
+    LIB_RELDIR
     SITE_PACKAGES
     EXTEND_SYS_PATHS
     TARGET_RELDIR
@@ -10,14 +11,13 @@ Placeholders:
     TARGET_KWARGS
 
 References:
-    pyinstaller_for_intranet.prebuild._create_launcher
+    pyportable_installer/no3_build_pyproject.py > func:_create_launcher
 """
 import os
 import sys
 
-# add `../lib` to environment
-sys.path.append(os.path.abspath('../'))
-sys.path.append(os.path.abspath('.'))
+# add lib to environment
+sys.path.append(os.path.abspath('{LIB_RELDIR}'))
 
 site_packages = '{SITE_PACKAGES}'
 if site_packages:  # see `pyportable_installer/main.py:_copy_venv`

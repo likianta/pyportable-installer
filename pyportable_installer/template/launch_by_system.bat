@@ -1,3 +1,3 @@
 cd %~dp0
 cd {LAUNCHER_RELDIR}
-python {LAUNCHER_NAME}
+python -B {LAUNCHER_NAME}

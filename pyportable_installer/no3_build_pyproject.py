@@ -15,21 +15,17 @@ def main(
     """
     
     Project Structure Example
-    =========================
+        hello_world_project
+        |= hello_world  # <- `params:proj_dir`
+            |- main.py  # <- script launcher
+        |= dist
+            |= hello_world_1.0.0  # <- `params:dist_dir`
+                |= build  # <- `vars:build_dir`
+                |= lib    # <- `vars:lib_dir`
+                |= src    # <- `vars:src_dir`
+                |= venv   # <- `vars:venv_dir`
+                |- ...
     
-    ```
-    hello_world_project
-    |= hello_world  # <- `params:proj_dir`
-        |- main.py  # <- script launcher
-    |= dist
-        |= hello_world_1.0.0  # <- `params:dist_dir`
-            |= build  # <- `vars:build_dir`
-            |= lib  # <- `vars:lib_dir`
-            |= src  # <- `vars:src_dir`
-            |= venv  # <- `vars:venv_dir`
-            |- ...
-    ```
-
     Args:
         app_name: use normal case, eg 'Hello World'
         proj_dir: see `current:docstring:Project Structure Example`
@@ -59,7 +55,7 @@ def main(
     #   root_dir : 'root directory'
     #   build_dir: 'build (noun.) directory'
     #   src_dir  : 'source directory'. note: this is equivalent to
-    #       `global_dirs.py > global_vars:global_dir > attrs:dst_root`
+    #       `global_dirs.py > global_vars:global_dirs > attrs:dst_root`
     
     # --------------------------------------------------------------------------
     
@@ -189,15 +185,14 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     
     # target_reldir: 'target relative directory' (starts from `launch_dir`)
     # PS: it is equivalent to f'{target_dir_name}/{target_file_name}'
-    target_reldir = global_dirs.relpath(
-        target_dir, launch_dir
-    )
+    target_reldir = global_dirs.relpath(target_dir, launch_dir)
     target_pkg = target_reldir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
     template = loads(global_dirs.template('bootloader.txt'))
     code = template.format(
         # see `template/bootloader.txt > docstring:placeholders`
+        LIB_RELDIR=global_dirs.relpath(f'{root_dir}/lib', launch_dir),
         SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
         EXTEND_SYS_PATHS=str(extend_sys_paths),
         TARGET_RELDIR=target_reldir,
@@ -211,11 +206,11 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     
     # --------------------------------------------------------------------------
     
-    template = loads(global_dirs.template('pytransform.txt'))
-    code = template.format(
-        LIB_PARENT_RELDIR='../'
-    )
-    dumps(code, f'{root_dir}/src/pytransform.py')
+    # template = loads(global_dirs.template('pytransform.txt'))
+    # code = template.format(
+    #     LIB_PARENT_RELDIR='../'
+    # )
+    # dumps(code, f'{root_dir}/src/pytransform.py')
     
     # --------------------------------------------------------------------------
     

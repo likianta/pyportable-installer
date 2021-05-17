@@ -60,36 +60,71 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
             "hello_world/utils",
             "hello_world/gui"
         ],
-        // 关联的资产文件 (夹), 它们会被加入到打包项目中
-        // 键: 填写绝对路径或相对于本配置文件的路径, 可以是文件或文件夹
-        // 值: 有多种预设值可供使用, 每个预设值对 pyportable-installer 来说都是
-        //     一个特别的标志, 指导 pyportable-installer 如何处理该资产
-        //     1. 如需使用多个预设值, 用英文逗号分隔 (逗号后面不要有空格)
-        //     2. 如需使用多个预设值, 则请自行保证每个预设值之间的功能不是矛盾的
-        //     3. 完整的预设值清单如下:
-        //        assets                复制目录下的全部文件 (夹)
-        //        assets,compile        复制目录下的全部文件 (夹), 并对 *.py 文
-        //                              件编译
-        //        root_assets           只复制根目录下的文件
-        //        root_assets,compile   只复制根目录下的文件, 并对 *.py 文件编译
-        //        only_folder           只复制根目录, 相当于在打包目录下创建相应
-        //                              的空目录
-        //        only_folders          只复制根目录和全部子目录, 相当于在打包目
-        //                              录下创建相应的空目录树
-        //        compile               此时它对应的路径必为 python 脚本文件. 对
-        //                              该文件进行编译
-        //        asset                 此时它对应的路径必为一个文件. 将该文件复
-        //                              制到打包目录下对应的位置
-        //                              注: 这个标记我们一般不用, 而是用 assets 
-        //                              替代
+        /*
+            关联的资产文件 (夹), 它们会被加入到打包项目中
+            
+            **键**
+            
+            填写绝对路径或相对于本配置文件的路径, 可以是文件或文件夹
+            
+            **值**
+            
+            有多种预设值可供使用, 每个预设值对 pyportable-installer 来说都是一个
+            特别的标志, 指导 pyportable-installer 如何处理该资产.
+            
+            可用的预设值如下列表:
+            
+            1. assets: 复制目录下的全部文件 (夹)
+            2. root_assets: 只复制根目录下的文件
+            3. only_folder: 只复制根目录. 相当于在打包目录下创建相应的空文件夹
+            4. only_folders: 只复制根目录和全部子目录, 相当于在打包目录下创建相
+               应的空目录树
+            5. compile: 对 *.py 类型的文件编译
+            6. dist_lib: 复制到打包目录下的 'lib' 目录下 (注: dist_lib 目录的资
+               源会被加入到 Python 的 `sys.path`)
+            7. dist_root: 复制到打包目录的根目录下
+            
+            预设值之间可以组合, 使用英文逗号分隔 (逗号后面不要有空格). 例如 
+            `assets,compile` 表示 '复制目录下的全部文件 (夹), 并对 *.py 文件编
+            译.', `assets,compile,dist_lib` 表示 '复制目录下的全部文件 (夹) 到 
+            dist_lib 目录, 并对 *.py 文件编译'...
+            
+            如需使用多个预设值, 请自行保证每个预设值之间的功能不是矛盾的. 按照如
+            下格式的组合通常来说不会有问题:
+            
+            ```
+            assets|root_assets|only_folder|only_folders,compile,dist_lib|root
+            ```            
+         */
         "attachments": {
-            "docs/manual": "assets",
-            "CHANGELOG.md": "asset",
-            "demo": "assets,compile",
-            "gallery": "assets",
-            "tests": "root_assets,compile",
-            "data": "only_folder",
-            "model": "only_folders"
+            /*
+                演示图
+                
+                ```
+                source                                  dist  # dist_root
+                |= data -------- only_folders --------> |= data
+                |   |= input                            |   |= input  # empty
+                |   |   |- ...                          |   |    
+                |   |= output                           |   |= output  # empty
+                |       |- ...                          |       
+                |= src ----- root_assets,compile -----> |= src
+                |   |- main.py                          |   |- main.py  # compiled script
+                |= docs                                 |   
+                |   |- CHANGELOG.md --- assets,root --> |- CHANGELOG.md
+                |- README.md --------- assets --------> |- README.md
+                |- pyproject.json                       |= lib  # dist_lib
+                |                                           |= pytransform
+                |                                               |- __init__.py
+                |                                               |- _pytransform.dll
+                |= sidework --- assets,compile,dist_lib --> |= sidework
+                    |- check_env.py                             |- check_env.py  # compiled script
+                    |- stat_my_code.py                          |- stat_my_code.py  # compiled script
+                ```
+            */
+            "data": "assets",
+            "docs/CHANGELOG.md": "assets,dist_root",
+            "README.md": "assets",
+            "sidework": "assets,compile,dist_lib"
         },
         // 软件依赖
         "required": {
