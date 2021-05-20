@@ -11,7 +11,7 @@ class GlobalDirs:
         docs/devnote/difference-between-roots.md
     """
     src_root = ''
-    dst_root = ''
+    dst_root = ''  # note: `dst_root` is not real root of dist, it indicates to
     curr_dir = pretty_path(ospath.dirname(__file__))
     
     def local(self, rel_path: str):
@@ -34,6 +34,11 @@ class GlobalDirs:
 
 def init_global_dirs(src_root, dst_root):
     """
+    Args:
+        src_root:
+        dst_root: 'src' folder of real dist root. see `no2_prebuild_pyproject.py
+            > func:main > usage:init_global_dirs`
+    
     References:
         no2_prebuild_pyproject.py > func:main
     """

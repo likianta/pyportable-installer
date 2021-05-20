@@ -198,22 +198,24 @@ def copy_assets(attachments) -> str:
     """
     
     def handle_assets(dir_i, dir_o):
-        shutil.copytree(dir_i, dir_o)
+        shutil.copytree(dir_i, dir_o, dirs_exist_ok=True)
     
     # noinspection PyUnusedLocal
-    def handle_assets_and_compile(dir_i, dir_o):
+    def handle_assets_and_compile(dir_i, dir_o, to_dist):
         # first handle roots'
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
         for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
-            os.mkdir(global_dirs.to_dist(dp))
+            os.mkdir(to_dist(dp))
             for fp, fn in filesniff.find_files(dp, fmt='zip'):
                 if fn.endswith('.py'):
                     yield fp
                 else:
-                    shutil.copyfile(fp, global_dirs.to_dist(fp))
+                    shutil.copyfile(fp, to_dist(fp))
     
     def handle_root_assets_and_compile(dir_i, dir_o):
+        # if not ospath.exists(dir_o):
+        #     os.mkdir(dir_o)
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
             if fn.endswith('.py'):
                 yield fp
@@ -252,24 +254,26 @@ def copy_assets(attachments) -> str:
         is_yield_pyfile = 'compile' in mark
         #   True: yield pyfile; False: copy pyfile
         if 'dist_root' in mark:
-            get_target_dir = lambda p: f'{dst_root}/{ospath.basename(p)}'
+            src_to_dst = lambda p: f'{dst_root}/{ospath.basename(p)}'
         elif 'dist_lib' in mark:
-            get_target_dir = lambda p: f'{dst_root}/lib/{ospath.basename(p)}'
+            src_to_dst = lambda p: f'{dst_root}/lib/{ospath.basename(p)}'
         else:
-            get_target_dir = lambda p: global_dirs.to_dist(p)
+            src_to_dst = lambda p: global_dirs.to_dist(p)
         
         # 1. `path_i` is file
         if 'asset' in mark or ospath.isfile(path_i):
             if is_yield_pyfile:
                 yield from handle_compile(path_i, '')
             else:
-                path_o = get_target_dir(path_i)
+                path_o = src_to_dst(path_i)
                 handle_asset(path_i, path_o)
             continue
         
         # 2. `path_i` is dir
         dir_i = path_i
-        dir_o = get_target_dir(path_i)
+        dir_o = src_to_dst(path_i)
+        if not ospath.exists(dir_o):
+            os.mkdir(dir_o)
         
         if 'root_assets' in mark:
             if is_yield_pyfile:
@@ -279,7 +283,7 @@ def copy_assets(attachments) -> str:
         
         elif 'assets' in mark:
             if is_yield_pyfile:
-                yield from handle_assets_and_compile(dir_i, dir_o)
+                yield from handle_assets_and_compile(dir_i, dir_o, src_to_dst)
             else:
                 handle_assets(dir_i, dir_o)
         

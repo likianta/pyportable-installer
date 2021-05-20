@@ -10,7 +10,7 @@ def main(pyproj_file: str):
     """
 
     Args:
-        pyproj_file: see template at `../template/pyproject.json`
+        pyproj_file: see template at `./template/pyproject.json`
 
     References:
         docs/pyproject-template.md
