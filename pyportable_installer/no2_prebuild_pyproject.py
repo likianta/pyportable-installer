@@ -26,7 +26,8 @@ def main(conf: dict):
         #   readme 文件会放在根目录, 所以不加入到 src_dirs
         conf['build']['target']['file'],
         conf['build']['required']['venv'],
-        *conf['build']['module_paths'],
+        # # *conf['build']['module_paths'],
+        #   module_paths 很多都不是一级目录, 不要加入到 src_dirs
         *(k for k, v in conf['build']['attachments'].items()
           if 'dist_lib' not in v and 'dist_root' not in v),
     )

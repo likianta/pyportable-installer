@@ -205,7 +205,9 @@ def copy_assets(attachments) -> str:
         # first handle roots'
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
-        for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
+        for dp, dn in filesniff.findall_dirs(
+                dir_i, fmt='zip', exclude_protected_folders=False
+        ):
             os.mkdir(to_dist(dp))
             for fp, fn in filesniff.find_files(dp, fmt='zip'):
                 if fn.endswith('.py'):
@@ -231,7 +233,9 @@ def copy_assets(attachments) -> str:
         assert ospath.exists(dir_o)
     
     def handle_only_folders(dir_i, dir_o):
-        for dp, dn in filesniff.findall_dirs(dir_i, fmt='zip'):
+        for dp, dn in filesniff.findall_dirs(
+                dir_i, fmt='zip', exclude_protected_folders=False
+        ):
             os.mkdir(dp.replace(dir_i, dir_o, 1))
     
     def handle_asset(file_i, file_o):

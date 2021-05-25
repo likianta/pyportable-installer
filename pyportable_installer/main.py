@@ -69,4 +69,4 @@ def main(pyproj_file: str, misc: dict):
     
     if Misc.do_aftermath:
         from .aftermath import main as aftermath
-        aftermath(dst_root)
+        aftermath(dst_root, prj_conf)

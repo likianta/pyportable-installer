@@ -4,9 +4,9 @@ from os import path as ospath
 from lk_utils import filesniff
 
 
-def main(root_dir):  # TODO
-    # os.remove(f'{root_dir}/Test New PyProject.bat')
-    # cleanup_py_files()
+def main(dst_root, prj_conf):
+    if ospath.exists(f := f'{dst_root}/{prj_conf["app_name"]}.bat'):
+        os.remove(f)
     pass
 
 

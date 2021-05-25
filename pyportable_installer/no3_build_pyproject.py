@@ -189,6 +189,11 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     target_pkg = target_reldir.replace('/', '.')
     target_name = filesniff.get_filename(target_path, suffix=False)
     
+    extend_sys_paths = list(map(
+        lambda d: global_dirs.relpath(global_dirs.to_dist(d), launch_dir),
+        extend_sys_paths
+    ))
+    
     template = loads(global_dirs.template('bootloader.txt'))
     code = template.format(
         # see `template/bootloader.txt > docstring:placeholders`

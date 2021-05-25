@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyportable-installer"
-version = "2.2.2"
+version = "3.1.1"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"
@@ -8,12 +8,15 @@ license = "MIT"
 [[tool.poetry.source]]
 name = "tsinghua"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+#name = "huawei"
+#url = "http://mirrors.tools.huawei.com/pypi/simple/"
 default = true
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 lk-logger = "^3.6"
 lk-utils = "^1.4.4"
+pyarmor = "*"
 
 [tool.poetry.dev-dependencies]
 
