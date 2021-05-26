@@ -67,6 +67,6 @@ def main(pyproj_file: str, misc: dict):
     
     copyfile(pyproj_file, f'{dst_root}/build/manifest.json')
     
-    if Misc.do_aftermath:
-        from .aftermath import main as aftermath
-        aftermath(dst_root, prj_conf)
+    if misc.get('do_aftermath', True):
+        from .aftermath import cleanup_files
+        cleanup_files(dst_root, prj_conf)
