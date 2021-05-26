@@ -1,5 +1,5 @@
-from shutil import copyfile
 from os import path as ospath
+from shutil import copyfile
 
 from lk_logger import lk
 
@@ -9,14 +9,20 @@ from .no3_build_pyproject import main as step3
 
 
 class Misc:
-    # 对于一些修改较为频繁, 但用途很小的参数, 放在了这里. 您可以按需修改
-    # 使用 Pycharm 的搜索功能查看它在哪里被用到
-    create_checkup_tools = True  # True|False
-    #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
+    # 是否将 `./checkup/*` 中的工具拷贝到打包目录.
+    create_checkup_tools = True
+    # 是否创建虚拟环境目录.
+    # 该选项与项目配置中的 'enable_venv' 的区别在于, 'enable_venv' 决定了是否启
+    # 用虚拟环境, 本选项决定了是否立即创建虚拟环境目录. 您可以选择启用虚拟环境但
+    # 不立即创建目录 (考虑到第三方库体积较大的情况, 或者您在反复测试打包工作),
+    # 稍后可通过手动复制/剪切/创建软链接等方式, 将自己事先准备好的虚拟环境添加到
+    # 打包目录.
     create_venv_shell = True
-    #   如果您在实现增量更新 (仅发布 src 文件夹), 请设为 False
-    create_launch_bat = True  # True|False
+    # 是否创建启动器.
+    create_launch_bat = True
+    # 是否混淆源代码.
     compile_scripts = True
+    # 是否做善后工作. 如是, 详见 `aftermath.py` 模块.
     do_aftermath = True
     
     @classmethod
@@ -40,7 +46,7 @@ def full_build(pyproj_file):
 def min_build(file):
     Misc.create_checkup_tools = False
     Misc.create_venv_shell = False
-    Misc.create_launch_bat = True  # True(suggest)|False
+    Misc.create_launch_bat = True  # suggest True
     main(file, Misc.dump())
 
 
@@ -58,7 +64,7 @@ def main(pyproj_file: str, misc: dict):
     几个关键目录的区分和说明: `docs/devnote/difference-between-roots.md`
     """
     prj_conf = step1(pyproj_file)
-    ________ = step2(prj_conf)
+    ________ = step2(prj_conf)  # 这里用下划线作变量, 只是为了对齐, 使代码美观
     dst_root = step3(prj_conf['app_name'], **prj_conf['build'], **misc)
     
     m, n = ospath.split(dst_root)

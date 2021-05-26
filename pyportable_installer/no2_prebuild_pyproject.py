@@ -6,27 +6,26 @@ from lk_logger import lk
 
 def main(conf: dict):
     """ Create dist tree (all empty folders under dist root) """
-    if ospath.exists(d := conf['build']['dist_dir']):
-        raise FileExistsError(d)
-    else:
-        # create build_dir, lib_dir, src_dir
-        mkdir(conf['build']['dist_dir'])
-        mkdir(conf['build']['dist_dir'] + '/build')
-        mkdir(conf['build']['dist_dir'] + '/lib')
-        mkdir(conf['build']['dist_dir'] + '/src')
+    _precheck_args(conf)
+    
+    # create build_dir, lib_dir, src_dir
+    mkdir(conf['build']['dist_dir'])
+    mkdir(conf['build']['dist_dir'] + '/build')
+    mkdir(conf['build']['dist_dir'] + '/lib')
+    mkdir(conf['build']['dist_dir'] + '/src')
     
     dist_tree = DistTree()
     dist_tree.add_src_dirs(
         conf['build']['proj_dir'],
-        # # conf['build']['dist_dir'],
+        # conf['build']['dist_dir'],
         #   dist_dir 不属于 srd_dirs 范畴
-        # # conf['build']['icon'],
+        # conf['build']['icon'],
         #   icon 仅用作生成 exe 时的图标, 不会加入到 src_dirs
-        # # conf['build']['readme'],
+        # conf['build']['readme'],
         #   readme 文件会放在根目录, 所以不加入到 src_dirs
         conf['build']['target']['file'],
-        conf['build']['required']['venv'],
-        # # *conf['build']['module_paths'],
+        # conf['build']['required']['venv'],
+        # *conf['build']['module_paths'],
         #   module_paths 很多都不是一级目录, 不要加入到 src_dirs
         *(k for k, v in conf['build']['attachments'].items()
           if 'dist_lib' not in v and 'dist_root' not in v),
@@ -45,6 +44,15 @@ def main(conf: dict):
     from .global_dirs import init_global_dirs
     init_global_dirs(src_root, f'{dst_root}/src')
     return src_root, dst_root
+
+
+def _precheck_args(conf):
+    assert not ospath.exists(conf['build']['dist_dir'])
+    
+    from .venv_builder import VEnvBuilder
+    builder = VEnvBuilder()
+    pyversion = conf['build']['required']['python_version']
+    builder.get_embed_python(pyversion)
 
 
 class DistTree:
@@ -110,7 +118,7 @@ class DistTree:
             _mkdir(dst_path)
         
         del existed
-
+    
     def clear(self):
         self.paths.clear()
 

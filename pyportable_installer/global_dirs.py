@@ -5,6 +5,9 @@ def pretty_path(p):
     return p.replace('\\', '/')
 
 
+curr_dir = pretty_path(ospath.dirname(__file__))
+
+
 class GlobalDirs:
     """
     References:
@@ -12,10 +15,10 @@ class GlobalDirs:
     """
     src_root = ''
     dst_root = ''  # note: `dst_root` is not real root of dist, it indicates to
-    curr_dir = pretty_path(ospath.dirname(__file__))
     
-    def local(self, rel_path: str):
-        out = f'{self.curr_dir}/{rel_path}'
+    @staticmethod
+    def local(rel_path: str):
+        out = f'{curr_dir}/{rel_path}'
         assert ospath.exists(out)
         return out
     

@@ -101,10 +101,7 @@ def main(
     
     if required['enable_venv'] and misc.get('create_venv_shell'):
         copy_venv(
-            required['venv'], f'{root_dir}/venv', required['python_version'],
-            embed_python_dir=ospath.abspath(  # FIXME
-                f'{global_dirs.curr_dir}/../embed_python'
-            )
+            required['venv'], f'{root_dir}/venv', required['python_version']
         )
     
     return root_dir

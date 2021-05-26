@@ -8,45 +8,45 @@
 
 `pyportable-installer` 具有以下特点:
 
-1. 打包后的体积很小. 在不附带虚拟环境的情况下, 与您的源代码同等量级 (这通常只有几百 KB)
-2. 易于使用. 您只需要维护一个 pyproject.json 配置文件即可. 在快速迭代的环境下, 您甚至只需要更改版本号就能立即生成新的打包结果
-3. 打包速度快. 一个中小型项目在数秒间即可生成打包结果
-4. 源代码加密. 使用 [pyarmor 库](https://github.com/dashingsoft/pyarmor) 对源代码进行混淆, 保障代码安全
-5. 开箱即用. `pyportable-installer` 打包后的目录结构非常清晰, 如下示例:
+1.  打包后的体积很小. 在不附带虚拟环境的情况下, 与您的源代码同等量级 (这通常只有几百 KB)
+2.  易于使用. 您只需要维护一个 pyproject.json 配置文件即可. 在快速迭代的环境下, 您甚至只需要更改版本号就能立即生成新的打包结果
+3.  打包速度快. 一个中小型项目在数秒间即可生成打包结果
+4.  源代码加密. 使用 [pyarmor 库](https://github.com/dashingsoft/pyarmor) 对源代码进行混淆, 保障代码安全
+5.  开箱即用. `pyportable-installer` 打包后的目录结构非常清晰, 如下示例:
 
-   ```
-   my_project
-   |= dist
-      |= hello_world_0.1.0
-         |= checkup  # 一些随附的检查工具 (可选)
-            |- doctor.pyc
-            |- update.pyc
-            |- mainifest.json
-         |= src  # 您的源代码将被编译并放置在此目录下
-            |- ...
-         |= lib  # 一些自定义的第三方库会放在此目录下
-            |= pytransform  # 用于运行加密后的源代码, 保障代码安全
-               |- __init__.py
-               |- _pytransform.dll
-         |= venv  # 自带的虚拟环境 (可选)
-            |- ...
-         |- README.html  # 自述文档
-         |- Hello World.exe  # 双击即可启动!
-   ```
+    ```
+    my_project
+    |= dist
+       |= hello_world_0.1.0
+          |= checkup  # 一些随附的检查工具 (可选)
+             |- doctor.pyc
+             |- update.pyc
+             |- mainifest.json
+          |= src  # 您的源代码将被编译并放置在此目录下
+             |- ...
+          |= lib  # 一些自定义的第三方库会放在此目录下
+             |= pytransform  # 用于运行加密后的源代码, 保障代码安全
+                |- __init__.py
+                |- _pytransform.dll
+          |= venv  # 自带的虚拟环境 (可选)
+             |- ...
+          |- README.html  # 自述文档
+          |- Hello World.exe  # 双击即可启动!
+    ```
 
-6. 不破坏相对路径. 在打包后的 `~/src` 目录下, 所有文件夹仍然维持着原项目的目录结构. 程序在启动时会将工作目录切换到启动脚本所在的目录, 这意味着您在原项目中启动所使用的相对路径, 在打包后仍然保持一致
-7. *无痛更新 (该特性将在后续版本提供). 双击软件目录下的 `checkup/update.pyc` 即可获取软件的最新版本*
-8. *激活和授权 (该特性将在后续版本提供). 该特性由 pyarmor 提供, `pyportable-installer` 将其同样整合在 all-in-one 配置文件中*
+6.  不破坏相对路径. 在打包后的 `~/src` 目录下, 所有文件夹仍然维持着原项目的目录结构. 程序在启动时会将工作目录切换到启动脚本所在的目录, 这意味着您在原项目中启动所使用的相对路径, 在打包后仍然保持一致
+7.  *无痛更新 (该特性将在后续版本提供). 双击软件目录下的 `checkup/update.pyc` 即可获取软件的最新版本*
+8.  *激活和授权 (该特性将在后续版本提供). 该特性由 pyarmor 提供, `pyportable-installer` 将其同样整合在 all-in-one 配置文件中*
 
 # 工作流程
 
 它的流程可以概括如下:
 
-1. 准备您要打包的项目
-2. 在项目的根目录下新建一个 all-in-one 配置文件: 'pyproject.json'
-   1. 该文件名是可以任取的
-   2. [这里](./pyportable_installer/template/pyproject.json) 有一个模板文件可供使用. 以及一个 [手册](./docs/pyproject-template.md) 供查阅每个选项的格式和作用
-3. 通过 `pyportable-installer` 处理此配置文件, 完成打包:
+1.  准备您要打包的项目
+2.  在项目的根目录下新建一个 all-in-one 配置文件: 'pyproject.json'
+    1.  该文件名是可以任取的
+    2.  [这里](./pyportable_installer/template/pyproject.json) 有一个模板文件可供使用. 以及一个 [手册](./docs/pyproject-template.md) 供查阅每个选项的格式和作用
+3.  通过 `pyportable-installer` 处理此配置文件, 完成打包:
 
    ```py
    from pyportable_installer import full_build
@@ -55,15 +55,15 @@
 
 `pyportable-installer` 会为您的项目生成:
 
-1. 加密后的源代码文件
-   1. 加密后的文件后缀仍然是 '.py'
-   2. 加密后的文件由 `~/lib/pytransform` 包在运行时解码
-   3. 使用文本编辑器打开加密文件, 其密文如下所示:  
-      ![](.assets/20210520_143857.png)
-2. 一个 exe 格式的启动器
-3. 自定义的启动器图标 (注: 缺省图标为 python.ico)
-4. 一个干净的虚拟环境 (这是可选的)
-5. 整个打包后的结果会以文件夹的形式存在
+1.  加密后的源代码文件
+    1.  加密后的文件后缀仍然是 '.py'
+    2.  加密后的文件由 `~/lib/pytransform` 包在运行时解码
+    3.  使用文本编辑器打开加密文件, 其密文如下所示:  
+        ![](.assets/20210520_143857.png)
+2.  一个 exe 格式的启动器
+3.  自定义的启动器图标 (注: 缺省图标为 python.ico)
+4.  一个干净的虚拟环境 (这是可选的)
+5.  整个打包后的结果会以文件夹的形式存在
 
 之后, 您可以将该文件夹制作为压缩文件, 并作为 "免安装版" 的软件发布.
 
@@ -123,7 +123,7 @@ hello_world
         },
         "required": {
             "python_version": "3.6",
-            "enable_venv": false,
+            "enable_venv": true,
             "venv": ""
         },
         "enable_console": true
@@ -169,6 +169,10 @@ hello_world
          |= pytransform
             |- __init__.py
             |- _pytransform.dll
+      |= venv
+         |= site-packages
+         |- python.exe
+         |- ...
       |- README.md
       |- Hello World.exe  # 双击启动
 |- ...
@@ -176,5 +180,5 @@ hello_world
 
 # 注意事项
 
-1. 如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则会导致启动失败 (该问题可能与 Embed Python 解释器有关)
-2. `pyportable-installer` 需要 Python 3.9 解释器
+1.  如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则会导致启动失败 (该问题可能与 Embed Python 解释器有关)
+2.  `pyportable-installer` 需要 Python 3.9 解释器

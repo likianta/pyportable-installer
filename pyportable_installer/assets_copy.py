@@ -81,7 +81,7 @@ def copy_runtime(template_dir, src_dir, dirs_to_compile):  # DELETE
             )
 
 
-def copy_venv(src_venv_dir, dst_venv_dir, pyversion, embed_python_dir):
+def copy_venv(src_venv_dir, dst_venv_dir, pyversion):
     """
     Args:
         src_venv_dir: 'source virtual environment directory'.
@@ -90,7 +90,6 @@ def copy_venv(src_venv_dir, dst_venv_dir, pyversion, embed_python_dir):
         pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python
             编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样),
             否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
-        embed_python_dir:
 
     Notes:
         1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
@@ -109,17 +108,10 @@ def copy_venv(src_venv_dir, dst_venv_dir, pyversion, embed_python_dir):
             lib/python-{version}-embed-amd64 -> {dst_venv_dir}
             {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
     """
-    # TODO
-    # create venv shell
-    from lk_utils.read_and_write import loads
-    conf = loads(f'{embed_python_dir}/conf.json')
-    embed_python_dir = {
-        # see: 'embed_python/README.md'
-        '3.6': f'{embed_python_dir}/{conf["PY36"]}',
-        '3.8': f'{embed_python_dir}/{conf["PY38"]}',
-        '3.9': f'{embed_python_dir}/{conf["PY39"]}'
-    }[pyversion]
+    from .venv_builder import VEnvBuilder
     
+    builder = VEnvBuilder()
+    embed_python_dir = builder.get_embed_python(pyversion)
     shutil.copytree(embed_python_dir, dst_venv_dir)
     
     # copy site-packages
