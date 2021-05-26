@@ -44,7 +44,7 @@ def main(
     readme_file = misc.get('readme', '')
     
     # precheck
-    _precheck_args(proj_dir, dist_dir, readme_file, attachments)
+    _precheck(proj_dir, dist_dir, readme_file, attachments)
     
     # see `docs/devnote/dist-folders-structure.md`
     # these dirs already exist, see creation at `no2_prebuild_pyproject.py > cmt
@@ -109,7 +109,7 @@ def main(
 
 # ------------------------------------------------------------------------------
 
-def _precheck_args(proj_dir, dist_dir, readme_file, attachments):
+def _precheck(proj_dir, dist_dir, readme_file, attachments):
     assert ospath.exists(proj_dir)
     assert ospath.exists(dist_dir)
     assert ospath.exists(f'{dist_dir}/build')
@@ -187,7 +187,15 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     target_name = filesniff.get_filename(target_path, suffix=False)
     
     extend_sys_paths = list(map(
-        lambda d: global_dirs.relpath(global_dirs.to_dist(d), launch_dir),
+        lambda d: global_dirs.relpath(
+            global_dirs.to_dist(d) if not d.startswith(
+                ('{dist_root}', '{dist_lib}')
+            ) else d.format(
+                dist_root=f'{root_dir}',
+                dist_lib=f'{root_dir}/lib'
+            ),
+            launch_dir
+        ),
         extend_sys_paths
     ))
     
@@ -225,8 +233,10 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         template = loads(global_dirs.template('launch_by_system.bat'))
     code = template.format(
         PYVERSION=pyversion.replace('.', ''),  # ...|'37'|'38'|'39'|...
-        VENV_RELDIR=global_dirs.relpath(f'{root_dir}/venv', launch_dir),
-        LAUNCHER_RELDIR=global_dirs.relpath(launch_dir, root_dir),
+        VENV_RELDIR=global_dirs.relpath(f'{root_dir}/venv', launch_dir)
+            .replace('/', '\\'),
+        LAUNCHER_RELDIR=global_dirs.relpath(launch_dir, root_dir)
+            .replace('/', '\\'),
         LAUNCHER_NAME=f'{bootloader_name}.py',
     )
     bat_file = f'{root_dir}/{launcher_name}.bat'

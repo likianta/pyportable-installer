@@ -1,8 +1,9 @@
 # Project exclude paths
 /.idea/
 /dist/
+/embed_python/
 /history/
 /lib/
-/embed_python/
 /pyportable_installer/template/pytransform/
+/pyportable_installer/venv_assets/embed_python/
 /tests/

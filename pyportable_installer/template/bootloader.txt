@@ -16,6 +16,9 @@ References:
 import os
 import sys
 
+# add current dir to sys.path (this is necessary for embed python)
+sys.path.append(os.path.abspath('.'))
+
 # add lib to environment
 sys.path.append(os.path.abspath('{LIB_RELDIR}'))
 

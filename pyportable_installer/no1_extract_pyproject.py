@@ -74,9 +74,12 @@ class PathFormatter:
     def __init__(self, root_dir):
         self.root_dir = root_dir
     
-    def __call__(self, path):
+    def __call__(self, path: str):
         if path == '':
             return ''
+        elif path.startswith(('{dist_root}', '{dist_lib}')):
+            # see `no3_build_pyproject.py:_create_launcher:extend_sys_paths`
+            return pretty_path(path)
         elif len(path) > 1 and path[1] == ':':
             # FIXME: support only windows platform
             return pretty_path(path)

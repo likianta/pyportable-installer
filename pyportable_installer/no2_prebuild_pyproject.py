@@ -6,7 +6,7 @@ from lk_logger import lk
 
 def main(conf: dict):
     """ Create dist tree (all empty folders under dist root) """
-    _precheck_args(conf)
+    _precheck(conf)
     
     # create build_dir, lib_dir, src_dir
     mkdir(conf['build']['dist_dir'])
@@ -46,8 +46,13 @@ def main(conf: dict):
     return src_root, dst_root
 
 
-def _precheck_args(conf):
+def _precheck(conf):
     assert not ospath.exists(conf['build']['dist_dir'])
+    
+    from .global_dirs import curr_dir
+    if not ospath.exists(f'{curr_dir}/template/pytransform'):
+        from os import popen
+        popen('pyarmor runtime -O "{}"'.format(f'{curr_dir}/template')).read()
     
     from .venv_builder import VEnvBuilder
     builder = VEnvBuilder()

@@ -1,13 +1,19 @@
 # 3.x
 
+## 3.2.1
+
+* 新增: `项目模板:module_paths` 支持 `{dist_root}` 和 `{dist_lib}` 插值
+* 新增: 解决 tkinter 的打包问题
+* 新增: 解决 pywin32 的打包问题
+
 ## 3.2.0 | 2021-05-26
 
 * 变更: 调整 venv 的创建方式
 
-## 3.1.1 | 2021-05-25
+## 3.1.1
 
 * 变更: `assets_copy.copy_assets` 在复制时包含隐藏文件夹
-* 修复: 项目模板中的 `module_paths` 恢复使用
+* 修复: `项目模板:module_paths` 恢复使用
 * 修复: 恢复 `aftermath` 模块
 
 ## 3.0.0

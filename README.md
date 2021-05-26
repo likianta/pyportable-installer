@@ -182,3 +182,81 @@ hello_world
 
 1.  如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则会导致启动失败 (该问题可能与 Embed Python 解释器有关)
 2.  `pyportable-installer` 需要 Python 3.9 解释器
+
+# FAQ
+
+## 运行报错: 没有找到 tkinter 库
+
+这是因为您发布的项目中的虚拟环境使用的是嵌入式 Python, 而嵌入式 Python 并没有自带 tkinter 库.
+
+解决方法: 请参考此文: [如何将 Tk 套件加入到嵌入式 Python 中](./docs/add-tkinter-to-embed-python.md).
+
+## pywin32, win32, win32clipboard 等相关问题
+
+**简答**
+
+将 `venv/lib/site-packages/pywin32_system32` 下的两个 dll 文件复制到 `venv/lib/site-packages/win32/lib` 即可.
+
+**详细操作**
+
+假设您的项目结构为:
+
+```
+my_project
+|= assets
+|= src
+    |- main.py
+|= venv
+    |= lib
+        |= site-packages  # 如果您的项目有用到 pywin32 库, 则会有以下目录
+            |= win32
+            |= win32com
+            |= win32comext
+            |= pywin32_system32
+            |= ...
+|- pyproject.json
+```
+
+1. 复制 `venv/lib/site-packages/win32` 到 `assets/win32`
+2. 复制 `venv/lib/site-packages/pywin32_system32` 下的两个 dll 文件到 `assets/win32/lib` 目录下
+3. 在 `pyproject.json` 添加以下内容 (重点见 `◆` 符号处):
+
+```json5 
+{
+    "app_name": "My Project",
+    "app_version": "...",
+    "description": "...",
+    "author": "...",
+    "build": {
+        "proj_dir": "src",
+        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "icon": "",
+        "target": {
+            "file": "src/main.py",
+            "function": "main",
+            "args": [],
+            "kwargs": {}
+        },
+        "readme": "",
+        "attachments": {
+            // ◆ 把 `assets/win32` 复制到打包目录的 lib 目录下
+            "assets/win32": "assets,dist_lib"
+        },
+        "module_paths": [
+            // ◆ 注意将 win32 以及 win32/lib 目录都加入到 python `sys.path` 中
+            "{dist_lib}/win32",
+            "{dist_lib}/win32/lib"
+        ],
+        "required": {
+            "python_version": "3.9",
+            "enable_venv": true,
+            // ◆ 这里填您的项目自带的 venv 的目录路径
+            "venv": "./venv"
+        },
+        "enable_console": true
+    },
+    "note": ""
+}
+```
+
+参考: https://stackoverflow.com/questions/25254285/pyinstaller-importerror-no-system-module-pywintypes-pywintypes27-dll

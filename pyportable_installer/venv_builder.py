@@ -8,7 +8,7 @@ class VEnvBuilder:
         from platform import system
         self.sys = system().lower()  # 'windows'|'linux'|etc.
         
-        embed_python_dir = f'{curr_dir}/venv/embed_python'
+        embed_python_dir = f'{curr_dir}/venv_assets/embed_python'
         self.options = {
             'windows': {
                 'embed_python'         : {
