@@ -7,30 +7,38 @@ class VEnvBuilder:
     def __init__(self):
         from platform import system
         self.sys = system().lower()  # 'windows'|'linux'|etc.
-        
         embed_python_dir = f'{curr_dir}/venv_assets/embed_python'
+        
+        # FIXME: `../../pyproject.toml` 的打包参数似乎没设好, 导致在发布为 whl
+        #   时, 未包含 `embed_python_dir` 这个空文件夹.
+        #   现在使用临时方法: 检查目录是否不存在, 如不存在则创建每个子节点.
+        #   后面请尽快修复 pyproject.toml.
+        if not ospath.exists(f'{embed_python_dir}/{self.sys}'):
+            from .utils import mkdirs
+            mkdirs(curr_dir, 'venv_assets', 'embed_python', self.sys)
+        
         self.options = {
             'windows': {
                 'embed_python'         : {
-                    '3.5'   : f'{embed_python_dir}/{self.sys}/'
+                    '3.5'   : f'{embed_python_dir}/windows/'
                               f'python-3.5.4-embed-amd64',
-                    '3.5-32': f'{embed_python_dir}/{self.sys}/'
+                    '3.5-32': f'{embed_python_dir}/windows/'
                               f'python-3.5.4-embed-win32',
-                    '3.6'   : f'{embed_python_dir}/{self.sys}/'
+                    '3.6'   : f'{embed_python_dir}/windows/'
                               f'python-3.6.8-embed-amd64',
-                    '3.6-32': f'{embed_python_dir}/{self.sys}/'
+                    '3.6-32': f'{embed_python_dir}/windows/'
                               f'python-3.6.8-embed-win32',
-                    '3.7'   : f'{embed_python_dir}/{self.sys}/'
+                    '3.7'   : f'{embed_python_dir}/windows/'
                               f'python-3.7.9-embed-amd64',
-                    '3.7-32': f'{embed_python_dir}/{self.sys}/'
+                    '3.7-32': f'{embed_python_dir}/windows/'
                               f'python-3.7.9-embed-win32',
-                    '3.8'   : f'{embed_python_dir}/{self.sys}/'
+                    '3.8'   : f'{embed_python_dir}/windows/'
                               f'python-3.8.10-embed-amd64',
-                    '3.8-32': f'{embed_python_dir}/{self.sys}/'
+                    '3.8-32': f'{embed_python_dir}/windows/'
                               f'python-3.8.10-embed-win32',
-                    '3.9'   : f'{embed_python_dir}/{self.sys}/'
+                    '3.9'   : f'{embed_python_dir}/windows/'
                               f'python-3.9.5-embed-amd64',
-                    '3.9-32': f'{embed_python_dir}/{self.sys}/'
+                    '3.9-32': f'{embed_python_dir}/windows/'
                               f'python-3.9.5-embed-win32',
                 },
                 # https://www.python.org/downloads/windows/

@@ -1,5 +1,10 @@
 # 3.x
 
+## 3.2.2
+
+* 修复: 在 full_build 模式下生成的启动器丢失的问题
+* 修复: pyarmor 编译版本与 python 解释器版本不匹配的问题
+
 ## 3.2.1
 
 * 新增: `项目模板:module_paths` 支持 `{dist_root}` 和 `{dist_lib}` 插值

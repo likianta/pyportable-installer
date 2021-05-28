@@ -37,48 +37,12 @@ def copy_sources(proj_dir):
     yield from copy_assets({proj_dir: 'assets,compile'})
 
 
-def copy_pytransform_runtime(dir_i, dir_o):
+def copy_pytransform_runtime(dir_i, dir_o):  # DELETE
     if ospath.exists(dir_i):
         shutil.copytree(dir_i, dir_o)
     else:
         os.popen(f'pyarmor runtime -O "{dir_o}"')
         #   see `cmd:pyarmor runtime -h`
-
-
-def copy_runtime(template_dir, src_dir, dirs_to_compile):  # DELETE
-    """
-    template_dir                             src_dir
-    |= pytransform ========= copy =========> |= pytransform
-        |- __init__.py                           |- __init__.py
-        |- _pytransform.dll                      |- _pytransform.dll
-    
-    Args:
-        template_dir: `{GlobalDirs.PyPortableDir}/template`
-        src_dir: see `compiler.py > main > params:src_dir`
-        dirs_to_compile: see `compiler.py > main > params:dirs_to_compile`
-    """
-    from lk_utils.read_and_write import loads, dumps
-    
-    if ospath.exists(f'{template_dir}/pytransform'):
-        shutil.copytree(f'{template_dir}/pytransform', f'{src_dir}/pytransform')
-    else:
-        os.popen(f'pyarmor runtime -O "{src_dir}"')
-        #   see `cmd:pyarmor runtime -h`
-    
-    pytransform_package_dir = f'{src_dir}/pytransform'
-    #   this is an abspath
-    pytransform_file_template = loads(f'{template_dir}/pytransform.txt')
-    
-    for d in dirs_to_compile:
-        if os.listdir(d):
-            dumps(
-                data=pytransform_file_template.format(
-                    PYTRANSFORM_RELPKG=global_dirs.relpath(
-                        d, pytransform_package_dir
-                    ).replace('../', '..', 1).replace('../', '.')
-                ),
-                file=f'{d}/pytransform.py'
-            )
 
 
 def copy_venv(src_venv_dir, dst_venv_dir, pyversion):
@@ -120,6 +84,8 @@ def copy_venv(src_venv_dir, dst_venv_dir, pyversion):
                         f'{dst_venv_dir}/site-packages')
     else:  # just create an empty folder
         os.mkdir(f'{dst_venv_dir}/site-packages')
+
+    return embed_python_dir, dst_venv_dir
 
 
 def copy_assets(attachments) -> str:

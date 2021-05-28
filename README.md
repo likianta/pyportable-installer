@@ -260,3 +260,14 @@ my_project
 ```
 
 参考: https://stackoverflow.com/questions/25254285/pyinstaller-importerror-no-system-module-pywintypes-pywintypes27-dll
+
+## 如何添加图标文件
+
+图标仅支持 ico 格式. 如果您手上只有 png, jpg 等格式的图片文件, 可通过在线网站转换, 或者通过本项目自带的脚本:
+
+*注意: 需要事先安装 pillow 模块.*
+
+```python
+from pyportable_installer.bat_2_exe import png_2_ico
+png_2_ico.dialog()
+```

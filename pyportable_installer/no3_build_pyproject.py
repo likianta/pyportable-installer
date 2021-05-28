@@ -4,7 +4,10 @@ from lk_logger import lk
 from lk_utils.read_and_write import dumps, loads
 
 from .assets_copy import *
-from .compiler import pyarmor_compile
+from .compiler import PyArmorCompiler
+from .utils import mkdirs
+
+thread = None
 
 
 def main(
@@ -67,9 +70,20 @@ def main(
     if readme_file:
         create_readme(readme_file, f'{root_dir}/{ospath.basename(readme_file)}')
     
-    # lib_dir
-    copy_pytransform_runtime(
-        global_dirs.template('pytransform'), f'{lib_dir}/pytransform'
+    # venv
+    if required['enable_venv'] and misc.get('create_venv_shell'):
+        src_venv_dir, dst_venv_dir = copy_venv(
+            required['venv'], f'{root_dir}/venv', required['python_version']
+        )
+    else:
+        src_venv_dir, dst_venv_dir = '', ''
+    
+    # lib_dir/pytransform
+    compiler = PyArmorCompiler(src_venv_dir)
+    #   使用 `src_venv`, `dst_venv_dir` 均可
+    compiler.generate_runtime(
+        mkdirs(global_dirs.local('template'),
+               'pyarmor', required["python_version"]), lib_dir
     )
     
     # --------------------------------------------------------------------------
@@ -91,18 +105,13 @@ def main(
     # pyfiles_to_compile.append(launch_file)
     
     if misc.get('compile_scripts', True):
-        pyarmor_compile(pyfiles_to_compile, lib_dir)
+        compiler.compile_all(pyfiles_to_compile)
     else:
         for src_file, dst_file in zip(
                 pyfiles_to_compile,
                 map(global_dirs.to_dist, pyfiles_to_compile)
         ):
             shutil.copyfile(src_file, dst_file)
-    
-    if required['enable_venv'] and misc.get('create_venv_shell'):
-        copy_venv(
-            required['venv'], f'{root_dir}/venv', required['python_version']
-        )
     
     return root_dir
 
@@ -252,6 +261,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         lk.loga('convertion bat-to-exe done')
         # os.remove(bat_file)
     
+    global thread
     thread = Thread(
         target=generate_exe,
         args=(bat_file, f'{root_dir}/{launcher_name}.exe', icon,
