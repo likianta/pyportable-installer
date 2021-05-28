@@ -49,10 +49,10 @@ def main(conf: dict):
 def _precheck(conf):
     assert not ospath.exists(conf['build']['dist_dir'])
     
-    from .global_dirs import curr_dir
-    if not ospath.exists(f'{curr_dir}/template/pytransform'):
-        from os import popen
-        popen('pyarmor runtime -O "{}"'.format(f'{curr_dir}/template')).read()
+    # from .global_dirs import curr_dir
+    # if not ospath.exists(f'{curr_dir}/template/pytransform'):
+    #     from os import popen
+    #     popen('pyarmor runtime -O "{}"'.format(f'{curr_dir}/template')).read()
     
     from .venv_builder import VEnvBuilder
     builder = VEnvBuilder()

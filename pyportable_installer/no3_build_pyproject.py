@@ -79,7 +79,7 @@ def main(
         src_venv_dir, dst_venv_dir = '', ''
     
     # lib_dir/pytransform
-    compiler = PyArmorCompiler(src_venv_dir)
+    compiler = PyArmorCompiler(f'{src_venv_dir}/python.exe')
     #   使用 `src_venv`, `dst_venv_dir` 均可
     compiler.generate_runtime(
         mkdirs(global_dirs.local('template'),

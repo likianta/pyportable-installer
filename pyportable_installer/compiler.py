@@ -1,5 +1,8 @@
 from os import path as ospath
 from os import popen
+from shutil import copyfile
+
+from lk_logger import lk
 
 from .global_dirs import global_dirs
 
@@ -21,16 +24,31 @@ class PyArmorCompiler:
         Warnings:
             Currently only supports Windows platform.
         """
+        self._liscense = 'trial'
+        # TODO: see https://pyarmor.readthedocs.io/zh/latest/license.html
+        
         if python_interpreter:
+            # warnings: `docs/devnote/warnings-about-embed-python.md`
             self._interpreter = python_interpreter.replace('/', '\\')
-            self._pyarmor = self._locate_pyarmor_script()
-            self._head = f'"{self._interpreter}" "{self._pyarmor}"' \
-                if self._interpreter else f'"{self._pyarmor}"'
+            # create pyarmor file copy
+            origin_file = self._locate_pyarmor_script()
+            backup_file = origin_file.removesuffix('.py') + '_copy.py'
+            if not ospath.exists(backup_file):
+                from lk_utils.read_and_write import loads, dumps
+                content = loads(origin_file)
+                dumps('\n'.join([
+                    'from os.path import dirname',
+                    'from sys import path as syspath',
+                    'syspath.append(dirname(__file__))',
+                    content
+                ]), backup_file)
+            self._pyarmor = backup_file
+            self._head = f'"{self._interpreter}" "{self._pyarmor}"'
         else:
             self._interpreter = 'python'
             self._pyarmor = 'pyarmor'
             self._head = 'pyarmor'
-    
+            
     @staticmethod
     def _locate_pyarmor_script():
         try:
@@ -50,7 +68,8 @@ class PyArmorCompiler:
         dir_o = f'{lib_dir}/pytransform'
         
         if not ospath.exists(dir_i):
-            popen(f'{self._head} --silent runtime -O {local_dir}')
+            lk.loga(f'{self._head} --silent runtime -O "{local_dir}"')
+            popen(f'{self._head} runtime -O "{local_dir}"').read()
             #   note the target dir is `local_dir`, not `dir_i`
             #   see `cmd:pyarmor runtime -h`
         copytree(dir_i, dir_o)
@@ -108,6 +127,20 @@ class PyArmorCompiler:
             | `pyarmor obfuscate | *unknown*                                   |
             |  --bootstrap 4`    |                                             |
         """
+        lk.loga('compiling', ospath.basename(src_file))
+
+        if self._liscense == 'trial':
+            # the limitation of content size is 32768 bytes (i.e. 32KB)
+            if (size := ospath.getsize(src_file)) > 32768:
+                lk.logt(
+                    '[W0357]',
+                    f'该文件: "{src_file}" 的体积 ({size}) 超出了 pyarmor 试用'
+                    f'版的限制, 请购买个人版或商业版许可后重新编译! (本文件谨以'
+                    f'源码形式打包)'
+                )
+                copyfile(src_file, dst_file)
+                return
+            
         popen(
             f'{self._head} --silent obfuscate '
             f'--output "{ospath.dirname(dst_file)}" '
