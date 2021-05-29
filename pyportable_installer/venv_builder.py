@@ -1,5 +1,143 @@
-from os import path as ospath
+from os import mkdir, path as ospath
+from shutil import copytree
+
+from lk_logger import lk
+
 from .global_dirs import curr_dir
+from .typehint import *
+from .utils import mkdirs, send_cmd
+
+
+def main(venv_options: TConfBuildVenv, root_dir, create_venv_shell=True):
+    builder = VEnvBuilder()
+    pyversion = venv_options['python_version']
+    
+    if create_venv_shell:
+        mode = venv_options['mode']
+        # noinspection PyTypedDict
+        options = venv_options['mode_options'][mode]
+        
+        if mode == 'depsland':
+            build_venv_by_depsland(**options)
+        elif mode == 'pip':
+            build_venv_by_pip(**options)
+        elif mode == 'source_venv':
+            build_venv_by_source_venv(
+                options['path'], f'{root_dir}/venv',
+                builder.get_embed_python_dir(pyversion)
+            )
+        else:
+            raise ValueError('Unknown venv mode', mode)
+    
+    else:
+        mkdirs(root_dir, 'venv', 'site-packages')
+    
+    return builder
+
+
+def build_venv_by_source_venv(src_venv_dir: TPath, dst_venv_dir: TPath,
+                              embed_python_dir: TPath):
+    """
+    Args:
+        src_venv_dir: 'source virtual environment directory'.
+            tip: you can pass an empty to this argument, see reason at `Notes:3`
+        dst_venv_dir: 'distributed virtual environment directory'
+        embed_python_dir:
+
+    Notes:
+        1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
+           拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
+           也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下
+           的 Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在
+           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable
+           _installer 项目下已经准备了一份)
+        2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
+           数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
+           并让 '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪
+           切所需的依赖到 '{dst_venv_dir}/site-packages'
+
+    Results:
+        copy source dir to target dir:
+            lib/python-{version}-embed-amd64 -> {dst_venv_dir}
+            {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
+    """
+    copytree(embed_python_dir, dst_venv_dir)
+    
+    # copy site-packages
+    if ospath.exists(src_venv_dir):
+        copytree(f'{src_venv_dir}/Lib/site-packages',
+                 f'{dst_venv_dir}/site-packages')
+    else:  # just create an empty folder
+        mkdir(f'{dst_venv_dir}/site-packages')
+
+
+# noinspection PyUnusedLocal
+def build_venv_by_depsland(requirements: TRequirements):
+    raise NotImplementedError
+
+
+def build_venv_by_pip(requirements: TRequirements, pypi, local, offline,
+                      pyversion, quiet=False):
+    """
+    
+    Args:
+        requirements:
+        pypi: str.
+            suggest list:
+                official    https://pypi.python.org/simple/
+                tsinghua    https://pypi.tuna.tsinghua.edu.cn/simple/
+                aliyun      http://mirrors.aliyun.com/pypi/simple/
+                ustc        https://pypi.mirrors.ustc.edu.cn/simple/
+                douban      http://pypi.douban.com/simple/
+                
+        local:
+        offline:
+        pyversion:
+        quiet:
+
+    Returns:
+
+    """
+    if not requirements:
+        # `requirements` is empty string or empty list
+        return
+    
+    if offline is False:
+        assert pypi
+        host = pypi \
+            .removeprefix('http://') \
+            .removeprefix('https://') \
+            .split('/', 1)[0]
+    else:
+        host = ''
+    
+    find_links = f'--find-links={local}' if local else ''
+    no_index = '--no-index' if offline else ''
+    pypi_url = f'--index-url {pypi}' if not offline else ''
+    quiet = '--quiet' if quiet else ''
+    trusted_host = f'--trusted-host {host}' if host else ''
+    
+    if isinstance(requirements, str):
+        assert ospath.exists(requirements)
+        # see cmd help: `pip download -h`
+        send_cmd(
+            f'pip download'
+            f' -r "{requirements}"'
+            f' --disable-pip-version-check'
+            f' --python-version {pyversion}'
+            f' {find_links}'
+            f' {no_index}'
+            f' {pypi_url}'
+            f' {quiet}'
+            f' {trusted_host}',
+            ignore_errors=True
+        )
+    else:
+        for pkg in requirements:
+            try:
+                send_cmd(pkg)
+            except:
+                lk.logt('[W0835]', 'Pip installing failed', pkg)
 
 
 class VEnvBuilder:
@@ -67,8 +205,8 @@ class VEnvBuilder:
             },
             # TODO: more system options
         }[self.sys]
-
-    def get_embed_python(self, pyversion: str):
+    
+    def get_embed_python_dir(self, pyversion: str):
         try:
             path = self.options['embed_python'][pyversion]
         except KeyError:
@@ -77,9 +215,12 @@ class VEnvBuilder:
         if not ospath.exists(path):
             self._download_help(pyversion)
             raise SystemExit
-
-        return path
         
+        return path
+    
+    def get_embed_python_interpreter(self, pyversion: str):
+        return self.get_embed_python_dir(pyversion) + '/python.exe'
+    
     def _download_help(self, pyversion):
         path = self.options['embed_python'][pyversion]
         link = self.options['embed_python_download'][pyversion]

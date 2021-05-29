@@ -4,20 +4,26 @@ from lk_logger import lk
 from lk_utils.read_and_write import dumps, loads
 
 from .assets_copy import *
-from .compiler import PyArmorCompiler
-from .utils import mkdirs
+from .compiler import get_compiler
+from .typehint import *
+from .venv_builder import main as handle_venv
 
 thread = None
 
 
 def main(
-        app_name: str, proj_dir: str, dist_dir: str,
-        target: dict, required: dict, module_paths: list, attachments: dict,
+        app_name: str,
+        proj_dir: TPath, dist_dir: TPath,
+        target: TTarget,
+        venv: TConfBuildVenv,
+        compiler: str,
+        module_paths: list[TPath],
+        attachments: TAttachments,
         **misc
 ):
     """
     
-    Project Structure Example
+    Project Structure Example:
         hello_world_project
         |= hello_world  # <- `params:proj_dir`
             |- main.py  # <- script launcher
@@ -30,18 +36,23 @@ def main(
                 |- ...
     
     Args:
-        app_name: use normal case, eg 'Hello World'
-        proj_dir: see `current:docstring:Project Structure Example`
-        dist_dir: see `current:docstring:Project Structure Example`. note this
-            directory is not `global_dirs.py > global_vars:global_dir >
-            attrs:dst_root`, this is the parent dir of that.
-        target: see `docs/pyproject-template.md > pyproject`
-        module_paths: see `func:_create_launcher`
-        attachments: see `assets_copy.py > copy_assets > docstring:attachments`
-        required: see `docs/pyproject-template.md > pyproject`
-        **misc: some keys are from `./main.py > main > conf['build']` (e.g.
-            'readme', 'icon', 'enable_console'), the others are from `./main.py
-            > Misc.dump`
+        app_name: Use normal case. e.g. 'Hello World'
+        proj_dir: See `Project Structure Example`
+        dist_dir: See `Project Structure Example`. Note this directory is
+            equivalent to `global_dirs.py::global_vars:global_dirs::attrs
+            :dst_root`, this is the parent dir of that.
+        target: See `docs/pyproject-template.md::build:target`
+        module_paths: See `func:_create_launcher`
+        attachments: See `assets_copy.py::copy_assets::docstring:attachments`
+        venv: See `docs/pyproject-template.md::build:venv`
+        compiler: Literal['pyarmor', 'pyc', 'pycrypto']. Compiler name.
+        **misc: Some keys are from `main.py::main::conf['build']` (e.g.
+            'readme', 'icon', 'enable_console'), the others are from `main.py
+            ::class:Misc.dump`
+    
+    Warnings:
+        请勿随意更改本函数的参数名, 这些名字与 `template/pyproject.json` 的诸多
+        键名有关系, 二者名字需要保持一致.
     """
     # init args
     readme_file = misc.get('readme', '')
@@ -50,7 +61,7 @@ def main(
     _precheck(proj_dir, dist_dir, readme_file, attachments)
     
     # see `docs/devnote/dist-folders-structure.md`
-    # these dirs already exist, see creation at `no2_prebuild_pyproject.py > cmt
+    # these dirs already exist, see creation at `no2_prebuild_pyproject.py::cmt
     # :'create build_dir, lib_dir, src_dir'`
     root_dir, build_dir, src_dir, lib_dir = (
         dist_dir, f'{dist_dir}/build', f'{dist_dir}/src', f'{dist_dir}/lib'
@@ -58,12 +69,12 @@ def main(
     #   root_dir : 'root directory'
     #   build_dir: 'build (noun.) directory'
     #   src_dir  : 'source directory'. note: this is equivalent to
-    #       `global_dirs.py > global_vars:global_dirs > attrs:dst_root`
+    #       `global_dirs.py::global_vars:global_dirs::attrs:dst_root`
     
     # --------------------------------------------------------------------------
     
     # build_dir
-    if misc.get('create_checkup_tools'):
+    if misc.get('create_checkup_tools', True):
         copy_checkup_tool(global_dirs.local('checkup'), build_dir)
     
     # readme_file
@@ -71,23 +82,27 @@ def main(
         create_readme(readme_file, f'{root_dir}/{ospath.basename(readme_file)}')
     
     # venv
-    if required['enable_venv'] and misc.get('create_venv_shell'):
-        src_venv_dir, dst_venv_dir = copy_venv(
-            required['venv'], f'{root_dir}/venv', required['python_version']
-        )
-    else:
-        src_venv_dir, dst_venv_dir = '', ''
-    
-    # lib_dir/pytransform
-    compiler = PyArmorCompiler(f'{src_venv_dir}/python.exe')
-    #   使用 `src_venv`, `dst_venv_dir` 均可
-    compiler.generate_runtime(
-        mkdirs(global_dirs.local('template'),
-               'pyarmor', required["python_version"]), lib_dir
+    venv_builder = handle_venv(
+        venv, root_dir,
+        create_venv_shell=misc.get('create_venv_shell', True)
     )
     
     # --------------------------------------------------------------------------
     # compile
+    
+    # get a compiler
+    pyversion = venv['python_version']
+    if venv['enable_venv']:
+        pyinterpreter = venv_builder.get_embed_python_interpreter(pyversion)
+    else:
+        pyinterpreter = 'python'  # default python in system environment
+    from .utils import set_pyinterpreter
+    set_pyinterpreter(pyinterpreter)
+    
+    compiler = get_compiler(
+        compiler, pyinterpreter,
+        lib_dir=lib_dir, pyversion=pyversion
+    )
     
     pyfiles_to_compile = []
     pyfiles_to_compile.extend(copy_sources(proj_dir))
@@ -95,10 +110,10 @@ def main(
     
     # noinspection PyUnusedLocal
     launch_file = _create_launcher(
-        app_name, misc.get('icon'), target, root_dir,
-        pyversion=required['python_version'],
+        app_name, misc.get('icon', ''), target, root_dir,
+        pyversion=pyversion,
         extend_sys_paths=module_paths,
-        enable_venv=required['enable_venv'],
+        enable_venv=venv['enable_venv'],
         enable_console=misc.get('enable_console', True),
         create_launch_bat=misc.get('create_launch_bat', True),
     )
@@ -118,12 +133,12 @@ def main(
 
 # ------------------------------------------------------------------------------
 
-def _precheck(proj_dir, dist_dir, readme_file, attachments):
-    assert ospath.exists(proj_dir)
-    assert ospath.exists(dist_dir)
-    assert ospath.exists(f'{dist_dir}/build')
-    assert ospath.exists(f'{dist_dir}/lib')
-    assert ospath.exists(f'{dist_dir}/src')
+def _precheck(prj_dir, dst_dir, readme_file, attachments):
+    assert ospath.exists(prj_dir)
+    assert ospath.exists(dst_dir)
+    assert ospath.exists(f'{dst_dir}/build')
+    assert ospath.exists(f'{dst_dir}/lib')
+    assert ospath.exists(f'{dst_dir}/src')
     assert readme_file == '' or ospath.exists(readme_file)
     assert all(map(ospath.exists, attachments.keys()))
 
@@ -197,12 +212,8 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     
     extend_sys_paths = list(map(
         lambda d: global_dirs.relpath(
-            global_dirs.to_dist(d) if not d.startswith(
-                ('{dist_root}', '{dist_lib}')
-            ) else d.format(
-                dist_root=f'{root_dir}',
-                dist_lib=f'{root_dir}/lib'
-            ),
+            global_dirs.to_dist(d) if not d.startswith('dist:')
+            else d.replace('dist:', f'{root_dir}/').rstrip('/'),
             launch_dir
         ),
         extend_sys_paths

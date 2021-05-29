@@ -4,9 +4,10 @@ from lk_logger import lk
 from lk_utils.read_and_write import loads
 
 from .global_dirs import global_dirs, pretty_path
+from .typehint import *
 
 
-def main(pyproj_file: str):
+def main(pyproj_file: str) -> TConf:
     """
 
     Args:
@@ -19,18 +20,19 @@ def main(pyproj_file: str):
     pyproj_root = pretty_path(ospath.abspath(f'{pyproj_file}/../'))
     lk.loga(pyproj_root)
     
-    conf = loads(pyproj_file)  # type: dict
+    conf = loads(pyproj_file)  # type: TConf
     conf = _format_with_abspath(conf, PathFormatter(pyproj_root))
     
     return conf
 
 
-def _format_with_abspath(conf: dict, path_fmt: 'PathFormatter'):
+def _format_with_abspath(conf: TConf, path_fmt: 'PathFormatter'):
     # tip: read the following code together with `./template/pyproject.json`
     
     conf['build']['proj_dir'] = path_fmt(
         conf['build']['proj_dir']
     )
+    
     conf['build']['dist_dir'] = path_fmt(
         conf['build']['dist_dir'].format(
             app_name=conf['app_name'],
@@ -38,10 +40,12 @@ def _format_with_abspath(conf: dict, path_fmt: 'PathFormatter'):
             app_version=conf['app_version']
         )
     )
+    
     conf['build']['icon'] = path_fmt(
         conf['build']['icon'] or
         ospath.abspath(global_dirs.template('python.ico'))
     )
+    
     conf['build']['readme'] = path_fmt(
         conf['build']['readme']
     )
@@ -51,17 +55,33 @@ def _format_with_abspath(conf: dict, path_fmt: 'PathFormatter'):
             dist_dir=conf['build']['dist_dir']
         )
     )
-    conf['build']['required']['venv'] = path_fmt(
-        conf['build']['required']['venv']
-    )
     
+    conf['build']['attachments'] = {
+        path_fmt(k): path_fmt(v) if 'dist:' in v else v
+        for (k, v) in conf['build']['attachments'].items()
+    }
+
     conf['build']['module_paths'] = list(
         map(path_fmt, conf['build']['module_paths'])
     )
-    conf['build']['attachments'] = {
-        path_fmt(k): v
-        for (k, v) in conf['build']['attachments'].items()
-    }
+
+    # --------------------------------------------------------------------------
+
+    mode_options = conf['build']['venv']['mode_options']
+
+    mode_options['source_venv']['path'] = path_fmt(
+        mode_options['source_venv']['path']
+    )
+
+    mode_options['pip']['local'] = path_fmt(
+        mode_options['pip']['local']
+    )
+
+    if isinstance((x := mode_options['depsland']['requirements']), str):
+        mode_options['depsland']['requirements'] = path_fmt(x)
+
+    if isinstance((x := mode_options['pip']['requirements']), str):
+        mode_options['pip']['requirements'] = path_fmt(x)
     
     # from lk_utils.read_and_write import dumps
     # dumps(conf, '../tests/test.json')
@@ -77,8 +97,9 @@ class PathFormatter:
     def __call__(self, path: str):
         if path == '':
             return ''
-        elif path.startswith(('{dist_root}', '{dist_lib}')):
-            # see `no3_build_pyproject.py:_create_launcher:extend_sys_paths`
+        elif 'dist:root' in path:
+            return pretty_path(path.replace('dist:root', 'dist:'))
+        elif 'dist:' in path:
             return pretty_path(path)
         elif len(path) > 1 and path[1] == ':':
             # FIXME: support only windows platform

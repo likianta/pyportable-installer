@@ -27,3 +27,7 @@ Depsland 是一个独立的软件, 可以在客户电脑上安装和运行. 其�
 这样, 由 pyportable-installer 发布的应用的体积都能控制在源代码级别 (对于中小型项目来说, 这通常只有几百 KB; 一些简单的脚本工具甚至可以控制在 10KB 以下), 解释器版本和库依赖的工作由 Depsland 完成 (用户需要事先安装 Depsland 软件), 由于 Depsland 不会产生重复的解释器和库, 于是体积和兼容性都得到了保证.
 
 注: 目前 Depsland 仍在开发中, 大量特性 (如卸载第三方库及其依赖, 管理同一依赖的多版本冲突, 管理 Scripts 下的工具等) 还未实现. 预计在 2021 年 10 月才能投入使用.
+
+## 相关阅读
+
+- https://www.curiousefficiency.org/posts/2011/04/benefits-and-limitations-of-pyc-only.html#

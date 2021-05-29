@@ -5,9 +5,10 @@ from os import path as ospath
 from lk_utils import filesniff
 
 from .global_dirs import global_dirs
+from .typehint import *
 
 
-def copy_checkup_tool(assets_dir, build_dir):
+def copy_checkup_tool(assets_dir: TPath, build_dir: TPath):
     """
     TODO: add `update.py`
     
@@ -25,7 +26,7 @@ def copy_checkup_tool(assets_dir, build_dir):
     return f1, f2
 
 
-def copy_sources(proj_dir):
+def copy_sources(proj_dir: TPath):
     """
     将 proj_dir 的内容全部拷贝到 src_dir 下, 并返回 src_dir 以及 src_dir 的所有
     子目录.
@@ -37,58 +38,7 @@ def copy_sources(proj_dir):
     yield from copy_assets({proj_dir: 'assets,compile'})
 
 
-def copy_pytransform_runtime(dir_i, dir_o):  # DELETE
-    if ospath.exists(dir_i):
-        shutil.copytree(dir_i, dir_o)
-    else:
-        os.popen(f'pyarmor runtime -O "{dir_o}"')
-        #   see `cmd:pyarmor runtime -h`
-
-
-def copy_venv(src_venv_dir, dst_venv_dir, pyversion):
-    """
-    Args:
-        src_venv_dir: 'source virtual environment directory'.
-            tip: you can pass an empty to this argument, see reason at `Notes:3`
-        dst_venv_dir: 'distributed virtual environment directory'
-        pyversion: e.g. '3.8'. 请确保该版本与 pyportable_installer 所用的 Python
-            编译器, 以及 src_venv_dir 所用的 Python 版本一致 (修订号可以不一样),
-            否则 _compile_py_files 编译出来的 .pyc 文件无法运行!
-
-    Notes:
-        1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
-           拷贝到打包目录, 这是因为 src_venv_dir 里面的 Python 是不可独立使用的.
-           也就是说, 在一个没有安装过 Python 的用户电脑上, 调用 src_venv_dir 下
-           的 Python 编译器将失败! 所以我们需要的是一个嵌入版的 Python (在
-           Python 官网下载带有 "embed" 字样的压缩包, 并解压, 我在 pyportable
-           _installer 项目下已经准备了一份)
-        2. 出于性能和成本考虑, 您不必提供有效 src_venv_dir 参数, 即您可以给该参
-           数传入一个空字符串, 这样本函数会仅创建虚拟环境的框架 (dst_venv_dir),
-           并让 '{dst_venv_dir}/site-packages' 留空. 稍后您可以手动地复制, 或剪
-           切所需的依赖到 '{dst_venv_dir}/site-packages'
-
-    Results:
-        copy source dir to target dir:
-            lib/python-{version}-embed-amd64 -> {dst_venv_dir}
-            {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
-    """
-    from .venv_builder import VEnvBuilder
-    
-    builder = VEnvBuilder()
-    embed_python_dir = builder.get_embed_python(pyversion)
-    shutil.copytree(embed_python_dir, dst_venv_dir)
-    
-    # copy site-packages
-    if ospath.exists(src_venv_dir):
-        shutil.copytree(f'{src_venv_dir}/Lib/site-packages',
-                        f'{dst_venv_dir}/site-packages')
-    else:  # just create an empty folder
-        os.mkdir(f'{dst_venv_dir}/site-packages')
-
-    return embed_python_dir, dst_venv_dir
-
-
-def copy_assets(attachments) -> str:
+def copy_assets(attachments: TAttachments) -> str:
     """ 将 `attachments` 中列出的 assets 类型的文件和文件夹复制到 `dst_dir`.
     
     关于 `attachments` 的标记:
@@ -110,34 +60,34 @@ def copy_assets(attachments) -> str:
                                     复制, 而是作为待编译的文件 yield 给调用者
         'root_assets,compile'       只复制根目录下的文件, 但对 *.py 文件不复制,
                                     而是作为待编译的文件 yield 给调用者
-        'assets,dist_lib'           复制目录下的全部文件 (夹), 复制到打包目录下
+        'assets,dist:lib'           复制目录下的全部文件 (夹), 复制到打包目录下
                                     的 'lib' 文件夹中
-        'assets,dist_root'          同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
-        'root_assets,dist_lib'      只复制根目录下的文件, 复制到打包目录下的
+        'assets,dist:root'          同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'root_assets,dist:lib'      只复制根目录下的文件, 复制到打包目录下的
                                     'lib' 文件夹中
-        'root_assets,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
-        'only_folder,dist_lib'      只复制根目录, 复制到打包目录下的 'lib' 文件
+        'root_assets,dist:root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'only_folder,dist:lib'      只复制根目录, 复制到打包目录下的 'lib' 文件
                                     夹中 (相当于在 `dst_dir/lib` 创建相应的空目
                                     录)
-        'only_folder,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
-        'only_folders,dist_lib'     只复制根目录和全部子目录, 复制到打包目录下的
+        'only_folder,dist:root'     同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'only_folders,dist:lib'     只复制根目录和全部子目录, 复制到打包目录下的
                                     'lib' 文件夹中 (相当于在 `dst_dir/lib` 创建
                                     相应的空目录树)
-        'only_folders,dist_root'    同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
+        'only_folders,dist:root'    同上, 将目标目录 `dst_dir/lib` 改为 `dit_dir`
         
         三标记:
         
-        'assets,compile,dist_lib'           复制目录下的全部文件 (夹), 复制到打
+        'assets,compile,dist:lib'           复制目录下的全部文件 (夹), 复制到打
                                             包目录下的 'lib' 文件夹中, 但对 *.py
                                             文件不复制, 而是作为待编译的文件
                                             yield 给调用者
-        'assets,compile,dist_root'          同上, 将目标目录 `dst_dir/lib` 改为
+        'assets,compile,dist:root'          同上, 将目标目录 `dst_dir/lib` 改为
                                             `dit_dir`
-        'root_assets,compile,dist_lib'      只复制根目录下的文件, 复制到打包目录
+        'root_assets,compile,dist:lib'      只复制根目录下的文件, 复制到打包目录
                                             下的 'lib' 文件夹中, 但对 *.py 文件
                                             不复制, 而是作为待编译的文件 yield
                                             给调用者
-        'root_assets,compile,dist_root'     同上, 将目标目录 `dst_dir/lib` 改为
+        'root_assets,compile,dist:root'     同上, 将目标目录 `dst_dir/lib` 改为
                                             `dit_dir`
                                 
         *注: 上表内容可能过时, 最终请以 `docs/pyproject-template.md` 为准!*
@@ -150,6 +100,11 @@ def copy_assets(attachments) -> str:
     
     Args:
         attachments (dict):
+    
+    Notes:
+        由于在 `pyportable_installer/no1_extract_pyproject.py:PathFormatter:
+        __call__` 中对 'dist:root' 转换成了 'dist:', 所以 `args:attachments:
+        values:each` 中不再有 'dist:root', 而是用 'dist:' 表示.
 
     Yields:
         *.py file which needs to be compiled
@@ -215,10 +170,13 @@ def copy_assets(attachments) -> str:
         #   e.g. ('assets', 'compile')
         is_yield_pyfile = 'compile' in mark
         #   True: yield pyfile; False: copy pyfile
-        if 'dist_root' in mark:
-            src_to_dst = lambda p: f'{dst_root}/{ospath.basename(p)}'
-        elif 'dist_lib' in mark:
-            src_to_dst = lambda p: f'{dst_root}/lib/{ospath.basename(p)}'
+        
+        # # if mark[-1].startswith('dist:'):
+        if any(x.startswith('dist:') for x in mark):
+            src_to_dst = lambda p: p.replace("dist:", f'{dst_root}/').rstrip('/')
+            #   `dist:` 相当于 `{dist_root}`
+            #   `dist:/xxx` 相当于 `{dist_root}/xxx`
+            #   `dist:lib/xxx` 相当于 `{dist_root}/lib/xxx`
         else:
             src_to_dst = lambda p: global_dirs.to_dist(p)
         
@@ -261,6 +219,6 @@ def copy_assets(attachments) -> str:
             raise ValueError('unknown mark or incomplete mark', mark)
 
 
-def create_readme(file_i: str, file_o: str):
+def create_readme(file_i: TPath, file_o: TPath):
     # TODO: import a markdown_2_html converter
     shutil.copyfile(file_i, file_o)

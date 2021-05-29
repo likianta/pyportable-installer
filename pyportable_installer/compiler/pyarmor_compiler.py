@@ -5,11 +5,14 @@ from shutil import copyfile
 
 from lk_logger import lk
 
+from .base import BaseCompiler
 from ..global_dirs import global_dirs
+from ..utils import send_cmd
 
 
-class PyArmorCompiler:
+class PyArmorCompiler(BaseCompiler):
     
+    # noinspection PyMissingConstructor
     def __init__(self, python_interpreter=''):
         """
         
@@ -147,13 +150,14 @@ class PyArmorCompiler:
             # gb2312.py 文件遇到过一次. 为了处理该报错, 我们需要从 subprocess 中
             # 获取到错误, 并转为拷贝源码的方式. 详见下面的处理.
         
-        # https://docs.python.org/3/library/asyncio-subprocess.html
-        cmd = f'{self._head} --silent obfuscate ' \
-              f'--output "{ospath.dirname(dst_file)}" ' \
-              f'--bootstrap 2 ' \
-              f'--exact ' \
-              f'--no-runtime ' \
-              f'"{src_file}"'
+        cmd = (
+            f'{self._head} --silent obfuscate'
+            f' -O "{ospath.dirname(dst_file)}"'
+            f' --bootstrap 2'
+            f' --exact'
+            f' --no-runtime'
+            f' "{src_file}"'
+        )
         #   arguments:
         #       --silent        do not print normal info
         #       --output        output path, pass `dst_file`'s dirname, it will
@@ -164,14 +168,10 @@ class PyArmorCompiler:
         #                       only obfuscate `src_file`)
         #       --no-runtime    do not generate runtime files (cause we have
         #                       generated runtime files in `{dst}/lib`)
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate()
-        if stderr:
-            lk.logt('[E3033]', stderr.decode())
+        try:
+            send_cmd(cmd)
+        except Exception as e:
+            lk.logt('[E1747]', e)
             from os import remove
             remove(dst_file)
             copyfile(src_file, dst_file)

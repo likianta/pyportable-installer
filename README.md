@@ -240,12 +240,12 @@ my_project
         "readme": "",
         "attachments": {
             // ◆ 把 `assets/win32` 复制到打包目录的 lib 目录下
-            "assets/win32": "assets,dist_lib"
+            "assets/win32": "assets,dist:lib"
         },
         "module_paths": [
             // ◆ 注意将 win32 以及 win32/lib 目录都加入到 python `sys.path` 中
-            "{dist_lib}/win32",
-            "{dist_lib}/win32/lib"
+            "dist:lib/win32",
+            "dist:lib/win32/lib"
         ],
         "required": {
             "python_version": "3.9",

@@ -14,12 +14,41 @@
             "kwargs": {}
         },
         "readme": "README.md",
-        "module_paths": [],
         "attachments": {},
-        "required": {
-            "python_version": "",
+        "module_paths": [],
+        "venv": {
             "enable_venv": true,
-            "venv": ""
+            "python_version": "",
+            "mode": "source_venv",
+            "mode_options": {
+                "depsland": {
+                    "requirements": []
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": [],
+                    "pypi": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                }
+            }
+        },
+        "compiler": {
+            "compiler_name": "pyarmor",
+            "compiler_options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "zip": {
+                    "password": ""
+                }
+            }
         },
         "enable_console": true
     },

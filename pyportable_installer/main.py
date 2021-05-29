@@ -1,5 +1,4 @@
 from os import path as ospath
-from shutil import copyfile
 
 from lk_logger import lk
 
@@ -70,8 +69,6 @@ def main(pyproj_file: str, misc: dict):
     m, n = ospath.split(dst_root)
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
     #   this path link is clickable via pycharm console ^-----^
-    
-    copyfile(pyproj_file, f'{dst_root}/build/manifest.json')
     
     if misc.get('do_aftermath', True):
         from .aftermath import cleanup_files

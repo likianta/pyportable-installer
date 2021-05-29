@@ -3,8 +3,10 @@ from os import path as ospath
 
 from lk_logger import lk
 
+from .typehint import *
 
-def main(conf: dict):
+
+def main(conf: TConf):
     """ Create dist tree (all empty folders under dist root) """
     _precheck(conf)
     
@@ -15,31 +17,40 @@ def main(conf: dict):
     mkdir(conf['build']['dist_dir'] + '/src')
     
     dist_tree = DistTree()
+    
+    """
+    Add to source dirs: 对相对路径敏感的目录需要保持原有的目录结构关系. 它们需要
+    被加入到 source dirs. 如下所列 (见加号标识):
+        pyproject
+            build
+                + proj_dir
+                target
+                    + file
+                + attachments (partial, which value not includes 'dist:')
+                + module_paths (partial, which not starts with 'dist:')
+                
+    Do not add to source dirs (见减号标识):
+        pyproject
+            build
+                - dist_dir
+                - icon
+                - readme
+                - attachments (partial, which value includes 'dist:')
+                - module_paths (partial, which starts with 'dist:')
+    """
     dist_tree.add_src_dirs(
         conf['build']['proj_dir'],
-        # conf['build']['dist_dir'],
-        #   dist_dir 不属于 srd_dirs 范畴
-        # conf['build']['icon'],
-        #   icon 仅用作生成 exe 时的图标, 不会加入到 src_dirs
-        # conf['build']['readme'],
-        #   readme 文件会放在根目录, 所以不加入到 src_dirs
         conf['build']['target']['file'],
-        # conf['build']['required']['venv'],
-        # *conf['build']['module_paths'],
-        #   module_paths 很多都不是一级目录, 不要加入到 src_dirs
         *(k for k, v in conf['build']['attachments'].items()
-          if 'dist_lib' not in v and 'dist_root' not in v),
+          if 'dist:' not in v),
+        *(v for v in conf['build']['module_paths']
+          if not v.startswith('dist:'))
     )
     
     src_root = dist_tree.suggest_src_root()
     lk.loga(src_root)
     dst_root = conf['build']['dist_dir']
     dist_tree.build_dst_dirs(src_root, f'{dst_root}/src')
-    # dist_tree.build_dst_dirs(
-    #     src_root, f'{dst_root}/lib',
-    #     src_dirs=[_get_dir(k) for k, v in conf['build']['attachments'].items()
-    #               if 'dist_lib' in v]
-    # )
     
     from .global_dirs import init_global_dirs
     init_global_dirs(src_root, f'{dst_root}/src')
@@ -59,17 +70,17 @@ def _precheck(conf):
         builder = VEnvBuilder()
         pyversion = conf['build']['required']['python_version']
         # try to get a valid embed python path, if failed, raise an error.
-        builder.get_embed_python(pyversion)
+        builder.get_embed_python_dir(pyversion)
         
         if venv_path := conf['build']['required']['venv']:
-            if venv_path.startswith(conf['build']['proj_dir']):
+            if venv_path.startswith(src_path := conf['build']['proj_dir']):
                 lk.logt('[C2015]',
                         '请勿将虚拟环境放在您的源代码文件夹下! 这将导致虚拟环境'
                         '中的第三方库代码也被加密, 通常情况下这会导致不可预测的'
                         '错误发生. 您可以选择将虚拟环境目录放到与源代码同级的目'
                         '录, 这是推荐的做法.\n'
                         f'\t虚拟环境目录: {venv_path}\n'
-                        f'\t建议迁移至: {ospath.dirname(venv_path)}/venv')
+                        f'\t建议迁移至: {ospath.dirname(src_path)}/venv')
                 if input('是否仍要继续运行? (y/n): ').lower() != 'y':
                     raise SystemExit
 
@@ -97,8 +108,7 @@ class DistTree:
         except AssertionError:
             return ''
     
-    def build_dst_dirs(self, src_root: str, dst_root: str,
-                       src_dirs=None):
+    def build_dst_dirs(self, src_root: str, dst_root: str, src_dirs=None):
         """
 
         Args:

@@ -1,5 +1,12 @@
 # 3.x
 
+## 3.3.0 | 2021-05-29
+
+* 新增: 完善 Python 类型提示
+* 新增: 多种 venv 创建方式 (源拷贝和 pip download)
+* 新增: 多种编译方式 (pyarmor 编译和 pyc 编译)
+* 优化: 调整 `项目模板:attachments` 和 `项目模板:module_paths` 的先后顺序
+
 ## 3.2.3
 
 * 修复: 移除 pillow 依赖缺失引起的报错
