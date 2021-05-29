@@ -1,10 +1,11 @@
+import asyncio
 from os import path as ospath
 from os import popen
 from shutil import copyfile
 
 from lk_logger import lk
 
-from .global_dirs import global_dirs
+from ..global_dirs import global_dirs
 
 
 class PyArmorCompiler:
@@ -25,7 +26,7 @@ class PyArmorCompiler:
             Currently only supports Windows platform.
         """
         self._liscense = 'trial'
-        # TODO: see https://pyarmor.readthedocs.io/zh/latest/license.html
+        #   TODO: see https://pyarmor.readthedocs.io/zh/latest/license.html
         
         if python_interpreter:
             # warnings: `docs/devnote/warnings-about-embed-python.md`
@@ -48,7 +49,7 @@ class PyArmorCompiler:
             self._interpreter = 'python'
             self._pyarmor = 'pyarmor'
             self._head = 'pyarmor'
-            
+    
     @staticmethod
     def _locate_pyarmor_script():
         try:
@@ -82,9 +83,9 @@ class PyArmorCompiler:
         """
         for src_file in pyfiles:
             dst_file = global_dirs.to_dist(src_file)
-            self.compile_one(src_file, dst_file)
+            asyncio.run(self.compile_one(src_file, dst_file))
     
-    def compile_one(self, src_file, dst_file):
+    async def compile_one(self, src_file, dst_file):
         """
         Compile `src_file` and generate `dst_file`.
 
@@ -94,8 +95,7 @@ class PyArmorCompiler:
             
         References:
             `cmd:pyarmor obfuscate -h`
-            `pyportable_installer/assets_copy.py:copy_runtime`
-
+        
         Results:
             the `dst_file` has the same content structure:
                 from pytransform import pyarmor_runtime
@@ -128,9 +128,10 @@ class PyArmorCompiler:
             |  --bootstrap 4`    |                                             |
         """
         lk.loga('compiling', ospath.basename(src_file))
-
+        
         if self._liscense == 'trial':
-            # the limitation of content size is 32768 bytes (i.e. 32KB)
+            # The limitation of content size is 32768 bytes (i.e. 32KB) in
+            # pyarmor trial version.
             if (size := ospath.getsize(src_file)) > 32768:
                 lk.logt(
                     '[W0357]',
@@ -140,15 +141,19 @@ class PyArmorCompiler:
                 )
                 copyfile(src_file, dst_file)
                 return
-            
-        popen(
-            f'{self._head} --silent obfuscate '
-            f'--output "{ospath.dirname(dst_file)}" '
-            f'--bootstrap 2 '
-            f'--exact '
-            f'--no-runtime '
-            f'"{src_file}"'
-        )
+            # 注意: 虽然我们已经事先判断了, 如果文件体积大于试用版 pyarmor 的限
+            # 制就不用 pyarmor 编译, 但是事实上仍会发生极少数 py 文件体积未超过
+            # 限制却被 pyarmor 报超出限制的错误. 该现象目前在编译虚拟环境下的
+            # gb2312.py 文件遇到过一次. 为了处理该报错, 我们需要从 subprocess 中
+            # 获取到错误, 并转为拷贝源码的方式. 详见下面的处理.
+        
+        # https://docs.python.org/3/library/asyncio-subprocess.html
+        cmd = f'{self._head} --silent obfuscate ' \
+              f'--output "{ospath.dirname(dst_file)}" ' \
+              f'--bootstrap 2 ' \
+              f'--exact ' \
+              f'--no-runtime ' \
+              f'"{src_file}"'
         #   arguments:
         #       --silent        do not print normal info
         #       --output        output path, pass `dst_file`'s dirname, it will
@@ -159,3 +164,14 @@ class PyArmorCompiler:
         #                       only obfuscate `src_file`)
         #       --no-runtime    do not generate runtime files (cause we have
         #                       generated runtime files in `{dst}/lib`)
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        if stderr:
+            lk.logt('[E3033]', stderr.decode())
+            from os import remove
+            remove(dst_file)
+            copyfile(src_file, dst_file)
