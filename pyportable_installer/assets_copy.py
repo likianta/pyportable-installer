@@ -113,20 +113,17 @@ def copy_assets(attachments: TAttachments) -> str:
     def handle_assets(dir_i, dir_o):
         shutil.copytree(dir_i, dir_o, dirs_exist_ok=True)
     
-    # noinspection PyUnusedLocal
     def handle_assets_and_compile(dir_i, dir_o, to_dist):
         # first handle roots'
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
-        for dp, dn in filesniff.findall_dirs(
-                dir_i, fmt='zip', exclude_protected_folders=False
-        ):
-            os.mkdir(to_dist(dp))
-            for fp, fn in filesniff.find_files(dp, fmt='zip'):
+        for dp_i, dp_o in handle_only_folders(dir_i, to_dist):
+            for fp, fn in filesniff.findall_files(dp_i, fmt='zip'):
                 if fn.endswith('.py'):
                     yield fp
                 else:
-                    shutil.copyfile(fp, to_dist(fp))
+                    fp_i, fp_o = fp, f'{dp_o}/{fn}'
+                    shutil.copyfile(fp_i, fp_o)
     
     def handle_root_assets_and_compile(dir_i, dir_o):
         # if not ospath.exists(dir_o):
@@ -145,25 +142,29 @@ def copy_assets(attachments: TAttachments) -> str:
     def handle_only_folder(dir_i, dir_o):
         assert ospath.exists(dir_o)
     
-    def handle_only_folders(dir_i, dir_o):
+    def handle_only_folders(dir_i, to_dist):
+        global _excludes
         for dp, dn in filesniff.findall_dirs(
                 dir_i, fmt='zip', exclude_protected_folders=False
+                #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                #   set this param to False, we will use our own exclusion rule
+                #   (i.e. `globals:PROTECTED_DIRS`) instead.
         ):
-            os.mkdir(dp.replace(dir_i, dir_o, 1))
+            if _excludes.is_protected(dn, dp):
+                continue
+            dp_i, dp_o = dp, to_dist(dp)
+            os.mkdir(dp_o)
+            yield dp_i, dp_o
     
     def handle_asset(file_i, file_o):
         shutil.copyfile(file_i, file_o)
     
     # noinspection PyUnusedLocal
     def handle_compile(file_i, file_o):
+        assert file_i.endswith('.py')
         yield file_i
     
     # --------------------------------------------------------------------------
-    
-    dst_root = ospath.dirname(global_dirs.dst_root)
-    #   note `global_dirs.dst_root` is not a real root of dist dir. it aims to
-    #   `{dist}/src`. so we use `ospath.dirname(global_dirs.dst_root)` to get
-    #   the real root of dist.
     
     for path_i, mark in attachments.items():
         mark = tuple(mark.split(','))
@@ -171,12 +172,16 @@ def copy_assets(attachments: TAttachments) -> str:
         is_yield_pyfile = 'compile' in mark
         #   True: yield pyfile; False: copy pyfile
         
-        # # if mark[-1].startswith('dist:'):
-        if any(x.startswith('dist:') for x in mark):
-            src_to_dst = lambda p: p.replace("dist:", f'{dst_root}/').rstrip('/')
-            #   `dist:` 相当于 `{dist_root}`
-            #   `dist:/xxx` 相当于 `{dist_root}/xxx`
-            #   `dist:lib/xxx` 相当于 `{dist_root}/lib/xxx`
+        if mark[-1].startswith('dist:'):
+            dst_root = ospath.dirname(global_dirs.dst_root)
+            #   note `global_dirs.dst_root` is not a real root of dist dir. it
+            #   points to `{dist}/src`. so we use `ospath.dirname(global_dirs
+            #   .dst_root)` to get the real root of dist.
+            src_to_dst = lambda _: mark[-1].replace(
+                'dist:', f'{dst_root}/').rstrip('/')
+            #   `dist:` 相当于 `{dst_root}`
+            #   `dist:/xxx` 相当于 `{dst_root}/xxx`
+            #   `dist:lib/xxx` 相当于 `{dst_root}/lib/xxx`
         else:
             src_to_dst = lambda p: global_dirs.to_dist(p)
         
@@ -209,7 +214,7 @@ def copy_assets(attachments: TAttachments) -> str:
         
         elif 'only_folders' in mark:
             assert is_yield_pyfile is False
-            handle_only_folders(dir_i, dir_o)
+            handle_only_folders(dir_i, src_to_dst)
         
         elif 'only_folder' in mark:
             assert is_yield_pyfile is False
@@ -220,5 +225,31 @@ def copy_assets(attachments: TAttachments) -> str:
 
 
 def create_readme(file_i: TPath, file_o: TPath):
-    # TODO: import a markdown_2_html converter
+    # TODO: import a markdown_2_html converter.
+    #   e.g. https://github.com/likianta/markdown_images_to_base64
+    # if file_i.endswith('.md'):
+    #     try:
+    #         from markdown_images_to_base64 import md_2_html_base64
+    #         return md_2_html_base64(
+    #             file_i, file_o.removesuffix('.md') + '.html'
+    #         )
+    #     except ImportError:
+    #         pass
     shutil.copyfile(file_i, file_o)
+
+
+class ExcludedPaths:
+    
+    def __init__(self):
+        self.protected_dirnames = ('__pycache__', '.git', '.idea', '.svn')
+        self.excluded_paths = set()
+    
+    def is_protected(self, name: str, path: str):
+        if name in self.protected_dirnames or \
+                path.startswith(tuple(self.excluded_paths)):
+            self.excluded_paths.add(path + '/')
+            return True
+        return False
+
+
+_excludes = ExcludedPaths()

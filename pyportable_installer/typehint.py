@@ -88,6 +88,17 @@ TAttachments = Dict[TPath, str]
 #   ]
 
 
+class _TCompilerOptions(TypedDict):
+    pyarmor: dict
+    pyc: dict
+    zip: dict
+
+
+class TCompiler(TypedDict):
+    compiler_name: str
+    compiler_options: _TCompilerOptions
+
+
 class _TConfBuild(TypedDict):
     proj_dir: TPath
     dist_dir: TPath
@@ -97,7 +108,7 @@ class _TConfBuild(TypedDict):
     module_paths: List[TPath]
     attachments: TAttachments
     venv: TConfBuildVenv
-    compiler: str  # Literal['pyarmor', 'pyc', 'pycrypto']
+    compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     enable_console: bool
 
 

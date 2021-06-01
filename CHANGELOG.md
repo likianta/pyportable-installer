@@ -6,6 +6,8 @@
 * 新增: 多种 venv 创建方式 (源拷贝和 pip download)
 * 新增: 多种编译方式 (pyarmor 编译和 pyc 编译)
 * 优化: 调整 `项目模板:attachments` 和 `项目模板:module_paths` 的先后顺序
+* 更新: 将 `项目模板:...:dist_lib,dist_root` 扩展为 `dist:...`
+* 新增: `assets_copy.copy_assets` 在复制时排除特定的受保护文件夹
 
 ## 3.2.3
 

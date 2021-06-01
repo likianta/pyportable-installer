@@ -65,24 +65,26 @@ def _precheck(conf):
     #     from os import popen
     #     popen('pyarmor runtime -O "{}"'.format(f'{curr_dir}/template')).read()
     
-    if conf['build']['required']['enable_venv']:
+    if conf['build']['venv']['enable_venv']:
         from .venv_builder import VEnvBuilder
         builder = VEnvBuilder()
-        pyversion = conf['build']['required']['python_version']
+        pyversion = conf['build']['venv']['python_version']
         # try to get a valid embed python path, if failed, raise an error.
         builder.get_embed_python_dir(pyversion)
         
-        if venv_path := conf['build']['required']['venv']:
-            if venv_path.startswith(src_path := conf['build']['proj_dir']):
-                lk.logt('[C2015]',
-                        '请勿将虚拟环境放在您的源代码文件夹下! 这将导致虚拟环境'
-                        '中的第三方库代码也被加密, 通常情况下这会导致不可预测的'
-                        '错误发生. 您可以选择将虚拟环境目录放到与源代码同级的目'
-                        '录, 这是推荐的做法.\n'
-                        f'\t虚拟环境目录: {venv_path}\n'
-                        f'\t建议迁移至: {ospath.dirname(src_path)}/venv')
-                if input('是否仍要继续运行? (y/n): ').lower() != 'y':
-                    raise SystemExit
+        mode = conf['build']['venv']['mode']
+        if mode == 'source_venv':
+            if venv_path := conf['build']['venv']['mode_options'][mode]['path']:
+                if venv_path.startswith(src_path := conf['build']['proj_dir']):
+                    lk.logt('[C2015]',
+                            '请勿将虚拟环境放在您的源代码文件夹下! 这将导致虚拟'
+                            '环境中的第三方库代码也被加密, 通常情况下这会导致不'
+                            '可预测的错误发生. 您可以选择将虚拟环境目录放到与源'
+                            '代码同级的目录, 这是推荐的做法.\n'
+                            f'\t虚拟环境目录: {venv_path}\n'
+                            f'\t建议迁移至: {ospath.dirname(src_path)}/venv')
+                    if input('是否仍要继续运行? (y/n): ').lower() != 'y':
+                        raise SystemExit
 
 
 class DistTree:
@@ -97,6 +99,7 @@ class DistTree:
             if p == '':
                 continue
             else:
+                assert ospath.exists(p)
                 self.paths.append(_get_dir(p))
             # lk.logt('[D1118]', p)
     

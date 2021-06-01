@@ -10,12 +10,9 @@ from .no3_build_pyproject import main as step3
 class Misc:
     # 是否将 `./checkup/*` 中的工具拷贝到打包目录.
     create_checkup_tools = True
-    # 是否创建虚拟环境目录.
-    # 该选项与项目配置中的 'enable_venv' 的区别在于, 'enable_venv' 决定了是否启
-    # 用虚拟环境, 本选项决定了是否立即创建虚拟环境目录. 您可以选择启用虚拟环境但
-    # 不立即创建目录 (考虑到第三方库体积较大的情况, 或者您在反复测试打包工作),
-    # 稍后可通过手动复制/剪切/创建软链接等方式, 将自己事先准备好的虚拟环境添加到
-    # 打包目录.
+    # 是否将嵌入式 python 复制到虚拟环境.
+    # True: 复制本地的 embed python 到 venv (大小约 15MB);
+    # False: 只创建 venv 和 venv/site-packages 空目录.
     create_venv_shell = True
     # 是否创建启动器.
     create_launch_bat = True

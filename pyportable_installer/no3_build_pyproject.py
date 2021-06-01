@@ -16,7 +16,7 @@ def main(
         proj_dir: TPath, dist_dir: TPath,
         target: TTarget,
         venv: TConfBuildVenv,
-        compiler: str,
+        compiler: TCompiler,
         module_paths: list[TPath],
         attachments: TAttachments,
         **misc
@@ -100,7 +100,7 @@ def main(
     set_pyinterpreter(pyinterpreter)
     
     compiler = get_compiler(
-        compiler, pyinterpreter,
+        compiler['compiler_name'], pyinterpreter,
         lib_dir=lib_dir, pyversion=pyversion
     )
     

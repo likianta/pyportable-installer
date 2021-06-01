@@ -9,6 +9,7 @@
 * [x] venv
     * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
     * [ ] 如果 venv 的体积较大, 提醒用户需要多等待一些时间
+        * 提示: 不要用 os.path.getsize, 用类似 timeit 的方法
     * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
 * [ ] 新图标: 小蛇与挎包
 
@@ -18,6 +19,7 @@
     * [x] dist_lib 不会参与预构建树时的最小路径的运算
     * [x] dist_lib, dist_root 参数在 assets_copy 中实现
 * [x] dist_root, dist_lib 升级为: `dist:{path}`
+* [ ] 更新 docs/pyproject-template.md
 
 ## 编译
 
@@ -32,6 +34,8 @@
         * python code encryption
         * pyarmor alternative
         * python code obfuscate
+    * [ ] pyportable_encryption
+        * [ ] python 编译器如何实现在载入前解码
     * [ ] zip import: 将项目打包为有密码保护的 zip, python 在运行时解压 zip 到内存中
         * [ ] 非加密 zip 的实现
         * [ ] 加密 zip 的实现
