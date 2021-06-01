@@ -2,6 +2,7 @@ import os
 import shutil
 from os import path as ospath
 
+from lk_logger import lk
 from lk_utils import filesniff
 
 from .global_dirs import global_dirs
@@ -113,11 +114,11 @@ def copy_assets(attachments: TAttachments) -> str:
     def handle_assets(dir_i, dir_o):
         shutil.copytree(dir_i, dir_o, dirs_exist_ok=True)
     
-    def handle_assets_and_compile(dir_i, dir_o, to_dist):
+    def handle_assets_and_compile(dir_i, dir_o):
         # first handle roots'
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
-        for dp_i, dp_o in handle_only_folders(dir_i, to_dist):
+        for dp_i, dp_o in handle_only_folders(dir_i, dir_o):
             for fp, fn in filesniff.findall_files(dp_i, fmt='zip'):
                 if fn.endswith('.py'):
                     yield fp
@@ -142,19 +143,22 @@ def copy_assets(attachments: TAttachments) -> str:
     def handle_only_folder(dir_i, dir_o):
         assert ospath.exists(dir_o)
     
-    def handle_only_folders(dir_i, to_dist):
+    def handle_only_folders(dir_i, dir_o):
         global _excludes
+        out = []
         for dp, dn in filesniff.findall_dirs(
                 dir_i, fmt='zip', exclude_protected_folders=False
                 #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
                 #   set this param to False, we will use our own exclusion rule
-                #   (i.e. `globals:PROTECTED_DIRS`) instead.
+                #   (i.e. `globals:_excludes.is_protected`) instead.
         ):
             if _excludes.is_protected(dn, dp):
+                lk.logt('[D1409]', 'skip making dir', dp)
                 continue
-            dp_i, dp_o = dp, to_dist(dp)
-            os.mkdir(dp_o)
-            yield dp_i, dp_o
+            subdir_i, subdir_o = dp, dp.replace(dir_i, dir_o, 1)
+            os.mkdir(subdir_o)
+            out.append((subdir_i, subdir_o))
+        return out
     
     def handle_asset(file_i, file_o):
         shutil.copyfile(file_i, file_o)
@@ -208,13 +212,13 @@ def copy_assets(attachments: TAttachments) -> str:
         
         elif 'assets' in mark:
             if is_yield_pyfile:
-                yield from handle_assets_and_compile(dir_i, dir_o, src_to_dst)
+                yield from handle_assets_and_compile(dir_i, dir_o)
             else:
                 handle_assets(dir_i, dir_o)
         
         elif 'only_folders' in mark:
             assert is_yield_pyfile is False
-            handle_only_folders(dir_i, src_to_dst)
+            handle_only_folders(dir_i, dir_o)
         
         elif 'only_folder' in mark:
             assert is_yield_pyfile is False

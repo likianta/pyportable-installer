@@ -51,3 +51,10 @@ def send_cmd(cmd: str, ignore_errors=False):
 def set_pyinterpreter(new_interpreter: str):
     global _pyinterpreter
     _pyinterpreter = new_interpreter
+
+
+def exhaust(generator):
+    # https://stackoverflow.com/questions/47456631/simpler-way-to-run-a
+    # -generator-function-without-caring-about-items
+    for _ in generator:
+        pass
