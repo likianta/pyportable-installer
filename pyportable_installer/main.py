@@ -68,5 +68,5 @@ def main(pyproj_file: str, misc: dict):
     #   this path link is clickable via pycharm console ^-----^
     
     if misc.get('do_aftermath', True):
-        from .aftermath import cleanup_files
-        cleanup_files(dst_root, prj_conf)
+        from .aftermath import main as do_aftermath
+        do_aftermath(pyproj_file, prj_conf, dst_root)

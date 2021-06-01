@@ -221,7 +221,7 @@ my_project
 2. 复制 `venv/lib/site-packages/pywin32_system32` 下的两个 dll 文件到 `assets/win32/lib` 目录下
 3. 在 `pyproject.json` 添加以下内容 (重点见 `◆` 符号处):
 
-```json5 
+```json5
 {
     "app_name": "My Project",
     "app_version": "...",
@@ -270,4 +270,19 @@ my_project
 ```python
 from pyportable_installer.bat_2_exe import png_2_ico
 png_2_ico.dialog()
+```
+
+## 如何通过配置文件实现: 打包路径用英文, exe 名字用中文?
+
+exe 文件是以 `配置文件:app_name` 作为名字的, 以 "Hello World" 为例, 您可以这样做:
+
+```json5
+{
+    "app_name": "你好世界",  // 这里用中文名. 将生成 "你好世界.exe"
+    "build": {
+        "dist_dir": "dist/hello_world_{app_version}",  // 这里用英文路径
+        "...": "..."
+    },
+    "...": "..."
+}
 ```

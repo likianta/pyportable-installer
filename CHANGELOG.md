@@ -9,6 +9,7 @@
 * 更新: 将 `项目模板:...:dist_lib,dist_root` 扩展为 `dist:...`
 * 新增: `assets_copy.copy_assets` 在复制时排除特定的受保护文件夹
 * 修复: `assets_copy.copy_assets.handle_only_folders`
+* 优化: `aftermath.py` 将项目配置中的路径全部替换为相对路径
 
 ## 3.2.3
 
