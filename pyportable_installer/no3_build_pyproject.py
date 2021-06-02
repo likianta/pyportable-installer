@@ -1,11 +1,9 @@
-from threading import Thread
-
-from lk_logger import lk
 from lk_utils.read_and_write import dumps, loads
 
 from .assets_copy import *
 from .compiler import get_compiler
 from .typehint import *
+from .utils import runnin_new_thread
 from .venv_builder import main as handle_venv
 
 thread = None
@@ -270,14 +268,12 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
                 'it may take several seconds ~ one minute...')
         bat_2_exe(bat_file, exe_file, icon_file, *options)
         lk.loga('convertion bat-to-exe done')
-        # os.remove(bat_file)
     
     global thread
-    thread = Thread(
-        target=generate_exe,
-        args=(bat_file, f'{root_dir}/{launcher_name}.exe', icon,
-              '/x64', '' if enable_console else '/invisible')
+    thread = runnin_new_thread(
+        generate_exe,
+        bat_file, f'{root_dir}/{launcher_name}.exe', icon, '/x64',
+        '' if enable_console else '/invisible'
     )
-    thread.start()
     
     return launch_file

@@ -119,7 +119,7 @@ def copy_assets(attachments: TAttachments) -> str:
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
         for dp_i, dp_o in handle_only_folders(dir_i, dir_o):
-            for fp, fn in filesniff.findall_files(dp_i, fmt='zip'):
+            for fp, fn in filesniff.find_files(dp_i, fmt='zip'):
                 if fn.endswith('.py'):
                     yield fp
                 else:
@@ -181,11 +181,14 @@ def copy_assets(attachments: TAttachments) -> str:
             #   note `global_dirs.dst_root` is not a real root of dist dir. it
             #   points to `{dist}/src`. so we use `ospath.dirname(global_dirs
             #   .dst_root)` to get the real root of dist.
-            src_to_dst = lambda _: mark[-1].replace(
-                'dist:', f'{dst_root}/').rstrip('/')
-            #   `dist:` 相当于 `{dst_root}`
-            #   `dist:/xxx` 相当于 `{dst_root}/xxx`
-            #   `dist:lib/xxx` 相当于 `{dst_root}/lib/xxx`
+            static_path_o = '{}/{}'.format(
+                mark[-1].replace('dist:', f'{dst_root}/').rstrip('/'),
+                ospath.basename(path_i)
+            )
+            src_to_dst = lambda _: static_path_o
+            #   `dist:` 意为 "将资产放在 `{dst_root}` 目录下"
+            #   `dist:/xxx` 意为 "将资产放在 `{dst_root}/xxx` 目录下"
+            #   `dist:lib/xxx` 意为 "将资产放在 `{dst_root}/lib/xxx` 目录下"
         else:
             src_to_dst = lambda p: global_dirs.to_dist(p)
         

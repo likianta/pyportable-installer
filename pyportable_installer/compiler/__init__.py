@@ -1,7 +1,7 @@
 from .base import BaseCompiler, BaseRuntimeLoader
 from .pyarmor_compiler import PyArmorCompiler
 from .pyc_compiler import PycCompiler
-from .pyportable_crypto_compiler import PyPortableCryptoCompiler
+# TODO: from .pyportable_crypto_compiler import PyPortableCryptoCompiler
 
 
 def get_compiler(compiler_name, python_interpreter, **kwargs):

@@ -1,8 +1,7 @@
-import asyncio
 import os
+import subprocess
 from os import path as ospath
-
-from lk_logger import lk
+from threading import Thread
 
 _pyinterpreter = 'python'
 
@@ -27,25 +26,31 @@ def send_cmd(cmd: str, ignore_errors=False):
         
     References:
         https://docs.python.org/3/library/asyncio-subprocess.html
+        subprocess:
+            intro: http://xstarcd.github.io/wiki/Python/python_subprocess_study
+                .html
+            shell param: https://blog.csdn.net/xiaoyaozizai017/article/details
+                /72794469
+            mute stdout: https://www.cnblogs.com/randomlee/p/9368682.html
+        
+    Raises:
+        subprocess.CalledProcessError
     """
-    lk.loga(cmd, h='parent')
+    # lk.loga(cmd, h='parent')
+    global _pyinterpreter
+    proc = subprocess.Popen(cmd.format(python=_pyinterpreter),
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.PIPE)
+    #   `stdout=subprocess.DEVNULL`: 不要输出正常的信息到控制台
+    #   `stderr=subprocess.PIPE`: 如果有异常发生, 则通过标准输出流输出到 Python.
+    #   这样, Python 就可以通过 proc.stderr.read() 获取到字节流.
     
     if ignore_errors:
-        return os.popen(cmd)
-    
-    async def _run(cmd):
-        proc = await asyncio.create_subprocess_shell(
-            cmd.format(python=_pyinterpreter),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-        stdout, stderr = await proc.communicate()
-        if stderr:
-            raise Exception(stderr.decode('utf-8'))
-        else:
-            return stdout.decode('utf-8')
-    
-    return asyncio.run(_run(cmd))
+        return bool(proc.stderr.read())
+    elif proc.stderr.read():
+        raise subprocess.CalledProcessError
+    else:
+        return True
 
 
 def set_pyinterpreter(new_interpreter: str):
@@ -58,3 +63,13 @@ def exhaust(generator):
     # -generator-function-without-caring-about-items
     for _ in generator:
         pass
+
+
+def wrap_new_thread(func):
+    return lambda *args, **kwargs: runnin_new_thread(func, *args, **kwargs)
+
+
+def runnin_new_thread(func, *args, **kwargs):
+    t = Thread(target=func, args=args, kwargs=kwargs)
+    t.start()
+    return t

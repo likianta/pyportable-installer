@@ -6,6 +6,8 @@
     * [x] 目录相对路径转换使用 `GlobalDirs.relpath` 实现
 * [x] aftermath
     * [x] `conf:build:...:requirements` 需要以 list 形式放在 manifest 中
+* [ ] 屏蔽 subprocess log
+    * [ ] subprocess.check_output 怎么用 (只返回 0/1 吗?)
 * [x] venv
     * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
     * [ ] 如果 venv 的体积较大, 提醒用户需要多等待一些时间
@@ -28,6 +30,7 @@
 * [x] pytransform 不再随处可见. 这意味着只有启动器可以以最简单的方式运行. 其他只能通过带 lib 参数来启动
 * [x] 如何捕获 popen 产生的错误
 * [x] pyc 编译
+* [x] 使用多线程 (utils.concurr), 不使用协程
 * [ ] 其他加密工具
     * keywords
         * compile python code to binary

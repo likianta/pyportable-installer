@@ -27,7 +27,6 @@ def main(conf: TConf):
                 target
                     + file
                 + attachments (partial, which value not includes 'dist:')
-                + module_paths (partial, which not starts with 'dist:')
                 
     Do not add to source dirs (见减号标识):
         pyproject
@@ -36,15 +35,15 @@ def main(conf: TConf):
                 - icon
                 - readme
                 - attachments (partial, which value includes 'dist:')
-                - module_paths (partial, which starts with 'dist:')
+                - module_paths
     """
     dist_tree.add_src_dirs(
         conf['build']['proj_dir'],
         conf['build']['target']['file'],
         *(k for k, v in conf['build']['attachments'].items()
           if 'dist:' not in v),
-        *(v for v in conf['build']['module_paths']
-          if not v.startswith('dist:'))
+        # *(v for v in conf['build']['module_paths']
+        #   if not v.startswith('dist:'))
     )
     
     src_root = dist_tree.suggest_src_root()

@@ -17,6 +17,8 @@ Examples:
 from os import popen
 from os.path import abspath
 
+from ..utils import send_cmd
+
 _bat_2_exe_converter = abspath(f'{__file__}/../bat_to_exe_converter.exe')
 
 
@@ -42,7 +44,7 @@ def main(bat_file, exe_file, icon='', *options):
         '' if not icon else f'/icon "{icon}"',
         ' '.join(options)
     ).strip()
-    return popen(cmd).read()
+    return send_cmd(cmd)
 
 
 if __name__ == '__main__':

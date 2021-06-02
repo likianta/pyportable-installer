@@ -1,13 +1,11 @@
-import asyncio
 from os import path as ospath
-from os import popen
 from shutil import copyfile
 
 from lk_logger import lk
 
 from .base import BaseCompiler
 from ..global_dirs import global_dirs
-from ..utils import send_cmd
+from ..utils import send_cmd, wrap_new_thread
 
 
 class PyArmorCompiler(BaseCompiler):
@@ -72,8 +70,8 @@ class PyArmorCompiler(BaseCompiler):
         dir_o = f'{lib_dir}/pytransform'
         
         if not ospath.exists(dir_i):
-            lk.loga(f'{self._head} --silent runtime -O "{local_dir}"')
-            popen(f'{self._head} runtime -O "{local_dir}"').read()
+            # lk.loga(f'{self._head} --silent runtime -O "{local_dir}"')
+            send_cmd(f'{self._head} runtime -O "{local_dir}"')
             #   note the target dir is `local_dir`, not `dir_i`
             #   see `cmd:pyarmor runtime -h`
         copytree(dir_i, dir_o)
@@ -86,9 +84,10 @@ class PyArmorCompiler(BaseCompiler):
         """
         for src_file in pyfiles:
             dst_file = global_dirs.to_dist(src_file)
-            asyncio.run(self.compile_one(src_file, dst_file))
+            self.compile_one(src_file, dst_file)
     
-    async def compile_one(self, src_file, dst_file):
+    @wrap_new_thread
+    def compile_one(self, src_file, dst_file):
         """
         Compile `src_file` and generate `dst_file`.
 
