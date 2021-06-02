@@ -6,13 +6,12 @@
     * [x] 目录相对路径转换使用 `GlobalDirs.relpath` 实现
 * [x] aftermath
     * [x] `conf:build:...:requirements` 需要以 list 形式放在 manifest 中
-* [ ] 屏蔽 subprocess log
-    * [ ] subprocess.check_output 怎么用 (只返回 0/1 吗?)
+* [x] 屏蔽 cmd log
 * [x] venv
-    * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
-    * [ ] 如果 venv 的体积较大, 提醒用户需要多等待一些时间
-        * 提示: 不要用 os.path.getsize, 用类似 timeit 的方法
     * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
+    * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
+    * [ ] ~~如果 venv 的体积较大, 提醒用户需要多等待一些时间~~
+        * 提示: 不要用 os.path.getsize, 用类似 timeit 的方法
 * [ ] 新图标: 小蛇与挎包
 
 ## 配置文件
@@ -65,9 +64,11 @@
 
 强化 Doctor 功能, 以应对双击闪退的问题.
 
+* [ ] 从 pyportable-installer 中分离为独立的包
 * [ ] 分析 Python 版本是否兼容
 * [ ] 针对特定库, 提出建议
     * [ ] 是否缺少 tkinter
     * [ ] 是否引入了 pywin32
     * [ ] 如果在使用 lk-logger, 建议关闭 lk-logger 的抬头打印
 * [ ] 如果有疑似 venv 被放到了源代码目录中, 则予以警告
+    * [ ] pyportable-installer 也有这个检查, 考虑一下留哪个

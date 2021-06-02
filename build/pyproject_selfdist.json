@@ -1,33 +1,63 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "3.1.0",
+    "app_version": "3.3.0",
     "description": "",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
         "proj_dir": "../pyportable_installer",
-        "dist_dir": "../dist/{app_name_lower}_{app_version}_py38",
-        "icon": "",
+        "dist_dir": "../dist/{app_name_lower}_{app_version}",
+        "icon": "../tests/bag.ico",
         "target": {
-            "file": "../shortcut/full_build.py",
+            "file": "../shortcut/fast_build.py",
             "function": "main",
             "args": [],
             "kwargs": {}
         },
         "readme": "../README.md",
-        "module_paths": [],
         "attachments": {
             "../shortcut": "assets,compile",
-            "../docs/pyproject-template.md": "assets,dist_root"
+            "../docs/pyproject-template.md": "assets,dist:root",
+            "../pyportable_installer/template/pyproject.json": "assets,dist:root"
         },
-        "required": {
+        "module_paths": [],
+        "venv": {
+            "enable_venv": true,
             "python_version": "3.9",
-            "enable_venv": false,
-            "venv": ""
+            "mode": "source_venv",
+            "mode_options": {
+                "depsland": {
+                    "requirements": []
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": [],
+                    "pypi": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                }
+            }
+        },
+        "compiler": {
+            "compiler_name": "pyarmor",
+            "compiler_options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "zip": {
+                    "password": ""
+                }
+            }
         },
         "enable_console": true
     },
     "note": [
-        "关于启动器: 请通过 sidework/generate_launcher.py 工具来生成, 分别生成 `shortcut/full_build.py` 和 `shortcut/min_build.py`. 将这两个启动器复制到打包目录, 并将原打包目录的自动生成的启动器删除. (PS: 我已将它们放在 dist/launchers_backup 目录下)",
-        "默认生成的是 preview 版, 请测试无误后, 更新到正式版"
+        "在打包前, 请确认 `../shortcut/fast_build.py` 已切换到 `full_build` 状态下",
+        "打包完成后,  请解压 `site-packages.zip` 并复制到 `{打包目录}/venv/site-packages`, 然后就可以使用了"
     ]
 }

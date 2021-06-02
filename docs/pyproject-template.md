@@ -1,5 +1,11 @@
 # Pyproject Template
 
+本手册将帮助您完成 pyproject 项目配置的填写工作.
+
+# 快速应用
+
+复制下面的模板, 保存为一个 'pyproject.json' 文件.
+
 pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下面是添加了注释的版本:
 
 ```json5

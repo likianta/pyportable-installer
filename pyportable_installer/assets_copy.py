@@ -181,11 +181,11 @@ def copy_assets(attachments: TAttachments) -> str:
             #   note `global_dirs.dst_root` is not a real root of dist dir. it
             #   points to `{dist}/src`. so we use `ospath.dirname(global_dirs
             #   .dst_root)` to get the real root of dist.
-            static_path_o = '{}/{}'.format(
+            path_o_root = '{}/{}'.format(
                 mark[-1].replace('dist:', f'{dst_root}/').rstrip('/'),
                 ospath.basename(path_i)
             )
-            src_to_dst = lambda _: static_path_o
+            src_to_dst = lambda _: path_o_root
             #   `dist:` 意为 "将资产放在 `{dst_root}` 目录下"
             #   `dist:/xxx` 意为 "将资产放在 `{dst_root}/xxx` 目录下"
             #   `dist:lib/xxx` 意为 "将资产放在 `{dst_root}/lib/xxx` 目录下"
