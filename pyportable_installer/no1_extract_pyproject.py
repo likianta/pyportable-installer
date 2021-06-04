@@ -67,21 +67,21 @@ def reformat_paths(conf: TConf, path_fmt: 'PathFormatter'):
     
     # --------------------------------------------------------------------------
     
-    mode_options = conf['build']['venv']['mode_options']
+    options = conf['build']['venv']['options']
     
-    mode_options['source_venv']['path'] = path_fmt(
-        mode_options['source_venv']['path']
+    options['source_venv']['path'] = path_fmt(
+        options['source_venv']['path']
     )
     
-    mode_options['pip']['local'] = path_fmt(
-        mode_options['pip']['local']
+    options['pip']['local'] = path_fmt(
+        options['pip']['local']
     )
     
-    if isinstance((x := mode_options['depsland']['requirements']), str):
-        mode_options['depsland']['requirements'] = path_fmt(x)
+    if isinstance((x := options['depsland']['requirements']), str):
+        options['depsland']['requirements'] = path_fmt(x)
     
-    if isinstance((x := mode_options['pip']['requirements']), str):
-        mode_options['pip']['requirements'] = path_fmt(x)
+    if isinstance((x := options['pip']['requirements']), str):
+        options['pip']['requirements'] = path_fmt(x)
     
     # from lk_utils.read_and_write import dumps
     # dumps(conf, '../tests/test.json')

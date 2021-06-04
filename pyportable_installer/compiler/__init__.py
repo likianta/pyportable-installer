@@ -3,12 +3,16 @@ from .pyarmor_compiler import PyArmorCompiler
 from .pyc_compiler import PycCompiler
 # TODO: from .pyportable_crypto_compiler import PyPortableCryptoCompiler
 
+from ..typehint import *
 
-def get_compiler(compiler_name, python_interpreter, **kwargs):
+
+def get_compiler(compiler_name: TCompilerNames,
+                 python_interpreter: TPath,
+                 **kwargs):
     """
     
     Args:
-        compiler_name: See `../typehint.py:TConfBuildVenv:mode`
+        compiler_name:
         python_interpreter:
         **kwargs:
             lib_dir: for pyarmor compiler
@@ -18,7 +22,7 @@ def get_compiler(compiler_name, python_interpreter, **kwargs):
         PyArmorCompiler|PycCompiler
     """
     supported = ('pyarmor', 'pyc',)
-    unsupported = ('zip', 'depsland', 'pycrypto', 'nuitka', 'iron_python',)
+    unsupported = ('zipapp', 'depsland', 'pycrypto', 'nuitka', 'iron_python',)
     #   ordered by development priority
     
     if compiler_name in supported:

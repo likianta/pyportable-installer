@@ -20,7 +20,7 @@
             "enable_venv": true,
             "python_version": "",
             "mode": "source_venv",
-            "mode_options": {
+            "options": {
                 "depsland": {
                     "requirements": []
                 },
@@ -29,15 +29,15 @@
                 },
                 "pip": {
                     "requirements": [],
-                    "pypi": "https://pypi.python.org/simple/",
+                    "pypi_url": "https://pypi.python.org/simple/",
                     "local": "",
                     "offline": false
                 }
             }
         },
         "compiler": {
-            "compiler_name": "pyarmor",
-            "compiler_options": {
+            "name": "pyarmor",
+            "options": {
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0

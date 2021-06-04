@@ -56,7 +56,7 @@ def main(conf: TConf):
     return src_root, dst_root
 
 
-def _precheck(conf):
+def _precheck(conf: TConf):
     assert not ospath.exists(conf['build']['dist_dir'])
     
     # from .global_dirs import curr_dir
@@ -73,7 +73,7 @@ def _precheck(conf):
         
         mode = conf['build']['venv']['mode']
         if mode == 'source_venv':
-            if venv_path := conf['build']['venv']['mode_options'][mode]['path']:
+            if venv_path := conf['build']['venv']['options'][mode]['path']:
                 if venv_path.startswith(src_path := conf['build']['proj_dir']):
                     lk.logt('[C2015]',
                             '请勿将虚拟环境放在您的源代码文件夹下! 这将导致虚拟'

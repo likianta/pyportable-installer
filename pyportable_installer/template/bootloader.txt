@@ -94,7 +94,7 @@ if __name__ == '__main__':
     os.chdir('{TARGET_RELDIR}')
 
     if '{TARGET_FUNC}' == '':
-        raise ImportError('No target found')
+        import {TARGET_PKG}.{TARGET_NAME}
     elif '{TARGET_FUNC}' == '*':
         from {TARGET_PKG}.{TARGET_NAME} import *
     else:

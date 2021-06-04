@@ -8,10 +8,11 @@
     * [x] `conf:build:...:requirements` 需要以 list 形式放在 manifest 中
 * [x] 屏蔽 cmd log
 * [x] venv
-    * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
     * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
+    * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
     * [ ] ~~如果 venv 的体积较大, 提醒用户需要多等待一些时间~~
         * 提示: 不要用 os.path.getsize, 用类似 timeit 的方法
+* [ ] msilib: https://docs.python.org/3/library/msilib.html
 * [ ] 新图标: 小蛇与挎包
 
 ## 配置文件
@@ -36,6 +37,7 @@
         * python code encryption
         * pyarmor alternative
         * python code obfuscate
+    * [ ] zipapp: https://docs.python.org/3/library/zipapp.html
     * [ ] pyportable_encryption
         * [ ] python 编译器如何实现在载入前解码
     * [ ] zip import: 将项目打包为有密码保护的 zip, python 在运行时解压 zip 到内存中

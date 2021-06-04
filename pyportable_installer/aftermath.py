@@ -13,7 +13,7 @@ def main(pyprj_file: TPath, prj_conf: TConf, dst_root: TPath):
     if prj_conf['build']['venv']['enable_venv']:
         mode = prj_conf['build']['venv']['mode']
         # noinspection PyTypedDict
-        options = prj_conf['build']['venv']['mode_options'][mode]  # type: dict
+        options = prj_conf['build']['venv']['options'][mode]  # type: dict
         if req := options.get('requirements'):
             if isinstance(req, str):
                 options['requirements'] = load_list(req)

@@ -98,7 +98,7 @@ def main(
     set_pyinterpreter(pyinterpreter)
     
     compiler = get_compiler(
-        compiler['compiler_name'], pyinterpreter,
+        compiler['name'], pyinterpreter,
         lib_dir=lib_dir, pyversion=pyversion
     )
     

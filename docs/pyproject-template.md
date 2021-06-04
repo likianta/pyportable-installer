@@ -1,10 +1,299 @@
 # Pyproject Template
 
-本手册将帮助您完成 pyproject 项目配置的填写工作.
+本手册将帮助您完成创建 pyproject 项目配置文件.
 
-# 快速应用
+# 快速开始
 
-复制下面的模板, 保存为一个 'pyproject.json' 文件.
+复制下面的模板, 保存为一个 'pyproject.json' 文件:
+
+```json
+{
+    "app_name": "",
+    "app_version": "0.1.0",
+    "description": "",
+    "author": "",
+    "build": {
+        "proj_dir": "",
+        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "icon": "",
+        "target": {
+            "file": "",
+            "function": "main",
+            "args": [],
+            "kwargs": {}
+        },
+        "readme": "README.md",
+        "attachments": {},
+        "module_paths": [],
+        "venv": {
+            "enable_venv": true,
+            "python_version": "",
+            "mode": "source_venv",
+            "options": {
+                "depsland": {
+                    "requirements": []
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": [],
+                    "pypi_url": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                }
+            }
+        },
+        "compiler": {
+            "name": "pyarmor",
+            "options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "zipimp": {
+                    "password": ""
+                }
+            }
+        },
+        "enable_console": true
+    },
+    "note": ""
+}
+```
+
+*注: 该配置模板来自 `pyportable_installer/template/pyproject.json`*.
+
+# 字段说明
+
+**索引**
+
+[TOC]
+
+## 1. app_name
+
+应用名称.
+
+1. 应用名称使用正常的大小写格式, 例如: "Hello World"
+2. 应用名称会被用于生成同名的 exe 文件, 例如: "Hello World.exe"
+    1. 请勿使用文件名非法字符 (如英文冒号, 问号等), 否则会导致 exe 生成失败
+
+## 2. app_version
+
+应用版本.
+
+1. 默认的初始版本号为 "0.1.0"
+2. 版本号格式为 `major.minor.patch`", 具体请参考 [SemVer: 语义化版本](https://semver.org/lang/zh-CN/) 规范
+
+## 3. description
+
+应用描述.
+
+1. 该字段不参与打包过程, 仅作为附加信息保留
+
+## 4. author
+
+作者信息.
+
+1. 作者信息的格式无强制规定, 推荐使用 `Name` 和 `Name <name@example.com>` 这两种格式
+2. 如果有多名作者, 推荐使用列表表示: `"author": ["Name1 <name1@example.com>", "Name2 <name2@example.com>", "Name3 <name3@example.com>", ...]`
+3. 该字段不参与打包过程, 仅作为附加信息保留
+
+## 5. build
+
+以下为打包时的配置. 它们定义了 pyportable-installer 的具体打包行为.
+
+### 5.1. build.proj_dir
+
+项目目录. 传入项目主代码所在的文件夹路径.
+
+1. 路径填绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符, 路径末尾不要有 '/' 符号. 例如: 'D:/myproj/src'
+
+### 5.2. build.dist_dir
+
+打包目录.
+
+1. 路径填绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符, 路径末尾不要有 '/' 符号. 例如: 'D:/myproj/dist/hello_world_0.1.0'
+3. 默认的打包结果将放在 `{项目目录}/dist` 目录下
+    1. 请确保该目录的 **父目录** 已存在. 例如, 要打包到 'D:/myproj/dist/hello_world_0.1.0', 则需确保 'D:/myproj/dist' 已存在
+    2. 请确保该目录事先 **不存在**, 否则 pyportable-installer 会报 "目标目录已存在" 的错误. 如果您正在测试重复生成打包, 请先删除上一次的打包结果后再运行
+4. 打包目录支持特定插入值, 插值使用花括号包裹. 例如: `"dist_dir": "dist/{app_name_lower}_{app_version}"`. 支持的插值列表如下:
+    1. `{app_name}`: 插入应用名
+    2. `{app_name_lower}`: 插入应用名, 并将应用名全小写, 空格替换为下划线表示
+    3. `{app_version}`: 插入应用版本号
+
+### 5.3. build.icon
+
+图标文件.
+
+1. 路径填绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/assets/launch.ico'
+3. 图标文件可以留空. 留空时, 将使用 "Python (蟒蛇)" 的应用图标作为默认图标
+4. 图标文件必须是 .ico 文件. 如果您只有 png, jpg 等格式的文件, 您可以通过在线网站或者 `pyportable_installer.bat_2_exe.png_2_ico` 模块来转换 (后者需要安装 pillow 第三方库)
+
+### 5.4. build.target
+
+以下为目标脚本 (入口脚本) 配置.
+
+#### 5.4.1. build.target.file
+
+目标文件. 该文件指的是您的项目在启动时的运行的入口脚本.
+
+1. 路径填绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/src/main.py'
+3. 该路径必须位于 `build.dist_dir` 所定义的目录下
+
+#### 5.4.2. build.target.function
+
+目标函数. 即目标脚本的入口函数.
+
+这里分为两种情况讨论:
+
+1. 有入口函数
+
+    例如:
+
+    ```py
+    # xxx.py
+    def main():
+        print('hello world')
+    ```
+
+    则启动函数填 'main'.
+
+2. 无入口函数
+
+    例如:
+
+    ```py
+    # xxx.py
+    print('hello world')
+    ```
+
+    则启动函数留空, 或者填一个星号 '*'.
+
+#### 5.4.3. build.target.args
+
+目标函数的非关键字参数.
+
+请注意, 考虑到打包成应用后的使用场景, 不支持在这里传入复杂的 Python 对象.
+
+例如, 在写代码的时候, 我们用:
+
+```py
+from os import listdir
+
+def main(filenames):
+    for name in filenames:
+        print(name)
+
+if __name__ == '__main__':
+    main(listdir('.'))
+```
+
+但如果要打包成应用, 我们应该适当改写一下:
+
+```py
+from os import listdir
+
+def launch_input():  # 打包应用从这里启动
+    dir_in = input('请输入目录路径: ')
+    filenames = listdir(dir_in)
+    main(filenames)
+
+def main(filenames):
+    for name in filenames:
+        print(name)
+
+if __name__ == '__main__':
+    main(listdir('.'))
+```
+
+#### 5.4.4. build.target.kwargs
+
+目标函数的关键字参数.
+
+### 5.5. build.readme
+
+自述文档.
+
+1. 路径填绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/README.md'
+3. 该文件会被拷贝到打包目录的根目录下
+
+### build.attachments
+
+附件资源.
+
+附件资源的格式为: `{path: options, ...}`. 每个 path 都会根据 options 来定义如何被 "复制" 到打包目录. 详见下述定义:
+
+**path**
+
+1. path 支持绝对路径或相对于本配置文件的路径
+2. 路径使用 '/' 分隔符
+3. path 可以是文件夹路径, 也可以是文件路径
+4. 此外, path 还可以使用 "虚拟路径" (见 [本文::章节::h2:虚拟路径](#20210603142638))
+
+**options**
+
+1. options 是由一个或多个特定词组成的字符串
+2. 如果由多个特定词组成, 则特定词之间使用英文逗号连接
+    1. 逗号后不要有空格
+3. 特定词分别有:
+    2. assets: 如果 `path` 是文件, 则 `assets` 表示单个文件; 如果 `path` 是目录, 则 `assets` 表示该目录下的所有文件和文件夹
+    3. top_assets: 表示目录下的所有一级文件 (不包含文件夹)
+    4. TODO
+
+### build.module_paths
+
+### build.venv
+
+### build.venv.enable_venv
+
+### build.venv.python_version
+
+### build.venv.mode
+
+### build.venv.options
+
+#### build.venv.options.depsland
+
+##### build.venv.options.depsland.requirements
+
+#### build.venv.options.source_venv
+
+##### build.venv.options.source_venv.path
+
+#### build.venv.options.pip
+
+##### build.venv.options.pip.requirements
+
+##### build.venv.options.pip.pypi_url
+
+##### build.venv.options.pip.local
+
+##### build.venv.options.pip.offline
+
+### build.compiler
+
+#### build.compiler.name
+
+#### build.compiler.options
+
+##### build.compiler.options.pyarmor
+
+##### build.compiler.options.pyc
+
+##### build.compiler.options.zipimp
+
+##### build.compiler.options.pyportable_crypto
+
+--------------------------------------------------------------------------------
 
 pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下面是添加了注释的版本:
 
@@ -99,7 +388,7 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
             下格式的组合通常来说不会有问题:
             
             ```
-            assets|root_assets|only_folder|only_folders,compile,dist_lib|root
+            assets|root_assets|only_folder|only_folders,compile,dist:lib|root
             ```            
          */
         "attachments": {
@@ -122,15 +411,15 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
                 |                                           |= pytransform
                 |                                               |- __init__.py
                 |                                               |- _pytransform.dll
-                |= sidework --- assets,compile,dist_lib --> |= sidework
+                |= sidework --- assets,compile,dist:lib --> |= sidework
                     |- check_env.py                             |- check_env.py  # compiled script
                     |- stat_my_code.py                          |- stat_my_code.py  # compiled script
                 ```
             */
             "data": "assets",
-            "docs/CHANGELOG.md": "assets,dist_root",
+            "docs/CHANGELOG.md": "assets,dist:root",
             "README.md": "assets",
-            "sidework": "assets,compile,dist_lib"
+            "sidework": "assets,compile,dist:lib"
         },
         // 软件依赖
         "required": {
@@ -161,5 +450,101 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
     // 1. 值可以是任意类型, 字符串, 列表, 字典等均可
     // 2. 备忘不会被 pyportable-installer 解析
     "note": "一些备忘内容..."
+}
+```
+
+# 附加说明
+
+## <span id="20210603142638">虚拟路径</span>
+
+TODO
+
+# Hello World 项目配置示例
+
+假设项目的目录结构为:
+
+```
+hello_world_project
+|= assets
+    |- launch.ico
+|= dist
+|= docs
+|= hello_world
+    |- main.py
+    |   def main(debug_mode=False):
+    |       if debug_mode:
+    |           print('hello world')
+    |       else:
+    |           name = input("what's your name? ")
+    |           print(f'hello {name}')
+|= venv
+|- CHANGELOG.md
+|- pyproject.json
+|- README.md
+|- requirements.txt
+```
+
+```json
+{
+    "app_name": "Hello World",
+    "app_version": "0.1.0",
+    "description": "My first project.",
+    "author": "Anonymous <anonymous@example.com>",
+    "build": {
+        "proj_dir": "hello_world",
+        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "icon": "assets/launch.ico",
+        "target": {
+            "file": "hello_world/main.py",
+            "function": "main",
+            "args": [],
+            "kwargs": {
+                "debug_mode": true
+            }
+        },
+        "readme": "README.md",
+        "attachments": {
+            "docs": "assets,dist:root",
+            "requirements.txt": "assets,dist:root/docs",
+            "CHANGELOG.md": "assets,dist:root/docs"
+        },
+        "module_paths": [],
+        "venv": {
+            "enable_venv": true,
+            "python_version": "3.7",
+            "mode": "source_venv",
+            "options": {
+                "depsland": {
+                    "requirements": []
+                },
+                "source_venv": {
+                    "path": "venv"
+                },
+                "pip": {
+                    "requirements": [],
+                    "pypi_url": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                }
+            }
+        },
+        "compiler": {
+            "name": "pyarmor",
+            "options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "zipimp": {
+                    "password": ""
+                }
+            }
+        },
+        "enable_console": true
+    },
+    "note": ""
 }
 ```

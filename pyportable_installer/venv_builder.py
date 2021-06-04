@@ -14,13 +14,12 @@ def main(venv_options: TConfBuildVenv, root_dir, create_venv_shell=True):
     
     if create_venv_shell:
         mode = venv_options['mode']
-        # noinspection PyTypedDict
-        options = venv_options['mode_options'][mode]
+        options = venv_options['options'][mode]
         
         if mode == 'depsland':
             build_venv_by_depsland(**options)
         elif mode == 'pip':
-            build_venv_by_pip(**options)
+            build_venv_by_pip(pyversion=pyversion, **options)
         elif mode == 'source_venv':
             build_venv_by_source_venv(
                 options['path'], f'{root_dir}/venv',
@@ -76,13 +75,13 @@ def build_venv_by_depsland(requirements: TRequirements):
     raise NotImplementedError
 
 
-def build_venv_by_pip(requirements: TRequirements, pypi, local, offline,
+def build_venv_by_pip(requirements: TRequirements, pypi_url, local, offline,
                       pyversion, quiet=False):
     """
     
     Args:
         requirements:
-        pypi: str.
+        pypi_url: str.
             suggest list:
                 official    https://pypi.python.org/simple/
                 tsinghua    https://pypi.tuna.tsinghua.edu.cn/simple/
@@ -95,16 +94,17 @@ def build_venv_by_pip(requirements: TRequirements, pypi, local, offline,
         pyversion:
         quiet:
 
-    Returns:
-
+    Warnings:
+        请勿随意更改本函数的参数名, 这些名字与 `typehint.py:_TPipOptions` 的成员
+        名有关系, 二者名字需要保持一致.
     """
     if not requirements:
         # `requirements` is empty string or empty list
         return
     
     if offline is False:
-        assert pypi
-        host = pypi \
+        assert pypi_url
+        host = pypi_url \
             .removeprefix('http://') \
             .removeprefix('https://') \
             .split('/', 1)[0]
@@ -113,7 +113,7 @@ def build_venv_by_pip(requirements: TRequirements, pypi, local, offline,
     
     find_links = f'--find-links={local}' if local else ''
     no_index = '--no-index' if offline else ''
-    pypi_url = f'--index-url {pypi}' if not offline else ''
+    pypi_url = f'--index-url {pypi_url}' if not offline else ''
     quiet = '--quiet' if quiet else ''
     trusted_host = f'--trusted-host {host}' if host else ''
     

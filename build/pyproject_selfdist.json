@@ -33,7 +33,7 @@
                 },
                 "pip": {
                     "requirements": [],
-                    "pypi": "https://pypi.python.org/simple/",
+                    "pypi_url": "https://pypi.python.org/simple/",
                     "local": "",
                     "offline": false
                 }
