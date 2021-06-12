@@ -25,30 +25,38 @@ def send_cmd(cmd: str, ignore_errors=False):
         ignore_errors
         
     References:
-        https://docs.python.org/3/library/asyncio-subprocess.html
-        subprocess:
-            intro: http://xstarcd.github.io/wiki/Python/python_subprocess_study
-                .html
-            shell param: https://blog.csdn.net/xiaoyaozizai017/article/details
-                /72794469
-            mute stdout: https://www.cnblogs.com/randomlee/p/9368682.html
+        https://docs.python.org/zh-cn/3/library/subprocess.html
         
     Raises:
         subprocess.CalledProcessError
     """
     # lk.loga(cmd, h='parent')
     global _pyinterpreter
-    proc = subprocess.Popen(cmd.format(python=_pyinterpreter),
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.PIPE)
-    #   `stdout=subprocess.DEVNULL`: 不要输出正常的信息到控制台
-    #   `stderr=subprocess.PIPE`: 如果有异常发生, 则通过标准输出流输出到 Python.
-    #   这样, Python 就可以通过 proc.stderr.read() 获取到字节流.
-    
-    if ignore_errors:
-        return bool(proc.stderr.read())
-    elif proc.stderr.read():
-        raise subprocess.CalledProcessError
+    try:
+        '''
+        subprocess.run:params
+            shell=True  传入字符串, 以字符串方式调用命令
+            shell=False 传入一个列表, 列表的第一个元素当作命令, 后续元素当作该命
+                        令的参数
+            check=True  检查返回码, 如果 subprocess 正常运行完, 则返回码是 0. 如
+                        果有异常发生, 则返回码非 0. 当返回码非 0 时, 会报
+                        `subprocess.CalledProcessError` 错误
+            capture_output=True
+                        捕获输出后, 控制台不会打印; 通过:
+                            output = subprocess.run(..., capture_output=True)
+                            output.stdout.read()  # -> bytes ...
+                            output.stderr.read()  # -> bytes ...
+                        可以获取.
+        '''
+        subprocess.run(
+            cmd.format(python=_pyinterpreter),
+            shell=True, check=True, capture_output=True
+        )
+    except subprocess.CalledProcessError as e:
+        if ignore_errors:
+            return False
+        else:
+            raise e
     else:
         return True
 

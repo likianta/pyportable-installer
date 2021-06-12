@@ -93,10 +93,10 @@ if __name__ == '__main__':
     # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
     os.chdir('{TARGET_RELDIR}')
 
-    if '{TARGET_FUNC}' == '':
+    if '{TARGET_FUNC}' == '_':  # CASE 1
         import {TARGET_PKG}.{TARGET_NAME}
-    elif '{TARGET_FUNC}' == '*':
+    elif '{TARGET_FUNC}' == '*':  # CASE 2
         from {TARGET_PKG}.{TARGET_NAME} import *
-    else:
+    else:  # CASE 3
         from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
         launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})

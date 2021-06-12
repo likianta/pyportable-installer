@@ -1,6 +1,7 @@
 from os import popen
 
 from .base import BaseCompiler
+from ..global_dirs import global_dirs
 
 
 class PycCompiler(BaseCompiler):
@@ -11,8 +12,9 @@ class PycCompiler(BaseCompiler):
                               'compile(\'{src_file}\', \'{dst_file}\')'
     
     def compile_all(self, pyfiles: list[str]):
-        for file in pyfiles:
-            self.compile_one(file, file + 'c')
+        for src_file in pyfiles:
+            dst_file = global_dirs.to_dist(src_file) + 'c'
+            self.compile_one(src_file, dst_file)
     
     def compile_one(self, src_file, dst_file):
         """ Compile py file to pyc.

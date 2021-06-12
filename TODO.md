@@ -10,10 +10,25 @@
 * [x] venv
     * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
     * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
-    * [ ] ~~如果 venv 的体积较大, 提醒用户需要多等待一些时间~~
-        * 提示: 不要用 os.path.getsize, 用类似 timeit 的方法
+* [ ] 在虚拟环境中测试
+    * [x] pyc 的导出路径存在问题
+    * [x] pyarmor 生成 runtime 有问题
 * [ ] msilib: https://docs.python.org/3/library/msilib.html
 * [ ] 新图标: 小蛇与挎包
+
+## Doctor
+
+强化 Doctor 功能, 以应对双击闪退的问题.
+
+* [ ] bootloader.txt 应避免双击闪屏的产生, 请捕捉顶部的 ImportError
+* [ ] 从 pyportable-installer 中分离为独立的包
+* [ ] 分析 Python 版本是否兼容
+* [ ] 针对特定库, 提出建议
+    * [ ] 是否缺少 tkinter
+    * [ ] 是否引入了 pywin32
+    * [ ] 如果在使用 lk-logger, 建议关闭 lk-logger 的抬头打印
+* [ ] 如果有疑似 venv 被放到了源代码目录中, 则予以警告
+    * [ ] pyportable-installer 也有这个检查, 考虑一下留哪个
 
 ## 配置文件
 
@@ -61,16 +76,3 @@
     * [x] 介绍一个 hello world 的打包过程
     * [x] 在 `章节:faq` 中展示各种复杂的情形的解决方法
     * [ ] 在 examples 中介绍一个更复杂的工程示例
-
-## Doctor
-
-强化 Doctor 功能, 以应对双击闪退的问题.
-
-* [ ] 从 pyportable-installer 中分离为独立的包
-* [ ] 分析 Python 版本是否兼容
-* [ ] 针对特定库, 提出建议
-    * [ ] 是否缺少 tkinter
-    * [ ] 是否引入了 pywin32
-    * [ ] 如果在使用 lk-logger, 建议关闭 lk-logger 的抬头打印
-* [ ] 如果有疑似 venv 被放到了源代码目录中, 则予以警告
-    * [ ] pyportable-installer 也有这个检查, 考虑一下留哪个

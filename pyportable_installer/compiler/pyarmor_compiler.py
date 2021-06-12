@@ -70,7 +70,6 @@ class PyArmorCompiler(BaseCompiler):
         dir_o = f'{lib_dir}/pytransform'
         
         if not ospath.exists(dir_i):
-            # lk.loga(f'{self._head} --silent runtime -O "{local_dir}"')
             send_cmd(f'{self._head} runtime -O "{local_dir}"')
             #   note the target dir is `local_dir`, not `dir_i`
             #   see `cmd:pyarmor runtime -h`

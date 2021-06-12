@@ -3,6 +3,10 @@
 ## 3.3.1
 
 * 变更: 项目模板部分键名变更
+* 修复: `PycCompiler` 输出路径错误
+* 修复: `utils.send_cmd` 捕获错误的方式
+* 修复: `bootloader` 在无目标函数的情况下的部分导入语句无法通过 Python 解释器
+* 修复: `no1_extract_pyproject.py:PathFormatter` 对 `dist` 的处理不当
 
 ## 3.3.0 | 2021-05-29
 

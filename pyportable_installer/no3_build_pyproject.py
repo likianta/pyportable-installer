@@ -157,10 +157,8 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
             'kwargs': {...}
         }
         root_dir (str):
-        pyversion (str): e.g. '3.8'
-        extend_sys_paths (list[str]): 模块搜索路径, 该路径会被添加到 sys.path.
-            列表中的元素是相对于 src_dir 的文件夹路径 (必须是相对路径格式. 参考
-            `process_pyproject:conf_o['build']['module_paths']`)
+        pyversion (str):
+        extend_sys_paths (list[str]):
         enable_venv (bool):
         enable_console (bool):
         create_launch_bat (bool):
@@ -211,7 +209,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     extend_sys_paths = list(map(
         lambda d: global_dirs.relpath(
             global_dirs.to_dist(d) if not d.startswith('dist:')
-            else d.replace('dist:', f'{root_dir}/').rstrip('/'),
+            else d.replace('dist:root', f'{root_dir}'),
             launch_dir
         ),
         extend_sys_paths
@@ -226,7 +224,18 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         TARGET_RELDIR=target_reldir,
         TARGET_PKG=target_pkg,
         TARGET_NAME=target_name,
-        TARGET_FUNC=target['function'],
+        TARGET_FUNC=target['function'] or '_',
+        #   注意这里的 `target['function']`, 它有以下几种情况:
+        #       target['function'] = some_str
+        #           对应于 `../template/bootloader.txt(后面简称 'bootloader')
+        #           :底部位置:[cmt]CASE3`
+        #       target['function'] = '*'
+        #           对应于 `bootloader:底部位置:[cmt]CASE2`
+        #       target['function'] = ''
+        #           对应于 `bootloader:底部位置:[cmt]CASE1`
+        #   对于 CASE 1, 也就是 `target['function']` 为空字符串的情况, 我们必须
+        #   将其改为其他字符 (这里就用了下划线作替代). 否则, 会导致打包后的
+        #   `bootloader.py:底部位置:[cmt]CASE 3` 语句无法通过 Python 解释器.
         TARGET_ARGS=str(target['args']),
         TARGET_KWARGS=str(target['kwargs']),
     )

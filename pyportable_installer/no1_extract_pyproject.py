@@ -92,37 +92,41 @@ def reformat_paths(conf: TConf, path_fmt: 'PathFormatter'):
 class PathFormatter:
     
     def __init__(self, root_dir, refmt_to='abspath'):
+        """
+        
+        Args:
+            root_dir:
+            refmt_to: literal['abspath', 'relpath'].
+                see abspath usages in `reformat_paths` and relpath usages
+                in `aftermath.py:main`.
+        """
         self.root_dir = root_dir
         self.refmt_to = refmt_to
     
-    def _refmt_to_abspath(self, path: str):
-        if path == '':
-            return ''
-        elif 'dist:root' in path:
-            return pretty_path(path.replace('dist:root', 'dist:'))
-        elif 'dist:' in path:
-            return pretty_path(path)
-        elif len(path) > 1 and path[1] == ':':
-            # FIXME: support only windows platform
-            return pretty_path(path)
-        else:
-            return pretty_path(ospath.abspath(f'{self.root_dir}/{path}'))
-    
-    def _refmt_to_relpath(self, path: str):
-        if path == '':
-            return ''
-        elif 'dist:root' in path:
-            return pretty_path(path.replace('dist:root', 'dist:'))
-        elif 'dist:' in path:
-            return pretty_path(path)
-        elif len(path) > 1 and path[1] == ':':
-            # FIXME: support only windows platform
-            return pretty_path(ospath.relpath(path, self.root_dir))
-        else:
-            return path
-    
     def __call__(self, path: str):
-        if self.refmt_to == 'abspath':
-            return self._refmt_to_abspath(path)
+        if path == '':
+            return ''
+        elif 'dist:' in path:
+            # related:
+            #   `../assets_copy.py:copy_assets:[code]if mark[-1].startswith(
+            #       'dist:'):[vars]path_o_root`
+            #   `../no3_build_pyproject.py:_create_launcher:[vars]
+            #       extend_sys_paths`
+            if 'dist:root' not in path:
+                path = path.replace('dist:', 'dist:root/')  # <──┐
+            ''' 'dist:root'     ->  'dist:root'           │
+                'dist:lib'      ->  'dist:root/lib' ──────┘
+                'dist:root/lib' ->  'dist:root/lib'
+            '''
+            return pretty_path(path)
+        elif len(path) > 1 and path[1] == ':':
+            # FIXME: support only windows platform
+            if self.refmt_to == 'abspath':
+                return path
+            else:
+                return pretty_path(ospath.relpath(path, self.root_dir))
         else:
-            return self._refmt_to_relpath(path)
+            if self.refmt_to == 'abspath':
+                return pretty_path(ospath.abspath(f'{self.root_dir}/{path}'))
+            else:
+                return path
