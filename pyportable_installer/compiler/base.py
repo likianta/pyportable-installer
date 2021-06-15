@@ -14,11 +14,8 @@ class BaseCompiler:
                 --version`, `pyarmor --version`).
                 参考: https://pyarmor.readthedocs.io/zh/latest/advanced.html
                     子章节: "使用不同版本 Python 加密脚本"
-
-        Warnings:
-            Currently only supports Windows platform.
         """
-        if python_interpreter:
+        if python_interpreter:  # FIXME: support only Windows platform.
             self._interpreter = python_interpreter.replace('/', '\\')
         else:
             self._interpreter = 'python'

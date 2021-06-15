@@ -34,16 +34,6 @@ if extra_paths:
 
 
 def launch(main_func, *args, **kwargs):
-    """
-    Usage:
-        # my_main.py
-        from lk_utils.easy_launcher import launch
-
-        def main(a, b):
-            print(a + b)
-
-        launch(main, a=1, b=2)
-    """
 
     # noinspection PyUnusedLocal
     def show_err_on_console(err):
@@ -52,7 +42,7 @@ def launch(main_func, *args, **kwargs):
 
     # noinspection PyUnusedLocal
     def show_err_on_msgbox(err):
-        # notes: not recommend to use
+        # notes: not recommended to use
         # https://stackoverflow.com/questions/17280637/tkinter-messagebox
         # -without-window
         from tkinter import Tk, messagebox
@@ -76,8 +66,8 @@ def launch(main_func, *args, **kwargs):
         main_func(*args, **kwargs)
     except Exception as e:
         print(e)
-        # To obtain more message about this error.
-        # https://stackoverflow.com/questions/1278705/when-i-catch-an
+        # Get more message about this error:
+        #   https://stackoverflow.com/questions/1278705/when-i-catch-an
         #   -exception-how-do-i-get-the-type-file-and-line-number
         import traceback
         msg = traceback.format_exc()
@@ -93,10 +83,14 @@ if __name__ == '__main__':
     # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
     os.chdir('{TARGET_RELDIR}')
 
-    if '{TARGET_FUNC}' == '_':  # CASE 1
-        import {TARGET_PKG}.{TARGET_NAME}
-    elif '{TARGET_FUNC}' == '*':  # CASE 2
-        from {TARGET_PKG}.{TARGET_NAME} import *
-    else:  # CASE 3
-        from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
-        launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})
+    try:
+        if '{TARGET_FUNC}' == '_':  # CASE 1
+            import {TARGET_PKG}.{TARGET_NAME}
+        elif '{TARGET_FUNC}' == '*':  # CASE 2
+            from {TARGET_PKG}.{TARGET_NAME} import *
+        else:  # CASE 3
+            from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
+            launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})
+    except Exception as e:
+        print(e)
+        input('Press enter to leave...')

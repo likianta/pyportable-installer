@@ -71,7 +71,7 @@ def main(pyproj_file: TPath, misc: TMisc) -> TConf:
         lk.lite_mode = True
     
     prj_conf = step1(pyproj_file)
-    ________ = step2(prj_conf)  # 下划线仅用于对齐代码, 无特别作用
+    ________ = step2(prj_conf)  # 下划线只是为了让代码看起来整齐, 无实际意义
     dst_root = step3(prj_conf['app_name'], **prj_conf['build'], **misc)
     
     m, n = ospath.split(dst_root)
@@ -80,6 +80,6 @@ def main(pyproj_file: TPath, misc: TMisc) -> TConf:
     
     if misc.get('do_aftermath', True):
         from .aftermath import main as do_aftermath
-        do_aftermath(pyproj_file, prj_conf, dst_root)
+        do_aftermath(prj_conf, dst_root)
     
     return prj_conf
