@@ -16,16 +16,12 @@ class EmbedPythonManager:
         self.sys = system().lower()  # -> 'windows'|'linux'|'macos'|etc.
         
         download_dir = f'{curr_dir}/download'
-        # FIXME: `../../../pyproject.toml` 的打包参数似乎没设好, 导致在发布为
-        #   whl 时, 未包含 `embed_python_dir` 这个空文件夹.
-        #   现在使用临时方法: 检查目录是否不存在, 如不存在则创建每个子节点.
-        #   后面请尽快修复 pyproject.toml.
         if not ospath.exists(f'{download_dir}/{self.sys}'):
             mkdirs(curr_dir, 'download', self.sys)
         
         self.options = {
             'windows': {
-                'embed_python'         : {
+                'local' : {
                     '3.5'   : f'{download_dir}/windows/'
                               f'python-3.5.4-embed-amd64',
                     '3.5-32': f'{download_dir}/windows/'
@@ -48,7 +44,7 @@ class EmbedPythonManager:
                               f'python-3.9.5-embed-win32',
                 },
                 # https://www.python.org/downloads/windows/
-                'embed_python_download': {
+                'server': {
                     '3.5'   : 'https://www.python.org/ftp/python/'
                               '3.5.4/python-3.5.4-embed-amd64.zip',
                     '3.5-32': 'https://www.python.org/ftp/python/'
@@ -78,7 +74,7 @@ class EmbedPythonManager:
         pyversion = pyversion or self.pyversion
         
         try:
-            path = self.options['embed_python'][pyversion]
+            path = self.options['local'][pyversion]
         except KeyError:
             raise Exception('未支持或未能识别的 Python 版本', pyversion)
         
@@ -94,8 +90,8 @@ class EmbedPythonManager:
     
     def _download_help(self, pyversion=''):
         pyversion = pyversion or self.pyversion
-        path = self.options['embed_python'][pyversion]
-        link = self.options['embed_python_download'][pyversion]
+        path = self.options['local'][pyversion]
+        link = self.options['server'][pyversion]
         print('''
             未找到嵌入式 Python 解释器离线资源, 本次运行将中止!
 
@@ -114,12 +110,59 @@ class EmbedPythonManager:
         return path, link
 
 
-def download_embed_python(pyversion):
+def download_embed_python(pyversion: TPyVersion):
+    """ See animated gif `../../.assets/downloading_embed_python.gif`
+    
+    Args:
+        pyversion:
+
+    References:
+        python standard libraries:
+            urllib
+            zipfile
+    """
+    from time import strftime
+    from urllib import request
+    from zipfile import ZipFile
+    
     manager = EmbedPythonManager(pyversion)
     
-    path = manager.options['embed_python'][pyversion]
-    link = manager.options['embed_python_download'][pyversion]
+    path = manager.options['local'][pyversion]
+    link = manager.options['server'][pyversion]
     
-    if not ospath.exists(path):
-        print('download', link)
-        # TODO: download and unzip to `path` ...
+    if ospath.exists(path):
+        raise FileExistsError(path)
+
+    # download
+    if not ospath.exists(file := f'{path}.zip'):
+        print('download:', link)
+        
+        def update_progress(block_num, block_size, total_size):
+            """
+            
+            Args:
+                block_num: 已下载的数据块
+                block_size: 数据块的大小
+                total_size: 远程文件的大小
+            """
+            percent = block_size * block_num / total_size * 100
+            if percent > 100: percent = 100
+            
+            # `print::params:end='\r'` not working in pycharm (solution):
+            #   https://stackoverflow.com/questions/34950201/pycharm-print-end-r
+            #   -statement-not-working
+            print('\r{}\t{:.2f}%'.format(strftime('%H:%M:%S'), percent), end='')
+            # # print('{}\t{:.2f}%'.format(strftime('%H:%M:%S'), percent),
+            # #       end='\r')
+        
+        # https://blog.csdn.net/weixin_39790282/article/details/90170218
+        request.urlretrieve(link, file, update_progress)
+        print(' -> done!')
+    
+    # unzip
+    file_handle = ZipFile(file)
+    file_handle.extractall(path)
+    print('see unzipped result:', path)
+
+    # delete zip file
+    pass

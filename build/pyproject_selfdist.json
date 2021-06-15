@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "3.3.0",
+    "app_version": "3.3.2",
     "description": "",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
@@ -24,7 +24,7 @@
             "enable_venv": true,
             "python_version": "3.9",
             "mode": "source_venv",
-            "mode_options": {
+            "options": {
                 "depsland": {
                     "requirements": []
                 },
@@ -40,8 +40,8 @@
             }
         },
         "compiler": {
-            "compiler_name": "pyarmor",
-            "compiler_options": {
+            "name": "pyarmor",
+            "options": {
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0

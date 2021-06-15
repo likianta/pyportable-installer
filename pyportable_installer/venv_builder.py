@@ -77,6 +77,7 @@ def _copy_python_interpreter(
         embed_python_dir: TPath, dst_venv_dir: TPath
 ):
     copytree(embed_python_dir, dst_venv_dir)
+    # copytree(embed_python_dir, dst_venv_dir, dirs_exist_ok=True)
 
 
 def _copy_site_packages(venv_options: TVenvBuildConf, **kwargs):
@@ -90,21 +91,20 @@ def _copy_site_packages(venv_options: TVenvBuildConf, **kwargs):
     elif mode == 'source_venv':
         _build_venv_by_source_venv(
             kwargs.get('src_venv_dir') or options['path'],
-            kwargs['dst_venv_dir'], kwargs['embed_py_dir']
+            kwargs['dst_venv_dir']
         )
     else:
         raise ValueError('Unknown venv mode', mode)
 
 
 def _build_venv_by_source_venv(
-        src_venv_dir: TPath, dst_venv_dir: TPath, embed_python_dir: TPath
+        src_venv_dir: TPath, dst_venv_dir: TPath
 ):
     """
     Args:
         src_venv_dir: 'source virtual environment directory'.
             tip: you can pass an empty to this argument, see reason at `Notes:3`
         dst_venv_dir: 'distributed virtual environment directory'
-        embed_python_dir:
 
     Notes:
         1. 本函数使用了 embed_python 独立安装包的内容, 而非简单地把 src_venv_dir
@@ -123,8 +123,6 @@ def _build_venv_by_source_venv(
             lib/python-{version}-embed-amd64 -> {dst_venv_dir}
             {src_venv_dir}/Lib/site-packages -> {dst_venv_dir}/site-packages
     """
-    copytree(embed_python_dir, dst_venv_dir)
-    
     # copy site-packages
     if ospath.exists(src_venv_dir):
         copytree(f'{src_venv_dir}/Lib/site-packages',

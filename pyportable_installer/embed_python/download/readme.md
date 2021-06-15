@@ -8,6 +8,6 @@
 
 详见相关代码:
 
-- `pyportable_installer/venv_builder.py: class VEnvBuilder`
-- `pyportable_installer/assets_copy.py: def copy_venv`
-- `pyportable_installer/no3_build_pyproject.py: def main`
+- `pyportable_installer/embed_python/manager.py::class:EmbedPythonManager`
+- `pyportable_installer/venv_builder.py`
+- `pyportable_installer/no3_build_pyproject.py::func:main`

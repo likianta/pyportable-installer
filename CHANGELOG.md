@@ -1,5 +1,9 @@
 # 3.x
 
+## 3.3.3
+
+* 新增: 提供下载嵌入式 python 的简易函数
+
 ## 3.3.2
 
 * 变更: `main.py::Misc.create_venv_shell` 改由 `how_venv_created` 控制

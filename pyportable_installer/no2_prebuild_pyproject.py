@@ -65,11 +65,12 @@ def _precheck(conf: TConf):
     #     popen('pyarmor runtime -O "{}"'.format(f'{curr_dir}/template')).read()
     
     if conf['build']['venv']['enable_venv']:
-        from .venv_builder import VEnvBuilder
-        builder = VEnvBuilder()
-        pyversion = conf['build']['venv']['python_version']
+        from .embed_python import EmbedPythonManager
+        builder = EmbedPythonManager(
+            pyversion=conf['build']['venv']['python_version']
+        )
         # try to get a valid embed python path, if failed, raise an error.
-        builder.get_embed_python_dir(pyversion)
+        builder.get_embed_python_dir()
         
         mode = conf['build']['venv']['mode']
         if mode == 'source_venv':

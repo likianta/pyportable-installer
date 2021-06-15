@@ -46,8 +46,10 @@ def full_build(file):
 
 def min_build(file):
     Misc.create_checkup_tools = False
-    Misc.create_launch_bat = True  # suggest True
+    Misc.create_launch_bat = True
+    #   True (suggest) | False
     Misc.how_venv_created = 'empty_folder'
+    #   'empty_folder' (suggest) | 'symbolink'
     return main(file, Misc.dump())
 
 
