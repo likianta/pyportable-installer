@@ -5,18 +5,17 @@ from lk_logger import lk
 from .no1_extract_pyproject import main as step1
 from .no2_prebuild_pyproject import main as step2
 from .no3_build_pyproject import main as step3
-from .typehint import TConf
+from .typehint import TConf, TMisc, TPath
 
 
 class Misc:
     # 是否将 `./checkup/*` 中的工具拷贝到打包目录.
     create_checkup_tools = True
-    # 是否将嵌入式 python 复制到虚拟环境.
-    # True: 复制本地的 embed python 到 venv (大小约 15MB);
-    # False: 只创建 venv 和 venv/site-packages 空目录.
-    create_venv_shell = True
     # 是否创建启动器.
     create_launch_bat = True
+    # 创建 venv 的方式.
+    # 注: 该选项仅在用户在配置文件中启用 venv 时才有效.
+    how_venv_created = 'copy'
     # 是否混淆源代码.
     compile_scripts = True
     # 是否做善后工作. 如是, 详见 `aftermath.py` 模块.
@@ -26,44 +25,45 @@ class Misc:
     log_verbose = False
     
     @classmethod
-    def dump(cls):
+    def dump(cls) -> TMisc:
+        # noinspection PyTypeChecker
         return {
             'create_checkup_tools': cls.create_checkup_tools,
-            'create_venv_shell'   : cls.create_venv_shell,
             'create_launch_bat'   : cls.create_launch_bat,
+            'how_venv_created'    : cls.how_venv_created,
             'compile_scripts'     : cls.compile_scripts,
             'do_aftermath'        : cls.do_aftermath,
             'log_verbose'         : cls.log_verbose,
         }
 
 
-def full_build(pyproj_file):
+def full_build(file):
     Misc.create_checkup_tools = True
-    Misc.create_venv_shell = True
     Misc.create_launch_bat = True
-    return main(pyproj_file, Misc.dump())
+    Misc.how_venv_created = 'copy'
+    return main(file, Misc.dump())
 
 
 def min_build(file):
     Misc.create_checkup_tools = False
-    Misc.create_venv_shell = False
     Misc.create_launch_bat = True  # suggest True
+    Misc.how_venv_created = 'empty_folder'
     return main(file, Misc.dump())
 
 
 def debug_build(file):
     Misc.create_checkup_tools = False
-    Misc.create_venv_shell = False
     Misc.create_launch_bat = True
+    Misc.how_venv_created = 'symbolink'
     Misc.compile_scripts = False
     Misc.do_aftermath = False
     Misc.log_verbose = True
     return main(file, Misc.dump())
 
 
-def main(pyproj_file: str, misc: dict) -> TConf:
+def main(pyproj_file: TPath, misc: TMisc) -> TConf:
     """
-    几个关键目录的区分和说明: `docs/devnote/difference-between-roots.md`
+    几个关键目录的区分和说明: `../docs/devnote/difference-between-roots.md`
     """
     if misc.get('log_verbose', False) is False:
         lk.lite_mode = True

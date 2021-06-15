@@ -11,10 +11,16 @@ from typing import Dict, List, Literal, TypedDict, Union
 
 TPath = str  # abspath
 
-TPyVersion = str  # e.g. '3.6', '3.7', '3.8', etc.
+TPyVersion = str
+#   e.g.
+#       64bit: '3.6', '3.7', '3.8', etc.
+#       32big: '3.6-32', '3.7-32', '3.8-32', etc.
+#   see `embed_python/manager.py::EmbedPythonManager.options.keys`
 
-# `template/pyproject.json:build:venv:options:depsland,pip:requirements`
+# `template/pyproject.json::build:venv:options:depsland,pip:requirements`
 TRequirements = Union[List[str], TPath]
+
+THowVenvCreated = Literal['copy', 'symbolink', 'empty_folder']  # default 'copy'
 
 
 class TMisc(TypedDict):
@@ -30,24 +36,25 @@ class TMisc(TypedDict):
     enable_console: bool
     # `main.py::class:Misc`
     create_checkup_tools: bool
-    create_venv_shell: bool
     create_launch_bat: bool
+    how_venv_created: THowVenvCreated
     compile_scripts: bool
     do_aftermath: bool
+    log_verbose: bool
 
 
 class _TDepslandOptions(TypedDict):
-    # `template/pyproject.json:build:venv:options:depsland`
+    # `template/pyproject.json::build:venv:options:depsland`
     requirements: TRequirements
 
 
 class _TSourceVenvOptions(TypedDict):
-    # `template/pyproject.json:build:venv:options:source_venv`
+    # `template/pyproject.json::build:venv:options:source_venv`
     path: TPath
 
 
 class _TPipOptions(TypedDict):
-    # `template/pyproject.json:build:venv:options:pip`
+    # `template/pyproject.json::build:venv:options:pip`
     requirements: TRequirements
     pypi_url: str
     local: TPath
@@ -59,34 +66,33 @@ class _TPipOptions(TypedDict):
 TMode = Literal['depsland', 'source_venv', 'pip']
 
 
-class _TModeOptions(TypedDict):
-    # `template/pyproject.json:build:venv:options`
+class _TVenvModeOptions(TypedDict):
+    # `template/pyproject.json::build:venv:options`
     # note: keep `this:members:name` sync with `TMode`
     depsland: _TDepslandOptions
     source_venv: _TSourceVenvOptions
     pip: _TPipOptions
 
 
-class TConfBuildVenv(TypedDict):
-    # `template/pyproject.json:build:venv`
+class TVenvBuildConf(TypedDict):
+    # `template/pyproject.json::build:venv`
     enable_venv: bool
     python_version: TPyVersion
     mode: TMode
-    options: _TModeOptions
+    options: _TVenvModeOptions
 
 
 class TTarget(TypedDict):
-    # `template/pyproject.json:build:target`
+    # `template/pyproject.json::build:target`
     file: TPath
     function: str
     args: list
     kwargs: dict
 
 
-# `template/pyproject.json:build:attachments`
+# `template/pyproject.json::build:attachments`
 # 考虑到 Pycharm 对 Listeral 与 str 的类型检查有 bug, 所以我们不使用 Literal.
 TAttachments = Dict[TPath, str]
-
 
 #                          ^^^
 #   str should be: Literal[
@@ -106,7 +112,7 @@ TCompilerNames = Literal['pyarmor', 'pyc', 'zipapp']
 
 
 class _TCompilerOptions(TypedDict):
-    # `template/pyproject.json:build:compiler:compiler_options`
+    # `template/pyproject.json::build:compiler:compiler_options`
     # note: keep `this:members:name` sync with `TCompilerNames`
     pyarmor: dict
     pyc: dict
@@ -114,13 +120,13 @@ class _TCompilerOptions(TypedDict):
 
 
 class TCompiler(TypedDict):
-    # `template/pyproject.json:build:compiler`
+    # `template/pyproject.json::build:compiler`
     name: TCompilerNames
     options: _TCompilerOptions
 
 
-class _TConfBuild(TypedDict):
-    # `template/pyproject.json:build`
+class _TBuildConf(TypedDict):
+    # `template/pyproject.json::build`
     proj_dir: TPath
     dist_dir: TPath
     icon: TPath
@@ -128,7 +134,7 @@ class _TConfBuild(TypedDict):
     readme: TPath
     module_paths: List[TPath]
     attachments: TAttachments
-    venv: TConfBuildVenv
+    venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     enable_console: bool
 
@@ -139,5 +145,5 @@ class TConf(TypedDict):
     app_version: str
     description: str
     author: Union[str, List[str]]
-    build: _TConfBuild
+    build: _TBuildConf
     note: str

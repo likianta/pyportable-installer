@@ -10,9 +10,9 @@
 * [x] venv
     * [x] 新增一种 venv 创建方式: 通过 `pip install` 从零创建
     * [ ] `debug_build` 仍然保留 venv 选项, 但使用软链接创建
-* [ ] 在虚拟环境中测试
-    * [x] pyc 的导出路径存在问题
-    * [x] pyarmor 生成 runtime 有问题
+* [ ] download (sidework)
+    * [ ] 提供目标 embed python 下载
+    * [ ] 提供 tkinter 套件一键部署方案
 * [ ] msilib: https://docs.python.org/3/library/msilib.html
 * [ ] 新图标: 小蛇与挎包
 

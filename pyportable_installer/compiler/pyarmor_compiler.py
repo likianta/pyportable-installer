@@ -5,7 +5,7 @@ from lk_logger import lk
 
 from .base import BaseCompiler
 from ..global_dirs import global_dirs
-from ..utils import send_cmd, wrap_new_thread
+from ..utils import send_cmd, new_thread
 
 
 class PyArmorCompiler(BaseCompiler):
@@ -85,7 +85,7 @@ class PyArmorCompiler(BaseCompiler):
             dst_file = global_dirs.to_dist(src_file)
             self.compile_one(src_file, dst_file)
     
-    @wrap_new_thread
+    @new_thread
     def compile_one(self, src_file, dst_file):
         """
         Compile `src_file` and generate `dst_file`.

@@ -3,39 +3,102 @@ from shutil import copytree
 
 from lk_logger import lk
 
-from .global_dirs import curr_dir
+from .embed_python import EmbedPythonManager
 from .typehint import *
-from .utils import mkdirs, send_cmd
+from .utils import mkdirs, mklink, send_cmd
 
 
-def main(venv_options: TConfBuildVenv, root_dir, create_venv_shell=True):
-    builder = VEnvBuilder()
-    pyversion = venv_options['python_version']
-    
-    if create_venv_shell:
-        mode = venv_options['mode']
-        options = venv_options['options'][mode]
-        
-        if mode == 'depsland':
-            build_venv_by_depsland(**options)
-        elif mode == 'pip':
-            build_venv_by_pip(pyversion=pyversion, **options)
-        elif mode == 'source_venv':
-            build_venv_by_source_venv(
-                options['path'], f'{root_dir}/venv',
-                builder.get_embed_python_dir(pyversion)
-            )
-        else:
-            raise ValueError('Unknown venv mode', mode)
-    
-    else:
+def create_venv(
+        embed_py_mgr: EmbedPythonManager,
+        venv_options: TVenvBuildConf,
+        root_dir: TPath,
+        mode: THowVenvCreated
+):
+    if mode == 'empty_folder':
         mkdirs(root_dir, 'venv', 'site-packages')
+        return
     
-    return builder
+    # 这里的 `src_venv_dir` 无实际意义, 只是为了让代码看起来整齐. 我们把它作为参
+    # 数传到 `_copy_site_packages:[params]kwargs` 也无实际意义, 因为我们最终用到
+    # 的是由 `venv_options` 提供的路径信息.
+    src_venv_dir = ''
+    dst_venv_dir = f'{root_dir}/venv'
+    embed_py_dir = embed_py_mgr.get_embed_python_dir()
+    
+    if mode == 'copy':
+        _copy_python_interpreter(embed_py_dir, dst_venv_dir)
+        _copy_site_packages(
+            venv_options, pyversion=embed_py_mgr.pyversion,
+            #   `embed_py_mgr.pyversion` is equivalent to
+            #   `venv_options['python_version']`
+            src_venv_dir=src_venv_dir,
+            dst_venv_dir=dst_venv_dir,
+            embed_py_dir=embed_py_dir,
+        )
+        return
+    
+    if mode == 'symbolink':
+        
+        def _is_the_same_driver(a: TPath, b: TPath):
+            return a.lstrip('/').split('/', 1)[0] == \
+                   b.lstrip('/').split('/', 1)[0]
+        
+        if _is_the_same_driver(embed_py_dir, dst_venv_dir):
+            mklink(embed_py_dir, dst_venv_dir, exist_ok=True)
+        else:
+            # noinspection PyUnusedLocal
+            mode = 'copy'
+            _copy_python_interpreter(embed_py_dir, dst_venv_dir)
+        
+        if _is_the_same_driver(src_venv_dir, dst_venv_dir):
+            mklink(f'{src_venv_dir}/lib/site-packages',
+                   f'{dst_venv_dir}/site-packages')
+        else:
+            # noinspection PyUnusedLocal
+            mode = 'empty_folder'
+            lk.logt(
+                '[W3359]',
+                ''' cannot create symbol link acrossing different drivers:
+                        {} --x--> {}
+                    will do nothing instead. you need to copy them by manual
+                    after installer finished.
+                '''.format(
+                    f'{src_venv_dir}/lib/site-packages',
+                    f'{dst_venv_dir}/site-packages'
+                )
+            )
+        
+        return
+    
+    raise Exception('Unexpected error, this code should be unreachable.', mode)
 
 
-def build_venv_by_source_venv(src_venv_dir: TPath, dst_venv_dir: TPath,
-                              embed_python_dir: TPath):
+def _copy_python_interpreter(
+        embed_python_dir: TPath, dst_venv_dir: TPath
+):
+    copytree(embed_python_dir, dst_venv_dir)
+
+
+def _copy_site_packages(venv_options: TVenvBuildConf, **kwargs):
+    mode = venv_options['mode']
+    options = venv_options['options'][mode]
+    
+    if mode == 'depsland':
+        _build_venv_by_depsland(**options)
+    elif mode == 'pip':
+        _build_venv_by_pip(pyversion=kwargs['pyversion'], **options)
+    elif mode == 'source_venv':
+        _build_venv_by_source_venv(
+            kwargs.get('src_venv_dir') or options['path'],
+            kwargs['dst_venv_dir'], kwargs['embed_py_dir']
+        )
+    else:
+        raise ValueError('Unknown venv mode', mode)
+
+
+def _build_venv_by_source_venv(
+        src_venv_dir: TPath, dst_venv_dir: TPath, embed_python_dir: TPath
+):
     """
     Args:
         src_venv_dir: 'source virtual environment directory'.
@@ -71,12 +134,12 @@ def build_venv_by_source_venv(src_venv_dir: TPath, dst_venv_dir: TPath,
 
 
 # noinspection PyUnusedLocal
-def build_venv_by_depsland(requirements: TRequirements):
+def _build_venv_by_depsland(requirements: TRequirements):
     raise NotImplementedError
 
 
-def build_venv_by_pip(requirements: TRequirements, pypi_url, local, offline,
-                      pyversion, quiet=False):
+def _build_venv_by_pip(requirements: TRequirements, pypi_url, local, offline,
+                       pyversion, quiet=False):
     """
     
     Args:
@@ -138,116 +201,3 @@ def build_venv_by_pip(requirements: TRequirements, pypi_url, local, offline,
                 send_cmd(pkg)
             except:
                 lk.logt('[W0835]', 'Pip installing failed', pkg)
-
-
-class VEnvBuilder:
-    
-    def __init__(self):
-        from platform import system
-        self.sys = system().lower()  # 'windows'|'linux'|etc.
-        embed_python_dir = f'{curr_dir}/venv_assets/embed_python'
-        
-        # FIXME: `../../pyproject.toml` 的打包参数似乎没设好, 导致在发布为 whl
-        #   时, 未包含 `embed_python_dir` 这个空文件夹.
-        #   现在使用临时方法: 检查目录是否不存在, 如不存在则创建每个子节点.
-        #   后面请尽快修复 pyproject.toml.
-        if not ospath.exists(f'{embed_python_dir}/{self.sys}'):
-            from .utils import mkdirs
-            mkdirs(curr_dir, 'venv_assets', 'embed_python', self.sys)
-        
-        self.options = {
-            'windows': {
-                'embed_python'         : {
-                    '3.5'   : f'{embed_python_dir}/windows/'
-                              f'python-3.5.4-embed-amd64',
-                    '3.5-32': f'{embed_python_dir}/windows/'
-                              f'python-3.5.4-embed-win32',
-                    '3.6'   : f'{embed_python_dir}/windows/'
-                              f'python-3.6.8-embed-amd64',
-                    '3.6-32': f'{embed_python_dir}/windows/'
-                              f'python-3.6.8-embed-win32',
-                    '3.7'   : f'{embed_python_dir}/windows/'
-                              f'python-3.7.9-embed-amd64',
-                    '3.7-32': f'{embed_python_dir}/windows/'
-                              f'python-3.7.9-embed-win32',
-                    '3.8'   : f'{embed_python_dir}/windows/'
-                              f'python-3.8.10-embed-amd64',
-                    '3.8-32': f'{embed_python_dir}/windows/'
-                              f'python-3.8.10-embed-win32',
-                    '3.9'   : f'{embed_python_dir}/windows/'
-                              f'python-3.9.5-embed-amd64',
-                    '3.9-32': f'{embed_python_dir}/windows/'
-                              f'python-3.9.5-embed-win32',
-                },
-                # https://www.python.org/downloads/windows/
-                'embed_python_download': {
-                    '3.5'   : 'https://www.python.org/ftp/python/'
-                              '3.5.4/python-3.5.4-embed-amd64.zip',
-                    '3.5-32': 'https://www.python.org/ftp/python/'
-                              '3.5.4/python-3.5.4-embed-win32.zip',
-                    '3.6'   : 'https://www.python.org/ftp/python/'
-                              '3.6.8/python-3.6.8-embed-amd64.zip',
-                    '3.6-32': 'https://www.python.org/ftp/python/'
-                              '3.6.8/python-3.6.8-embed-win32.zip',
-                    '3.7'   : 'https://www.python.org/ftp/python/'
-                              '3.7.9/python-3.7.9-embed-amd64.zip',
-                    '3.7-32': 'https://www.python.org/ftp/python/'
-                              '3.7.9/python-3.7.9-embed-win32.zip',
-                    '3.8'   : 'https://www.python.org/ftp/python/'
-                              '3.8.10/python-3.8.10-embed-amd64.zip',
-                    '3.8-32': 'https://www.python.org/ftp/python/'
-                              '3.8.10/python-3.8.10-embed-win32.zip',
-                    '3.9'   : 'https://www.python.org/ftp/python/'
-                              '3.9.5/python-3.9.5-embed-amd64.zip',
-                    '3.9-32': 'https://www.python.org/ftp/python/'
-                              '3.9.5/python-3.9.5-embed-win32.zip',
-                }
-            },
-            # TODO: more system options
-        }[self.sys]
-    
-    def get_embed_python_dir(self, pyversion: str):
-        try:
-            path = self.options['embed_python'][pyversion]
-        except KeyError:
-            raise Exception('未支持或未能识别的 Python 版本', pyversion)
-        
-        if not ospath.exists(path):
-            self._download_help(pyversion)
-            raise SystemExit
-        
-        return path
-    
-    def get_embed_python_interpreter(self, pyversion: str):
-        return self.get_embed_python_dir(pyversion) + '/python.exe'
-    
-    def _download_help(self, pyversion):
-        path = self.options['embed_python'][pyversion]
-        link = self.options['embed_python_download'][pyversion]
-        print('''
-            未找到嵌入式 Python 解释器离线资源, 本次运行将中止!
-            
-            请按照以下步骤操作, 之后重新运行本程序:
-            
-            1. 从该链接下载嵌入式 Python 安装包: {link}
-            2. 将下载到的压缩文件解压, 获得 {name} 文件夹
-            3. 将该文件夹放到此目录: {path}
-            
-            现在, 您可以重新运行本程序以继续打包工作.
-        '''.format(
-            link=link,
-            name=ospath.basename(path),
-            path=ospath.abspath(path)
-        ))
-        return path, link
-
-
-def download_embed_python(pyversion):
-    builder = VEnvBuilder()
-    
-    path = builder.options['embed_python'][pyversion]
-    link = builder.options['embed_python_download'][pyversion]
-    
-    if not ospath.exists(path):
-        print('download', link)
-        # TODO: download and unzip to `path` ...

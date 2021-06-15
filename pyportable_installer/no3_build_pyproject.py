@@ -2,9 +2,10 @@ from lk_utils.read_and_write import dumps, loads
 
 from .assets_copy import *
 from .compiler import get_compiler
+from .embed_python import EmbedPythonManager
 from .typehint import *
 from .utils import runnin_new_thread
-from .venv_builder import main as handle_venv
+from .venv_builder import create_venv
 
 thread = None
 
@@ -13,7 +14,7 @@ def main(
         app_name: str,
         proj_dir: TPath, dist_dir: TPath,
         target: TTarget,
-        venv: TConfBuildVenv,
+        venv: TVenvBuildConf,
         compiler: TCompiler,
         module_paths: list[TPath],
         attachments: TAttachments,
@@ -35,18 +36,19 @@ def main(
     
     Args:
         app_name: Use normal case. e.g. 'Hello World'
-        proj_dir: See `Project Structure Example`
-        dist_dir: See `Project Structure Example`. Note this directory is
-            equivalent to `global_dirs.py::global_vars:global_dirs::attrs
-            :dst_root`, this is the parent dir of that.
+        proj_dir: See `this_docstring: Project Structure Example`.
+        dist_dir: See `this_docstring: Project Structure Example`.
+            Note this directory is equivalent to `global_dirs.py::global_vars
+            :global_dirs::attrs:dst_root`, this is the parent dir of that.
         target: See `docs/pyproject-template.md::build:target`
         module_paths: See `func:_create_launcher`
         attachments: See `assets_copy.py::copy_assets::docstring:attachments`
         venv: See `docs/pyproject-template.md::build:venv`
         compiler: Literal['pyarmor', 'pyc', 'pycrypto']. Compiler name.
-        **misc: Some keys are from `main.py::main::conf['build']` (e.g.
-            'readme', 'icon', 'enable_console'), the others are from `main.py
-            ::class:Misc.dump`
+        **misc: See `typehint.TMisc`
+            Some keys are from `main.py:main:conf['build']` (e.g. 'readme',
+            'icon', 'enable_console'), the others are from `main.py::class:Misc
+            ::dump`.
     
     Warnings:
         请勿随意更改本函数的参数名, 这些名字与 `template/pyproject.json` 的诸多
@@ -58,16 +60,16 @@ def main(
     # precheck
     _precheck(proj_dir, dist_dir, readme_file, attachments)
     
-    # see `docs/devnote/dist-folders-structure.md`
-    # these dirs already exist, see creation at `no2_prebuild_pyproject.py::cmt
+    # see `../docs/devnote/dist-folders-structure.md`
+    # these dirs already exist, see creation at `no2_prebuild_pyproject.py:cmt
     # :'create build_dir, lib_dir, src_dir'`
     root_dir, build_dir, src_dir, lib_dir = (
         dist_dir, f'{dist_dir}/build', f'{dist_dir}/src', f'{dist_dir}/lib'
     )
-    #   root_dir : 'root directory'
-    #   build_dir: 'build (noun.) directory'
-    #   src_dir  : 'source directory'. note: this is equivalent to
-    #       `global_dirs.py::global_vars:global_dirs::attrs:dst_root`
+    #   root_dir    'root directory'
+    #   build_dir   'build (noun.) directory'
+    #   src_dir     'source directory'. note: this is equivalent to
+    #               `global_dirs.py::global_vars:global_dirs::attrs:dst_root`
     
     # --------------------------------------------------------------------------
     
@@ -80,18 +82,18 @@ def main(
         create_readme(readme_file, f'{root_dir}/{ospath.basename(readme_file)}')
     
     # venv
-    venv_builder = handle_venv(
-        venv, root_dir,
-        create_venv_shell=misc.get('create_venv_shell', True)
-    )
+    embed_py_mgr = EmbedPythonManager(venv['python_version'])
+    if venv['enable_venv']:
+        create_venv(
+            embed_py_mgr, venv, root_dir, misc.get('how_venv_created', 'copy')
+        )
     
     # --------------------------------------------------------------------------
     # compile
     
     # get a compiler
-    pyversion = venv['python_version']
     if venv['enable_venv']:
-        pyinterpreter = venv_builder.get_embed_python_interpreter(pyversion)
+        pyinterpreter = embed_py_mgr.get_embed_python_interpreter()
     else:
         pyinterpreter = 'python'  # default python in system environment
     from .utils import set_pyinterpreter
@@ -99,7 +101,7 @@ def main(
     
     compiler = get_compiler(
         compiler['name'], pyinterpreter,
-        lib_dir=lib_dir, pyversion=pyversion
+        lib_dir=lib_dir, pyversion=embed_py_mgr.pyversion
     )
     
     pyfiles_to_compile = []
@@ -109,7 +111,7 @@ def main(
     # noinspection PyUnusedLocal
     launch_file = _create_launcher(
         app_name, misc.get('icon', ''), target, root_dir,
-        pyversion=pyversion,
+        pyversion=embed_py_mgr.pyversion,
         extend_sys_paths=module_paths,
         enable_venv=venv['enable_venv'],
         enable_console=misc.get('enable_console', True),
@@ -148,7 +150,7 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
 
     Args:
         app_name (str): application name, this will be used as exe file's name:
-            e.g. ``app_name = 'Hello World'`` -> will generate 'Hello World.exe'
+            e.g. `app_name = 'Hello World'` -> will generate 'Hello World.exe'
         icon (str): *.ico file
         target (dict): {
             'file': filepath,
@@ -177,12 +179,12 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
                以系统弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
                件表现得更像是一款软件
 
-    Notes
-        1. 启动器在调用主脚本 (``main:args:main_script``) 之前, 会通过
-           ``os.chdir`` 切换到主脚本所在的目录, 这样我们项目源代码中的所有相对路
+    Notes:
+        1. 启动器在调用主脚本 (`func:main::args:main_script`) 之前, 会通过
+           `os.chdir` 切换到主脚本所在的目录, 这样我们项目源代码中的所有相对路
            径, 相对引用都能正常工作
 
-    References
+    References:
         - template/launch_by_system.bat
         - template/launch_by_venv.bat
         - template/bootloader.txt
@@ -228,14 +230,14 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         #   注意这里的 `target['function']`, 它有以下几种情况:
         #       target['function'] = some_str
         #           对应于 `../template/bootloader.txt(后面简称 'bootloader')
-        #           :底部位置:[cmt]CASE3`
+        #           ::底部位置::cmt:CASE3`
         #       target['function'] = '*'
-        #           对应于 `bootloader:底部位置:[cmt]CASE2`
+        #           对应于 `bootloader::底部位置::cmt:CASE2`
         #       target['function'] = ''
-        #           对应于 `bootloader:底部位置:[cmt]CASE1`
+        #           对应于 `bootloader::底部位置::cmt:CASE1`
         #   对于 CASE 1, 也就是 `target['function']` 为空字符串的情况, 我们必须
         #   将其改为其他字符 (这里就用了下划线作替代). 否则, 会导致打包后的
-        #   `bootloader.py:底部位置:[cmt]CASE 3` 语句无法通过 Python 解释器.
+        #   `bootloader.py::底部位置::cmt:CASE3` 语句无法通过 Python 解释器.
         TARGET_ARGS=str(target['args']),
         TARGET_KWARGS=str(target['kwargs']),
     )

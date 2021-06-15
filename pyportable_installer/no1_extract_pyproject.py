@@ -114,13 +114,11 @@ class PathFormatter:
             #       extend_sys_paths`
             if 'dist:root' not in path:
                 path = path.replace('dist:', 'dist:root/')  # <──┐
-            ''' 'dist:root'     ->  'dist:root'           │
-                'dist:lib'      ->  'dist:root/lib' ──────┘
-                'dist:root/lib' ->  'dist:root/lib'
-            '''
+            ''' 'dist:root'     ->  'dist:root'                  │
+                'dist:lib'      ->  'dist:root/lib' ─────────────┘
+                'dist:root/lib' ->  'dist:root/lib' '''
             return pretty_path(path)
-        elif len(path) > 1 and path[1] == ':':
-            # FIXME: support only windows platform
+        elif ospath.isabs(path):
             if self.refmt_to == 'abspath':
                 return path
             else:

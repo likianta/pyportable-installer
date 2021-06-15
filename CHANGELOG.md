@@ -1,25 +1,32 @@
 # 3.x
 
+## 3.3.2
+
+* 变更: `main.py::Misc.create_venv_shell` 改由 `how_venv_created` 控制
+* 变更: `VEnvBuilder` 变更为 `EmbedPythonManager`
+
 ## 3.3.1
 
 * 变更: 项目模板部分键名变更
 * 修复: `PycCompiler` 输出路径错误
 * 修复: `utils.send_cmd` 捕获错误的方式
+* 修复: `pyarmor_compiler.py::PyArmorCompiler` 可以生成运行时却报错
 * 修复: `bootloader` 在无目标函数的情况下的部分导入语句无法通过 Python 解释器
-* 修复: `no1_extract_pyproject.py:PathFormatter` 对 `dist` 的处理不当
+* 修复: `no1_extract_pyproject.py::PathFormatter` 对 `dist` 的处理不当
+* 优化: `no1_extract_pyproject.py::PathFormatter` 对绝对路径的判断
 
 ## 3.3.0 | 2021-05-29
 
 * 新增: 完善 Python 类型提示
 * 新增: 多种 venv 创建方式 (源拷贝和 pip download)
 * 新增: 多种编译方式 (pyarmor 编译和 pyc 编译)
-* 优化: 调整 `项目模板:attachments` 和 `项目模板:module_paths` 的先后顺序
-* 更新: 将 `项目模板:...:dist_lib,dist_root` 扩展为 `dist:...`
+* 优化: 调整 `项目模板::attachments` 和 `项目模板:module_paths` 的先后顺序
+* 更新: 将 `项目模板::...::dist_lib,dist_root` 扩展为 `dist:...`
 * 新增: `assets_copy.copy_assets` 在复制时排除特定的受保护文件夹
 * 修复: `assets_copy.copy_assets.handle_only_folders`
 * 优化: 避免项目配置中的绝对路径信息暴露给客户端
 * 修复: 多线程问题
-* 修复: `utils.py:send_cmd` 指令问题
+* 修复: `utils.py::send_cmd` 指令问题
 
 ## 3.2.3
 
@@ -35,7 +42,7 @@
 
 ## 3.2.1
 
-* 新增: `项目模板:module_paths` 支持 `{dist_root}` 和 `{dist_lib}` 插值
+* 新增: `项目模板::module_paths` 支持 `{dist_root}` 和 `{dist_lib}` 插值
 * 新增: 解决 tkinter 的打包问题
 * 新增: 解决 pywin32 的打包问题
 
@@ -46,7 +53,7 @@
 ## 3.1.1
 
 * 变更: `assets_copy.copy_assets` 在复制时包含隐藏文件夹
-* 修复: `项目模板:module_paths` 恢复使用
+* 修复: `项目模板::module_paths` 恢复使用
 * 修复: 恢复 `aftermath` 模块
 
 ## 3.0.0
@@ -89,7 +96,7 @@ all-in-one 配置文件 (pyproject.json)
 
 * 修复: `shutils.copytree` 拷贝 venv 时报 "目录已存在" 错误
 * 变更: 重构 pyproject.json 的结构
-* 新增: `pyproject.json:build:enable_console` 选项
+* 新增: `pyproject.json::build:enable_console` 选项
 * 新增: pyportable-installer 通过自举的方式完成项目打包
 
 ## 2.2.0 | 2021-03-07
@@ -106,7 +113,7 @@ all-in-one 配置文件 (pyproject.json)
 * 更新: 从 bootloader.txt 中移除海象运算符, 使支持 Python 3.7 及以下的版本
 * 修复: bootloader.txt 模板中相对路径计算可能出现错误
 * 修复: bootloader.txt `os.chdir` 参数错误
-* 新增: 在 `prebuild.py:_precheck_args` 中检查读我文档的路径
+* 新增: 在 `prebuild.py::_precheck_args` 中检查读我文档的路径
 
 ## 2.1.0 | 2021-03-06
 

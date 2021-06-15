@@ -1,18 +1,43 @@
 import os
 import subprocess
-from os import path as ospath
 from threading import Thread
 
 _pyinterpreter = 'python'
 
 
 def mkdirs(start: str, *new: str):
+    # # scheme 1
+    # path = start + '/' + '/'.join(new)
+    # os.makedirs(path, exist_ok=True)
+    
+    # scheme 2
     path = start
     for n in new:
         path += '/' + n
-        if not ospath.exists(path):
+        if not os.path.exists(path):
             os.mkdir(path)
+    
     return path
+
+
+def mklink(src_path, dst_path, exist_ok=False):
+    """
+    References:
+        比较 Windows 上四种不同的文件 (夹) 链接方式 (NTFS 的硬链接, 目录联接, 符
+            号链接, 和大家熟知的快捷方式) https://blog.walterlv.com/post/ntfs
+            -link-comparisons.html
+    """
+    if exist_ok:
+        if os.path.exists(dst_path):
+            assert os.path.isdir(dst_path) and not os.listdir(dst_path)
+            os.remove(dst_path)
+    
+    if os.path.isdir(src_path):
+        send_cmd(f'mklink /J "{dst_path}" "{src_path}"')
+    elif os.path.isfile(src_path):
+        send_cmd(f'mklink /H "{dst_path}" "{src_path}"')  # hard link for file
+    else:
+        raise Exception(src_path)
 
 
 def send_cmd(cmd: str, ignore_errors=False):
@@ -28,7 +53,7 @@ def send_cmd(cmd: str, ignore_errors=False):
         https://docs.python.org/zh-cn/3/library/subprocess.html
         
     Raises:
-        subprocess.CalledProcessError
+        subprocess.CalledProcessError: 当 subprocess 返回码不正确时, 会报此错误
     """
     # lk.loga(cmd, h='parent')
     global _pyinterpreter
@@ -73,7 +98,8 @@ def exhaust(generator):
         pass
 
 
-def wrap_new_thread(func):
+def new_thread(func):
+    # use this as a python decorator.
     return lambda *args, **kwargs: runnin_new_thread(func, *args, **kwargs)
 
 
