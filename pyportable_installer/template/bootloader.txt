@@ -15,8 +15,9 @@ References:
 """
 import os
 import sys
+import traceback
 
-# add current dir to sys.path (this is necessary for embed python)
+# add current dir to `sys.path` (this is necessary for embed python)
 sys.path.append(os.path.abspath('.'))
 
 # add lib to environment
@@ -30,67 +31,62 @@ extra_paths = {EXTEND_SYS_PATHS}
 if extra_paths:
     sys.path.extend(map(os.path.abspath, extra_paths))
 
+
 # ------------------------------------------------------------------------------
 
-
 def launch(main_func, *args, **kwargs):
+    try:
+        main_func(*args, **kwargs)
+    except Exception as e:
+        _show_error_info(traceback.format_exc())
+    finally:
+        input('Press enter or close the window to leave...')
+        sys.exit()
 
-    # noinspection PyUnusedLocal
-    def show_err_on_console(err):
-        print('Runtime Error:', err)
-        input('Press any key to leave...')
 
-    # noinspection PyUnusedLocal
-    def show_err_on_msgbox(err):
-        # notes: not recommended to use
-        # https://stackoverflow.com/questions/17280637/tkinter-messagebox
-        # -without-window
+def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):
+    """
+    Args:
+        err_msg: suggest passing `traceback.format_exc()`.
+        title:
+        terminal:
+
+    Rerferences:
+        https://stackoverflow.com/questions/1278705/when-i-catch-an-exception
+            -how-do-i-get-the-type-file-and-line-number
+        https://stackoverflow.com/questions/17280637/tkinter-messagebox-without
+            -window
+        https://www.cnblogs.com/freeweb/p/5048833.html
+    """
+    if terminal == 'console':
+        print(title + ':', err_msg)
+    elif terminal == 'tkinter':
         from tkinter import Tk, messagebox
         root = Tk()
         root.withdraw()
-        messagebox.showerror(title='Runtime Error', message=err)
-
-    # noinspection PyUnusedLocal
-    def alert(title, msg):
-        # https://www.cnblogs.com/freeweb/p/5048833.html
+        messagebox.showerror(title=title, message=err_msg)
+    elif terminal == 'vbsbox':
         return os.popen(
             'echo msgbox "{{msg}}", 64, "{{title}}" > '
             'alert.vbs && start '
             'alert.vbs && ping -n 2 127.1 > '
-            'nul && del alert.vbs'.format(
-                title=title, msg=msg
-            )
+            'nul && del alert.vbs'.format(title=title, msg=err_msg)
         ).read()
-
-    try:
-        main_func(*args, **kwargs)
-    except Exception as e:
-        print(e)
-        # Get more message about this error:
-        #   https://stackoverflow.com/questions/1278705/when-i-catch-an
-        #   -exception-how-do-i-get-the-type-file-and-line-number
-        import traceback
-        msg = traceback.format_exc()
-        alert('Runtime Error', msg)
-        # # show_err_on_msgbox(msg)
-        # # show_err_on_console(msg)
-    finally:
-        input('Press enter to leave...')
-        sys.exit()
 
 
 if __name__ == '__main__':
-    # 确保所有引用文件时的相对路径都是相对于 TARGET_PKG 的
+    # check in target dir to make sure all sequent relative paths references
+    # are based on the target dir.
     os.chdir('{TARGET_RELDIR}')
 
     try:
-        if '{TARGET_FUNC}' == '_':  # CASE 1
+        if '{TARGET_FUNC}' == '_':  # case 1
             import {TARGET_PKG}.{TARGET_NAME}
-        elif '{TARGET_FUNC}' == '*':  # CASE 2
+        elif '{TARGET_FUNC}' == '*':  # case 2
             from {TARGET_PKG}.{TARGET_NAME} import *
-        else:  # CASE 3
+        else:  # case 3
             from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
             launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})
     except Exception as e:
-        print(e)
-        input('Press enter to leave...')
+        _show_error_info(traceback.format_exc())
+        input('Press enter or close the window to leave...')
