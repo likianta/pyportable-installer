@@ -7,11 +7,14 @@ from .global_dirs import global_dirs, pretty_path
 from .typehint import *
 
 
-def main(pyproj_file: str) -> TConf:
+def main(pyproj_file: str, **kwargs) -> TConf:
     """
 
     Args:
         pyproj_file: see template at `./template/pyproject.json`
+
+    Keyword Args:
+        refmt_to: Literal['abspath', 'relpath']
 
     References:
         docs/pyproject-template.md
@@ -21,7 +24,11 @@ def main(pyproj_file: str) -> TConf:
     lk.loga(pyproj_root)
     
     conf = loads(pyproj_file)  # type: TConf
-    conf = reformat_paths(conf, PathFormatter(pyproj_root))
+    conf = reformat_paths(
+        conf, PathFormatter(
+            pyproj_root, refmt_to=kwargs.get('refmt_to', 'abspath')
+        )
+    )
     
     return conf
 
@@ -65,19 +72,13 @@ def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
     for k, v in conf['build']['attachments'].items():
         # lk.logt('[D0510]', k, v)
         k = path_fmt(k)
-        if isinstance(v, dict):  # PERF: temporarily made for `aftermath.py >
-            #   func:_generate_manifest > calls:reformat_paths`
-            temp[k] = {'marks': v['marks'], 'path': path_fmt(v['path'])}
-        elif isinstance(v, str):
-            v = v.split(',')  # type: list[str]
-            if v[-1].startswith('dist:'):
-                assert len(v) > 1, (conf['build']['attachments'], k, v)
-                path = path_fmt(v[-1].format(name=ospath.basename(k)))
-                temp[k] = {'marks': tuple(v[:-1]), 'path': path}
-            else:
-                temp[k] = {'marks': tuple(v), 'path': ''}
+        v = v.split(',')  # type: list[str]
+        if v[-1].startswith('dist:'):
+            assert len(v) > 1, (conf['build']['attachments'], k, v)
+            path = path_fmt(v[-1].format(name=ospath.basename(k)))
+            temp[k] = {'marks': tuple(v[:-1]), 'path': path}
         else:
-            raise ValueError(k, v)
+            temp[k] = {'marks': tuple(v), 'path': ''}
     conf['build']['attachments'] = temp
     
     # PERF: 目前的设计是, `conf['build']['module_paths']` 同时支持来自 src_root

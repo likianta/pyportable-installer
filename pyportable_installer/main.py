@@ -81,6 +81,6 @@ def main(pyproj_file: TPath, misc: TMisc) -> TConf:
     
     if misc.get('do_aftermath', True):
         from .aftermath import main as do_aftermath
-        do_aftermath(prj_conf, dst_root)
+        do_aftermath(pyproj_file, prj_conf, dst_root)
     
     return prj_conf

@@ -37,7 +37,7 @@ if extra_paths:
 def launch(main_func, *args, **kwargs):
     try:
         main_func(*args, **kwargs)
-    except Exception as e:
+    except Exception:
         _show_error_info(traceback.format_exc())
     finally:
         input('Press enter or close the window to leave...')
@@ -87,6 +87,6 @@ if __name__ == '__main__':
         else:  # case 3
             from {TARGET_PKG}.{TARGET_NAME} import {TARGET_FUNC} as main
             launch(main, *{TARGET_ARGS}, **{TARGET_KWARGS})
-    except Exception as e:
+    except Exception:
         _show_error_info(traceback.format_exc())
         input('Press enter or close the window to leave...')
