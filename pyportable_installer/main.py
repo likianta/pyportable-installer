@@ -67,6 +67,7 @@ def main(pyproj_file: TPath, misc: TMisc) -> TConf:
     """
     几个关键目录的区分和说明: `../docs/devnote/difference-between-roots.md`
     """
+    # TODO: temply commented
     if misc.get('log_verbose', False) is False:
         lk.lite_mode = True
     

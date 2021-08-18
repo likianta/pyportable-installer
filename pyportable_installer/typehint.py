@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, TypedDict, Union
+from typing import *
 
 """
 注意事项:
@@ -18,7 +18,7 @@ TPyVersion = str
 #   see `embed_python/manager.py::EmbedPythonManager.options.keys`
 
 # `template/pyproject.json::build:venv:options:depsland,pip:requirements`
-TRequirements = Union[List[str], TPath]
+TRequirements = Union[list[str], TPath]
 
 THowVenvCreated = Literal['copy', 'symbolink', 'empty_folder']  # default 'copy'
 
@@ -91,23 +91,20 @@ class TTarget(TypedDict):
 
 
 # `template/pyproject.json::build:attachments`
-# 考虑到 Pycharm 对 Listeral 与 str 的类型检查有 bug, 所以我们不使用 Literal.
-TAttachments = Dict[TPath, str]
-
-#                          ^^^
-#   str should be: Literal[
-#       'asset',
-#       'assets', 'assets,compile', 'assets,compile,dist:lib',
-#       'assets,compile,dist:root', 'assets,dist:lib', 'assets,dist:root',
-#       'compile', 'compile,dist:lib', 'compile,dist:root',
-#       'only_folder', 'only_folder,dist:lib', 'only_folder,dist:root',
-#       'only_folders', 'only_folders,dist:lib', 'only_folders,dist:root',
-#       'top_assets', 'top_assets,compile', 'top_assets,compile,dist:lib',
-#       'top_assets,compile,dist:root', 'top_assets,dist:lib',
-#       'top_assets,dist:root',
-#   ]
+# TAttachments = Dict[TPath, str]
+_TMark = Literal[
+    'asset', 'assets', 'compile', 'only_folder', 'only_folders', 'top_assets',
+]
 
 
+class _TAttachmentsValue(TypedDict):
+    marks: Tuple[_TMark, ...]
+    path: TPath
+
+
+TAttachments = dict[TPath, _TAttachmentsValue]
+
+# `template/pyproject.json::build:compiler:name`
 TCompilerNames = Literal['pyarmor', 'pyc', 'zipapp']
 
 
@@ -132,7 +129,7 @@ class _TBuildConf(TypedDict):
     icon: TPath
     target: TTarget
     readme: TPath
-    module_paths: List[TPath]
+    module_paths: list[TPath]
     attachments: TAttachments
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
@@ -144,6 +141,9 @@ class TConf(TypedDict):
     app_name: str
     app_version: str
     description: str
-    author: Union[str, List[str]]
+    author: Union[str, list[str]]
     build: _TBuildConf
     note: str
+
+
+TPyFilesToCompile = list[tuple[TPath, TPath]]

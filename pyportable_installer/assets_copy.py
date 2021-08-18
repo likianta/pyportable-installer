@@ -36,13 +36,16 @@ def copy_sources(proj_dir: TPath):
         proj_dir: 'project directory'. see `prebuild.py > _build_pyproject >
             params:proj_dir`
     """
-    yield from copy_assets({proj_dir: 'assets,compile'})
+    yield from copy_assets({
+        proj_dir: {'marks': ('assets', 'compile'), 'path': ''}
+    })
 
 
-def copy_assets(attachments: TAttachments) -> str:
+def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
     """ 将 `attachments` 中列出的 assets 类型的文件和文件夹复制到 `dst_dir`.
     
     关于 `attachments` 的标记:
+        FIXME (2021-08-18): 下述描述中涉及 'dist:xxx' 的部分已过时, 请及时更新.
         
         `attachments` 的结构为 `{file_or_dirpath: mark, ...}`. 其中键都是原始路
         径下的文件 (夹) (assert exist). 值 mark 有以下可选:
@@ -101,11 +104,6 @@ def copy_assets(attachments: TAttachments) -> str:
     
     Args:
         attachments (dict):
-    
-    Notes:
-        由于在 `pyportable_installer/no1_extract_pyproject.py:PathFormatter:
-        __call__` 中对 'dist:root' 转换成了 'dist:', 所以 `args:attachments:
-        values:each` 中不再有 'dist:root', 而是用 'dist:' 表示.
 
     Yields:
         *.py file which needs to be compiled
@@ -120,20 +118,21 @@ def copy_assets(attachments: TAttachments) -> str:
         # then handle subdirs'
         for dp_i, dp_o in handle_only_folders(dir_i, dir_o):
             for fp, fn in filesniff.find_files(dp_i, fmt='zip'):
+                fp_i, fp_o = fp, f'{dp_o}/{fn}'
                 if fn.endswith('.py'):
-                    yield fp
+                    yield fp_i, fp_o
                 else:
-                    fp_i, fp_o = fp, f'{dp_o}/{fn}'
                     shutil.copyfile(fp_i, fp_o)
     
     def handle_root_assets_and_compile(dir_i, dir_o):
         # if not ospath.exists(dir_o):
         #     os.mkdir(dir_o)
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+            fp_i, fp_o = fp, f'{dir_o}/{fn}'
             if fn.endswith('.py'):
-                yield fp
+                yield fp_i, fp_o
             else:
-                shutil.copyfile(fp, f'{dir_o}/{fn}')
+                shutil.copyfile(fp_i, fp_o)
     
     def handle_root_assets(dir_i, dir_o):
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
@@ -166,68 +165,55 @@ def copy_assets(attachments: TAttachments) -> str:
     # noinspection PyUnusedLocal
     def handle_compile(file_i, file_o):
         assert file_i.endswith('.py')
-        yield file_i
+        yield file_i, file_o
     
     # --------------------------------------------------------------------------
     
-    for path_i, mark in attachments.items():
-        mark = tuple(mark.split(','))
-        #   e.g. ('assets', 'compile')
-        is_yield_pyfile = 'compile' in mark
+    for k, v in attachments.items():
+        path_i = k
+        path_o = v['path'] or global_dirs.to_dist(path_i)
+        marks = v['marks']  # e.g. ('assets', 'compile')
+        
+        is_yield_pyfile = 'compile' in marks  # type: bool
         #   True: yield pyfile; False: copy pyfile
         
-        if mark[-1].startswith('dist:'):
-            dst_root = ospath.dirname(global_dirs.dst_root)
-            #   note `global_dirs.dst_root` is not a real root of dist dir. it
-            #   points to `{dist}/src`. so we use `ospath.dirname(global_dirs
-            #   .dst_root)` to get the real root of dist.
-            path_o_root = '{}/{}'.format(
-                mark[-1].replace('dist:root', dst_root),
-                ospath.basename(path_i)
-            )
-            src_to_dst = lambda _: path_o_root
-            #   `dist:` 意为 "将资产放在 `{dst_root}` 目录下"
-            #   `dist:lib/xxx` 意为 "将资产放在 `{dst_root}/lib/xxx` 目录下"
-        else:
-            src_to_dst = lambda p: global_dirs.to_dist(p)
-        
         # 1. `path_i` is file
-        if 'asset' in mark or ospath.isfile(path_i):
+        if 'asset' in marks or ospath.isfile(path_i):
             if is_yield_pyfile:
                 yield from handle_compile(path_i, '')
             else:
-                path_o = src_to_dst(path_i)
                 handle_asset(path_i, path_o)
             continue
         
         # 2. `path_i` is dir
         dir_i = path_i
-        dir_o = src_to_dst(path_i)
+        dir_o = path_o
+        
         if not ospath.exists(dir_o):
             os.mkdir(dir_o)
         
-        if 'root_assets' in mark:
+        if 'root_assets' in marks:
             if is_yield_pyfile:
                 yield from handle_root_assets_and_compile(dir_i, dir_o)
             else:
                 handle_root_assets(dir_i, dir_o)
         
-        elif 'assets' in mark:
+        elif 'assets' in marks:
             if is_yield_pyfile:
                 yield from handle_assets_and_compile(dir_i, dir_o)
             else:
                 handle_assets(dir_i, dir_o)
         
-        elif 'only_folders' in mark:
+        elif 'only_folders' in marks:
             assert is_yield_pyfile is False
             handle_only_folders(dir_i, dir_o)
         
-        elif 'only_folder' in mark:
+        elif 'only_folder' in marks:
             assert is_yield_pyfile is False
             handle_only_folder(dir_i, dir_o)
         
         else:
-            raise ValueError('unknown mark or incomplete mark', mark)
+            raise ValueError('unknown mark or incomplete mark', marks)
 
 
 def create_readme(file_i: TPath, file_o: TPath):

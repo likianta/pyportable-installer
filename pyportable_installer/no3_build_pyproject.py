@@ -104,7 +104,7 @@ def main(
         lib_dir=lib_dir, pyversion=embed_py_mgr.pyversion
     )
     
-    pyfiles_to_compile = []
+    pyfiles_to_compile = []  # type: TPyFilesToCompile
     pyfiles_to_compile.extend(copy_sources(proj_dir))
     pyfiles_to_compile.extend(copy_assets(attachments))
     
@@ -119,13 +119,11 @@ def main(
     )
     # pyfiles_to_compile.append(launch_file)
     
+    # lk.logp('[D2021]', pyfiles_to_compile)
     if misc.get('compile_scripts', True):
         compiler.compile_all(pyfiles_to_compile)
     else:
-        for src_file, dst_file in zip(
-                pyfiles_to_compile,
-                map(global_dirs.to_dist, pyfiles_to_compile)
-        ):
+        for src_file, dst_file in pyfiles_to_compile:
             shutil.copyfile(src_file, dst_file)
     
     return root_dir
@@ -198,9 +196,8 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     
     target_path = target['file']  # type: str
     target_dir = global_dirs.to_dist(ospath.dirname(target_path))
-    launch_dir = ospath.dirname(target_dir)
-    #   the launcher dir is parent of target dir, i.e. we put the launcher file
-    #   in the parent folder of target file's folder.
+    # launch_dir = ospath.dirname(target_dir)
+    launch_dir = f'{root_dir}/src'
     
     # target_reldir: 'target relative directory' (starts from `launch_dir`)
     # PS: it is equivalent to f'{target_dir_name}/{target_file_name}'
@@ -210,9 +207,8 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
     
     extend_sys_paths = list(map(
         lambda d: global_dirs.relpath(
-            global_dirs.to_dist(d) if not d.startswith('dist:')
-            else d.replace('dist:root', f'{root_dir}'),
-            launch_dir
+            global_dirs.to_dist(d) if not d.startswith(root_dir) else d,
+            start=launch_dir
         ),
         extend_sys_paths
     ))
@@ -229,15 +225,15 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
         TARGET_FUNC=target['function'] or '_',
         #   注意这里的 `target['function']`, 它有以下几种情况:
         #       target['function'] = some_str
-        #           对应于 `../template/bootloader.txt(后面简称 'bootloader')
-        #           ::底部位置::cmt:CASE3`
+        #           对应于 `template/bootloader.txt(后面简称 'bootloader')
+        #           ::底部位置::cmt:case3`
         #       target['function'] = '*'
-        #           对应于 `bootloader::底部位置::cmt:CASE2`
+        #           对应于 `bootloader::底部位置::cmt:case2`
         #       target['function'] = ''
-        #           对应于 `bootloader::底部位置::cmt:CASE1`
-        #   对于 CASE 1, 也就是 `target['function']` 为空字符串的情况, 我们必须
+        #           对应于 `bootloader::底部位置::cmt:case1`
+        #   对于 case 1, 也就是 `target['function']` 为空字符串的情况, 我们必须
         #   将其改为其他字符 (这里就用了下划线作替代). 否则, 会导致打包后的
-        #   `bootloader.py::底部位置::cmt:CASE3` 语句无法通过 Python 解释器.
+        #   `bootloader.py::底部位置::cmt:case3` 语句无法通过 Python 解释器.
         TARGET_ARGS=str(target['args']),
         TARGET_KWARGS=str(target['kwargs']),
     )

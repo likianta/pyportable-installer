@@ -17,7 +17,7 @@ def main(pyproj_file: str) -> TConf:
         docs/pyproject-template.md
         docs/devnote/difference-between-roots.md > h2:pyproj_root
     """
-    pyproj_root = pretty_path(ospath.dirname(pyproj_file))
+    pyproj_root = pretty_path(ospath.dirname(ospath.abspath(pyproj_file)))
     lk.loga(pyproj_root)
     
     conf = loads(pyproj_file)  # type: TConf
@@ -26,7 +26,7 @@ def main(pyproj_file: str) -> TConf:
     return conf
 
 
-def reformat_paths(conf: TConf, path_fmt: 'PathFormatter'):
+def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
     # tip: read the following code together with `./template/pyproject.json`
     
     conf['build']['proj_dir'] = path_fmt(
@@ -56,11 +56,37 @@ def reformat_paths(conf: TConf, path_fmt: 'PathFormatter'):
         )
     )
     
-    conf['build']['attachments'] = {
-        path_fmt(k): path_fmt(v) if 'dist:' in v else v
-        for (k, v) in conf['build']['attachments'].items()
-    }
+    # note: `conf['build']['attachments']` and `conf['build']['module_paths']`
+    # requires processing keyword paths (dist:xxx), so `path_fmt.dir_o` needs
+    # to be defined.
+    path_fmt.dir_o = conf['build']['dist_dir']
     
+    temp = {}  # type: TAttachments
+    for k, v in conf['build']['attachments'].items():
+        # lk.logt('[D0510]', k, v)
+        k = path_fmt(k)
+        if isinstance(v, dict):  # PERF: temporarily made for `aftermath.py >
+            #   func:_generate_manifest > calls:reformat_paths`
+            temp[k] = {'marks': v['marks'], 'path': path_fmt(v['path'])}
+        elif isinstance(v, str):
+            v = v.split(',')  # type: list[str]
+            if v[-1].startswith('dist:'):
+                assert len(v) > 1, (conf['build']['attachments'], k, v)
+                path = path_fmt(v[-1].format(name=ospath.basename(k)))
+                temp[k] = {'marks': tuple(v[:-1]), 'path': path}
+            else:
+                temp[k] = {'marks': tuple(v), 'path': ''}
+        else:
+            raise ValueError(k, v)
+    conf['build']['attachments'] = temp
+    
+    # PERF: 目前的设计是, `conf['build']['module_paths']` 同时支持来自 src_root
+    # 的路径和 dst_root 的路径 (这意味着 module_paths 接受 `dist:xxx` 关键词路
+    # 径), 在 `no3_build_pyproject.py > _create_launcher > extend_sys_paths` 中
+    # 兼容实现.
+    # 这种设计兼容性强, 但不太规范, 后面会考虑改变设计.
+    # 备忘: 基于 dst_root 的路径是不可忽略的, 因为某些情况 src_root 下不能提供所
+    # 需的自定义的 (可以是事先不存在的) 路径.
     conf['build']['module_paths'] = list(
         map(path_fmt, conf['build']['module_paths'])
     )
@@ -91,40 +117,34 @@ def reformat_paths(conf: TConf, path_fmt: 'PathFormatter'):
 
 class PathFormatter:
     
-    def __init__(self, root_dir, refmt_to='abspath'):
+    def __init__(self, dir_i, dir_o=None, refmt_to='abspath'):
         """
         
         Args:
-            root_dir:
-            refmt_to: literal['abspath', 'relpath'].
+            dir_i: TPath
+            dir_o: Optional[TPath]
+                if caller needs to process some paths containing keyword
+                'dist:', this param cannot be omitted.
+            refmt_to: Literal['abspath', 'relpath'].
                 see abspath usages in `reformat_paths` and relpath usages
                 in `aftermath.py:main`.
         """
-        self.root_dir = root_dir
+        self.dir_i = dir_i
+        self.dir_o = dir_o
         self.refmt_to = refmt_to
     
     def __call__(self, path: str):
         if path == '':
             return ''
-        elif 'dist:' in path:
-            # related:
-            #   `../assets_copy.py:copy_assets:[code]if mark[-1].startswith(
-            #       'dist:'):[vars]path_o_root`
-            #   `../no3_build_pyproject.py:_create_launcher:[vars]
-            #       extend_sys_paths`
-            if 'dist:root' not in path:
-                path = path.replace('dist:', 'dist:root/')  # <──┐
-            ''' 'dist:root'     ->  'dist:root'                  │
-                'dist:lib'      ->  'dist:root/lib' ─────────────┘
-                'dist:root/lib' ->  'dist:root/lib' '''
-            return pretty_path(path)
+        if 'dist:' in path:  # if path.startswith('dist:')
+            return pretty_path(path.replace('dist:', self.dir_o + '/'))
         elif ospath.isabs(path):
             if self.refmt_to == 'abspath':
                 return path
             else:
-                return pretty_path(ospath.relpath(path, self.root_dir))
+                return pretty_path(ospath.relpath(path, self.dir_i))
         else:
             if self.refmt_to == 'abspath':
-                return pretty_path(ospath.abspath(f'{self.root_dir}/{path}'))
+                return pretty_path(ospath.abspath(f'{self.dir_i}/{path}'))
             else:
                 return path

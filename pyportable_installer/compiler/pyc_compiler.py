@@ -1,7 +1,6 @@
 from os import popen
 
 from .base import BaseCompiler
-from ..global_dirs import global_dirs
 
 
 class PycCompiler(BaseCompiler):
@@ -11,9 +10,9 @@ class PycCompiler(BaseCompiler):
         self._code_template = 'from py_compile import compile; ' \
                               'compile(\'{src_file}\', \'{dst_file}\')'
     
-    def compile_all(self, pyfiles: list[str]):
-        for src_file in pyfiles:
-            dst_file = global_dirs.to_dist(src_file) + 'c'
+    def compile_all(self, pyfiles):
+        for src_file, dst_file in pyfiles:
+            dst_file += 'c'  # *.py -> *.pyc
             self.compile_one(src_file, dst_file)
     
     def compile_one(self, src_file, dst_file):

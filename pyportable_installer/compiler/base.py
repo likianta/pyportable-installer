@@ -20,7 +20,7 @@ class BaseCompiler:
         else:
             self._interpreter = 'python'
     
-    def compile_all(self, pyfiles: list[TPath]):
+    def compile_all(self, pyfiles: TPyFilesToCompile):
         raise NotImplementedError
     
     def compile_one(self, src_file: TPath, dst_file: TPath):

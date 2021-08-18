@@ -1,4 +1,4 @@
-from os import mkdir
+from os import mkdir, makedirs
 from os import path as ospath
 
 from lk_logger import lk
@@ -7,7 +7,7 @@ from .typehint import *
 
 
 def main(conf: TConf):
-    """ Create dist tree (all empty folders under dist root) """
+    """ Create dist-side tree (all empty folders under `dist_root`) """
     _precheck(conf)
     
     # create build_dir, lib_dir, src_dir
@@ -26,7 +26,7 @@ def main(conf: TConf):
                 + proj_dir
                 target
                     + file
-                + attachments (partial, which value not includes 'dist:')
+                + attachments
                 
     Do not add to source dirs (见减号标识):
         pyproject
@@ -34,16 +34,15 @@ def main(conf: TConf):
                 - dist_dir
                 - icon
                 - readme
-                - attachments (partial, which value includes 'dist:')
                 - module_paths
     """
     dist_tree.add_src_dirs(
         conf['build']['proj_dir'],
         conf['build']['target']['file'],
-        *(k for k, v in conf['build']['attachments'].items()
-          if 'dist:' not in v),
-        # *(v for v in conf['build']['module_paths']
-        #   if not v.startswith('dist:'))
+        # *conf['build']['attachments'].keys(),
+        *(k for k, v in conf['build']['attachments'].items() if v['path'] == ''),
+        # *filter(
+        #     None, (v['path'] for v in conf['build']['attachments'].values())),
     )
     
     src_root = dist_tree.suggest_src_root()
@@ -57,7 +56,10 @@ def main(conf: TConf):
 
 
 def _precheck(conf: TConf):
-    assert not ospath.exists(conf['build']['dist_dir'])
+    assert not ospath.exists(conf['build']['dist_dir']), (
+        'The target distribution directory already exists, please assign '
+        'another (non-existent) folder to distribute.'
+    )
     
     # from .global_dirs import curr_dir
     # if not ospath.exists(f'{curr_dir}/template/pytransform'):
@@ -69,21 +71,26 @@ def _precheck(conf: TConf):
         builder = EmbedPythonManager(
             pyversion=conf['build']['venv']['python_version']
         )
-        # try to get a valid embed python path, if failed, raise an error.
+        # try to get a valid embed python path, if failed, this method will
+        # raise an exception to terminate process.
         builder.get_embed_python_dir()
         
         mode = conf['build']['venv']['mode']
         if mode == 'source_venv':
             if venv_path := conf['build']['venv']['options'][mode]['path']:
                 if venv_path.startswith(src_path := conf['build']['proj_dir']):
-                    lk.logt('[C2015]',
-                            '请勿将虚拟环境放在您的源代码文件夹下! 这将导致虚拟'
-                            '环境中的第三方库代码也被加密, 通常情况下这会导致不'
-                            '可预测的错误发生. 您可以选择将虚拟环境目录放到与源'
-                            '代码同级的目录, 这是推荐的做法.\n'
-                            f'\t虚拟环境目录: {venv_path}\n'
-                            f'\t建议迁移至: {ospath.dirname(src_path)}/venv')
-                    if input('是否仍要继续运行? (y/n): ').lower() != 'y':
+                    lk.logt('[W2015]', f'''
+                        Please do not put the Python virtual environment folder
+                        in your source code folder! This will make the third-
+                        party libraries to be encrypted, which usually leads to
+                        unpredicatable errors.
+                        You can put venv aside with the source code dir, this
+                        is the recommended parctice.
+                        
+                        Current venv dir: {venv_path}
+                        Suggest moved to: {ospath.dirname(src_path)}/venv
+                    ''')
+                    if input('Continue the process? (y/n): ').lower() != 'y':
                         raise SystemExit
 
 
@@ -92,16 +99,14 @@ class DistTree:
     def __init__(self):
         self.paths = []  # type: list[str]
         #   note all elements in `self.paths` are directories. see
-        #   implementation at `method:self.add_src_dirs`.
+        #   implementation in `method:self.add_src_dirs`.
     
     def add_src_dirs(self, *paths: str):
         for p in paths:
-            if p == '':
-                continue
-            else:
+            if p:
                 assert ospath.exists(p)
                 self.paths.append(_get_dir(p))
-            # lk.logt('[D1118]', p)
+                # lk.logt('[D1118]', p)
     
     def suggest_src_root(self):
         try:
@@ -131,7 +136,8 @@ class DistTree:
                 existed.add(dir_)
                 if not ospath.exists(dir_):
                     lk.logt('[D0604]', 'creat empty folder', dir_)
-                    mkdir(dir_)
+                    # mkdir(dir_)
+                    makedirs(dir_)
         
         # part 2.
         from .global_dirs import global_dirs
@@ -144,7 +150,7 @@ class DistTree:
         
         # part 3.
         src_dirs.sort()
-        # lk.logp(self.paths)
+        lk.logp(self.paths)
         for src_path in src_dirs:
             dst_path = get_dst_path(src_path)
             _mkdir(dst_path)

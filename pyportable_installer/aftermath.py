@@ -41,7 +41,9 @@ def _generate_manifest(prj_conf: TConf, dir_o: TPath):
     from .global_dirs import global_dirs
     from .no1_extract_pyproject import PathFormatter, reformat_paths
     
-    prj_conf = reformat_paths(prj_conf, path_fmt=global_dirs.to_dist)
+    prj_conf = reformat_paths(
+        prj_conf, path_fmt=lambda p: global_dirs.to_dist(p) if p else ''
+    )
     
     # 然后, 基于安全考虑, 再将这些绝对路径转换为相对路径 (相对于 `dir_o`, 即
     # `打包目录/build`)

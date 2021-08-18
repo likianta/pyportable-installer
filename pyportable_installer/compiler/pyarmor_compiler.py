@@ -1,10 +1,9 @@
-from os import path as ospath
+from os import path as ospath, remove
 from shutil import copyfile
 
 from lk_logger import lk
 
 from .base import BaseCompiler
-from ..global_dirs import global_dirs
 from ..utils import send_cmd, new_thread
 
 
@@ -75,14 +74,13 @@ class PyArmorCompiler(BaseCompiler):
             #   see `cmd:pyarmor runtime -h`
         copytree(dir_i, dir_o)
     
-    def compile_all(self, pyfiles: list[str]):
+    def compile_all(self, pyfiles):
         """
         
         References:
             docs/devnote/how-does-pytransform-work.md
         """
-        for src_file in pyfiles:
-            dst_file = global_dirs.to_dist(src_file)
+        for src_file, dst_file in pyfiles:
             self.compile_one(src_file, dst_file)
     
     @new_thread
@@ -136,17 +134,12 @@ class PyArmorCompiler(BaseCompiler):
             if (size := ospath.getsize(src_file)) > 32768:
                 lk.logt(
                     '[W0357]',
-                    f'该文件: "{src_file}" 的体积 ({size}) 超出了 pyarmor 试用'
-                    f'版的限制, 请购买个人版或商业版许可后重新编译! (本文件谨以'
-                    f'源码形式打包)'
+                    f'该文件: "{src_file}" 的体积超出了 pyarmor 试用版的限制 '
+                    f'({size} > 32768 Bytes) , 请购买个人版或商业版许可后重新编'
+                    f'译! (本文件谨以源码形式打包)'
                 )
                 copyfile(src_file, dst_file)
                 return
-            # 注意: 虽然我们已经事先判断了, 如果文件体积大于试用版 pyarmor 的限
-            # 制就不用 pyarmor 编译, 但是事实上仍会发生极少数 py 文件体积未超过
-            # 限制却被 pyarmor 报超出限制的错误. 该现象目前在编译虚拟环境下的
-            # gb2312.py 文件遇到过一次. 为了处理该报错, 我们需要从 subprocess 中
-            # 获取到错误, 并转为拷贝源码的方式. 详见下面的处理.
         
         cmd = (
             f'{self._head} --silent obfuscate'
@@ -169,7 +162,6 @@ class PyArmorCompiler(BaseCompiler):
         try:
             send_cmd(cmd)
         except Exception as e:
-            lk.logt('[E1747]', e)
-            from os import remove
-            remove(dst_file)
+            lk.logt('[E1747]', 'compile failed', e)
+            if ospath.exists(dst_file): remove(dst_file)
             copyfile(src_file, dst_file)
