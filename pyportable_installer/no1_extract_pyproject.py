@@ -7,15 +7,14 @@ from .global_dirs import global_dirs, pretty_path
 from .typehint import *
 
 
-def main(pyproj_file: str, **kwargs) -> TConf:
+def main(pyproj_file: TPath, addional_conf=None, refmt_to='abspath') -> TConf:
     """
 
     Args:
         pyproj_file: see template at `./template/pyproject.json`
-
-    Keyword Args:
+        addional_conf: Optional[dict]
         refmt_to: Literal['abspath', 'relpath']
-
+    
     References:
         docs/pyproject-template.md
         docs/devnote/difference-between-roots.md > h2:pyproj_root
@@ -26,9 +25,21 @@ def main(pyproj_file: str, **kwargs) -> TConf:
     conf = loads(pyproj_file)  # type: TConf
     conf = reformat_paths(
         conf, PathFormatter(
-            pyproj_root, refmt_to=kwargs.get('refmt_to', 'abspath')
+            pyproj_root, refmt_to=refmt_to
         )
     )
+    
+    def udpate_conf(node: dict, subject: dict):
+        for k, v in node.items():
+            if isinstance(v, dict):
+                udpate_conf(v, subject[k])
+            elif isinstance(v, list):
+                subject[k].extend(v)
+            else:
+                subject[k] = v
+    
+    if addional_conf:
+        udpate_conf(addional_conf, conf)
     
     return conf
 
@@ -72,6 +83,7 @@ def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
     for k, v in conf['build']['attachments'].items():
         # lk.logt('[D0510]', k, v)
         k = path_fmt(k)
+        # noinspection PyUnresolvedReferences
         v = v.split(',')  # type: list[str]
         if v[-1].startswith('dist:'):
             assert len(v) > 1, (conf['build']['attachments'], k, v)

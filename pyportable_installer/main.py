@@ -37,33 +37,33 @@ class Misc:
         }
 
 
-def full_build(file):
+def full_build(file, **kwargs):
     Misc.create_checkup_tools = True
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'copy'
-    return main(file, Misc.dump())
+    return main(file, kwargs, Misc.dump())
 
 
-def min_build(file):
+def min_build(file, **kwargs):
     Misc.create_checkup_tools = False
     Misc.create_launch_bat = True
     #   True (suggest) | False
     Misc.how_venv_created = 'empty_folder'
     #   'empty_folder' (suggest) | 'symbolink'
-    return main(file, Misc.dump())
+    return main(file, kwargs, Misc.dump())
 
 
-def debug_build(file):
+def debug_build(file, **kwargs):
     Misc.create_checkup_tools = False
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'symbolink'
     Misc.compile_scripts = False
     Misc.do_aftermath = False
     Misc.log_verbose = True
-    return main(file, Misc.dump())
+    return main(file, kwargs, Misc.dump())
 
 
-def main(pyproj_file: TPath, misc: TMisc) -> TConf:
+def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
     """
     几个关键目录的区分和说明: `../docs/devnote/difference-between-roots.md`
     """
@@ -71,13 +71,13 @@ def main(pyproj_file: TPath, misc: TMisc) -> TConf:
     if misc.get('log_verbose', False) is False:
         lk.lite_mode = True
     
-    prj_conf = step1(pyproj_file)
+    prj_conf = step1(pyproj_file, additional_conf)
     ________ = step2(prj_conf)  # 下划线只是为了让代码看起来整齐, 无实际意义
     dst_root = step3(prj_conf['app_name'], **prj_conf['build'], **misc)
     
     m, n = ospath.split(dst_root)
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
-    #   this path link is clickable via pycharm console ^-----^
+    #   this path link is clickable in pycharm console  ^-----^
     
     if misc.get('do_aftermath', True):
         from .aftermath import main as do_aftermath

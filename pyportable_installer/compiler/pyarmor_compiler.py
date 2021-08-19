@@ -33,8 +33,8 @@ class PyArmorCompiler(BaseCompiler):
             self._interpreter = python_interpreter.replace('/', '\\')
             # create pyarmor file copy
             origin_file = self._locate_pyarmor_script()
-            backup_file = origin_file.removesuffix('.py') + '_copy.py'
-            if not ospath.exists(backup_file):
+            hacked_file = origin_file.removesuffix('.py') + '_copy.py'
+            if not ospath.exists(hacked_file):
                 from lk_utils.read_and_write import loads, dumps
                 content = loads(origin_file)
                 dumps('\n'.join([
@@ -42,8 +42,8 @@ class PyArmorCompiler(BaseCompiler):
                     'from sys import path as syspath',
                     'syspath.append(dirname(__file__))',
                     content
-                ]), backup_file)
-            self._pyarmor = backup_file
+                ]), hacked_file)
+            self._pyarmor = hacked_file
             self._head = f'"{self._interpreter}" "{self._pyarmor}"'
         else:
             self._interpreter = 'python'
