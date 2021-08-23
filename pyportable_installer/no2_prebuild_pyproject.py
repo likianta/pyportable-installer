@@ -15,6 +15,7 @@ def main(conf: TConf):
     mkdir(conf['build']['dist_dir'] + '/build')
     mkdir(conf['build']['dist_dir'] + '/lib')
     mkdir(conf['build']['dist_dir'] + '/src')
+    mkdir(conf['build']['dist_dir'] + '/src/.pylauncher_conf')
     
     dist_tree = DistTree()
     

@@ -42,7 +42,7 @@ def parse_target_conf(args):
     if len(args) == 0:
         raise Exception(args)
     elif len(args) == 1:
-        conf = 'default.pkl'
+        conf = './pylauncher_conf/default.pkl'
     elif len(args) == 2:
         conf = args[1]
     else:

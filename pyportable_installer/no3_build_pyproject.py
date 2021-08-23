@@ -161,6 +161,7 @@ def _precheck(prj_dir, dst_dir, readme_file, attachments):
     assert ospath.exists(f'{dst_dir}/build')
     assert ospath.exists(f'{dst_dir}/lib')
     assert ospath.exists(f'{dst_dir}/src')
+    assert ospath.exists(f'{dst_dir}/src/.pylauncher_conf')
     assert readme_file == '' or ospath.exists(readme_file)
     assert all(map(ospath.exists, attachments.keys()))
 
@@ -214,7 +215,7 @@ def _create_launcher(
         'target_dir' : global_dirs.to_dist(ospath.dirname(target['file'])),
         'launch_file': f'{root_dir}/src/pylauncher.py',
         'launch_dir' : f'{root_dir}/src',
-        'conf_file'  : f'{root_dir}/src/{conf_filename}.pkl',
+        'conf_file'  : f'{root_dir}/src/.pylauncher_conf/{conf_filename}.pkl',
         'bat_file'   : f'{root_dir}/{app_name}.bat',
         'exe_file'   : f'{root_dir}/{app_name}.exe',
     }
