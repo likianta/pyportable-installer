@@ -73,6 +73,13 @@ def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
             dist_dir=conf['build']['dist_dir']
         )
     )
+
+    for t in conf['build']['side_utils']:
+        t['file'] = path_fmt(
+            t['file'].format(
+                dist_dir=conf['build']['dist_dir']
+            )
+        )
     
     # note: `conf['build']['attachments']` and `conf['build']['module_paths']`
     # requires processing keyword paths (dist:xxx), so `path_fmt.dir_o` needs

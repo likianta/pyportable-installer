@@ -39,9 +39,9 @@ class EmbedPythonManager:
                     '3.8-32': f'{download_dir}/windows/'
                               f'python-3.8.10-embed-win32',
                     '3.9'   : f'{download_dir}/windows/'
-                              f'python-3.9.5-embed-amd64',
+                              f'python-3.9.6-embed-amd64',
                     '3.9-32': f'{download_dir}/windows/'
-                              f'python-3.9.5-embed-win32',
+                              f'python-3.9.6-embed-win32',
                 },
                 # https://www.python.org/downloads/windows/
                 'server': {
@@ -62,9 +62,9 @@ class EmbedPythonManager:
                     '3.8-32': 'https://www.python.org/ftp/python/'
                               '3.8.10/python-3.8.10-embed-win32.zip',
                     '3.9'   : 'https://www.python.org/ftp/python/'
-                              '3.9.5/python-3.9.5-embed-amd64.zip',
+                              '3.9.6/python-3.9.6-embed-amd64.zip',
                     '3.9-32': 'https://www.python.org/ftp/python/'
-                              '3.9.5/python-3.9.5-embed-win32.zip',
+                              '3.9.6/python-3.9.6-embed-win32.zip',
                 }
             },
             # TODO: more system options

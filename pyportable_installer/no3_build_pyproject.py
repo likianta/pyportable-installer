@@ -1,4 +1,7 @@
-from lk_utils.read_and_write import dumps, loads
+import pickle
+from uuid import uuid1
+
+from lk_utils.read_and_write import ropen, wopen
 
 from .assets_copy import *
 from .compiler import get_compiler
@@ -14,6 +17,7 @@ def main(
         app_name: str,
         proj_dir: TPath, dist_dir: TPath,
         target: TTarget,
+        side_utils: list[TTarget],
         venv: TVenvBuildConf,
         compiler: TCompiler,
         module_paths: list[TPath],
@@ -41,6 +45,7 @@ def main(
             Note this directory is equivalent to `global_dirs.py::global_vars
             :global_dirs::attrs:dst_root`, this is the parent dir of that.
         target: See `docs/pyproject-template.md::build:target`
+        side_utils:
         module_paths: See `func:_create_launcher`
         attachments: See `assets_copy.py::copy_assets::docstring:attachments`
         venv: See `docs/pyproject-template.md::build:venv`
@@ -111,13 +116,32 @@ def main(
     # noinspection PyUnusedLocal
     launch_file = _create_launcher(
         app_name, misc.get('icon', ''), target, root_dir,
-        pyversion=embed_py_mgr.pyversion,
+        is_main_conf=True,
         extend_sys_paths=module_paths,
         enable_venv=venv['enable_venv'],
         enable_console=misc.get('enable_console', True),
-        create_launch_bat=misc.get('create_launch_bat', True),
+        generate_bat=misc.get('create_launch_bat', True),  # FIXME: rename misc:key
+        generate_exe=True,
     )
     # pyfiles_to_compile.append(launch_file)
+
+    names = []
+    for i in side_utils:
+        name = filesniff.get_filename(i['file'], suffix=False)
+        if name in names:  # TODO: need optimization
+            lk.logt('[W2628]', 'duplicated names found in side utils',
+                    names, name)
+            name += str(uuid1())
+        _create_launcher(
+            name, '', i, root_dir,
+            is_main_conf=False,
+            extend_sys_paths=module_paths,
+            enable_venv=venv['enable_venv'],
+            enable_console=misc.get('enable_console', True),
+            generate_pylauncher=False,
+            generate_bat=True,
+            generate_exe=False,  # False | True
+        )
     
     # lk.logp('[D2021]', pyfiles_to_compile)
     if misc.get('compile_scripts', True):
@@ -141,9 +165,11 @@ def _precheck(prj_dir, dst_dir, readme_file, attachments):
     assert all(map(ospath.exists, attachments.keys()))
 
 
-def _create_launcher(app_name, icon, target, root_dir, pyversion,
-                     extend_sys_paths=None, enable_venv=True,
-                     enable_console=True, create_launch_bat=True):
+def _create_launcher(
+        app_name, icon, target, root_dir, is_main_conf: bool,
+        extend_sys_paths=None, enable_venv=True, enable_console=True,
+        generate_pylauncher=True, generate_bat=True, generate_exe=True,
+):
     """ Create launcher ({srcdir}/bootloader.py).
 
     Args:
@@ -157,130 +183,142 @@ def _create_launcher(app_name, icon, target, root_dir, pyversion,
             'kwargs': {...}
         }
         root_dir (str):
-        pyversion (str):
+        is_main_conf:
         extend_sys_paths (list[str]):
         enable_venv (bool):
         enable_console (bool):
-        create_launch_bat (bool):
+        generate_pylauncher
+        generate_bat
+        generate_exe
     
     详细说明
         启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
         启动器图标位于: '{root_dir}/{app_name}.exe'
-        引导装载程序位于: '{root_dir}/src/bootloader.pyc'
+        引导装载程序位于: '{root_dir}/src/pylauncher.py'
     
         1. 二者的体积都非常小
         2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的
-           路径和 bootloader 的路径, 通过调用编译器执行 bootloader.pyc
-        3. bootloader 主要完成了以下两项工作:
-            1. 向 sys.path 中添加当前工作目录和自定义的模块目录
-            2. 对主脚本加了一个 try catch 结构, 以便于捕捉主程序报错时的信息, 并
-               以系统弹窗的形式给用户. 这样就摆脱了控制台打印的需要, 使我们的软
-               件表现得更像是一款软件
-
-    Notes:
-        1. 启动器在调用主脚本 (`func:main::args:main_script`) 之前, 会通过
-           `os.chdir` 切换到主脚本所在的目录, 这样我们项目源代码中的所有相对路
-           径, 相对引用都能正常工作
-
-    References:
-        - template/launch_by_system.bat
-        - template/launch_by_venv.bat
-        - template/bootloader.txt
+           路径和 pylauncher.py 的路径, 通过调用编译器执行 pylauncher.py
+        3. pylauncher.py 主要完成了以下两项工作:
+            1. 更新 sys.path
+            2. 获取 target 的相关信息
+            3. 调用 target, 并捕获可能的报错, 并输出打印到控制台
     
     Returns:
-        launch_file: ``{root_dir}/src/{bootloader_name}.py``.
-
+        launch_file: '{root_dir}/src/pylauncher.py'
     """
-    launcher_name = app_name
-    bootloader_name = 'bootloader'
+    conf_filename = 'default' if is_main_conf else str(uuid1())
     
-    target_path = target['file']  # type: str
-    target_dir = global_dirs.to_dist(ospath.dirname(target_path))
-    # launch_dir = ospath.dirname(target_dir)
-    launch_dir = f'{root_dir}/src'
+    abs_paths = {
+        'target_file': target['file'],
+        'target_dir' : global_dirs.to_dist(ospath.dirname(target['file'])),
+        'launch_file': f'{root_dir}/src/pylauncher.py',
+        'launch_dir' : f'{root_dir}/src',
+        'conf_file'  : f'{root_dir}/src/{conf_filename}.pkl',
+        'bat_file'   : f'{root_dir}/{app_name}.bat',
+        'exe_file'   : f'{root_dir}/{app_name}.exe',
+    }
     
-    # target_reldir: 'target relative directory' (starts from `launch_dir`)
-    # PS: it is equivalent to f'{target_dir_name}/{target_file_name}'
-    target_reldir = global_dirs.relpath(target_dir, launch_dir)
-    target_pkg = target_reldir.replace('/', '.')
-    target_name = filesniff.get_filename(target_path, suffix=False)
-    
-    extend_sys_paths = list(map(
-        lambda d: global_dirs.relpath(
-            global_dirs.to_dist(d) if not d.startswith(root_dir) else d,
-            start=launch_dir
-        ),
-        extend_sys_paths
-    ))
-    
-    template = loads(global_dirs.template('bootloader.txt'))
-    code = template.format(
-        # see `template/bootloader.txt > docstring:placeholders`
-        LIB_RELDIR=global_dirs.relpath(f'{root_dir}/lib', launch_dir),
-        SITE_PACKAGES='../venv/site-packages' if enable_venv else '',
-        EXTEND_SYS_PATHS=str(extend_sys_paths),
-        TARGET_RELDIR=target_reldir,
-        TARGET_PKG=target_pkg,
-        TARGET_NAME=target_name,
-        TARGET_FUNC=target['function'] or '_',
-        #   注意这里的 `target['function']`, 它有以下几种情况:
-        #       target['function'] = some_str
-        #           对应于 `template/bootloader.txt(后面简称 'bootloader')
-        #           ::底部位置::cmt:case3`
-        #       target['function'] = '*'
-        #           对应于 `bootloader::底部位置::cmt:case2`
-        #       target['function'] = ''
-        #           对应于 `bootloader::底部位置::cmt:case1`
-        #   对于 case 1, 也就是 `target['function']` 为空字符串的情况, 我们必须
-        #   将其改为其他字符 (这里就用了下划线作替代). 否则, 会导致打包后的
-        #   `bootloader.py::底部位置::cmt:case3` 语句无法通过 Python 解释器.
-        TARGET_ARGS=str(target['args']),
-        TARGET_KWARGS=str(target['kwargs']),
-    )
-    dumps(code, launch_file := f'{launch_dir}/{bootloader_name}.py')
+    _rel = lambda p: global_dirs.relpath(p, abs_paths['launch_dir'])
+    rel_paths = {
+        'lib_dir'   : _rel(f'{root_dir}/lib'),
+        'target_dir': _rel(abs_paths['target_dir']),
+        'conf_file' : _rel(abs_paths['conf_file']),
+        'venv_dir'  : _rel(f'{root_dir}/venv'),
+    }
+    del _rel
     
     # --------------------------------------------------------------------------
     
-    # template = loads(global_dirs.template('pytransform.txt'))
-    # code = template.format(
-    #     LIB_PARENT_RELDIR='../'
-    # )
-    # dumps(code, f'{root_dir}/src/pytransform.py')
+    def _generate_target_conf():
+        with open(abs_paths['conf_file'], 'wb') as f:
+            target_dir = rel_paths['target_dir']
+            # target_pkg = target_dir.replace('/', '.')
+            target_pkg = target_dir
+            target_mod = '.' + filesniff.get_filename(
+                abs_paths['target_file'], suffix=False)
+            
+            pickle.dump({
+                'TARGET_DIR'   : target_dir,
+                'TARGET_PKG'   : target_pkg,
+                'TARGET_MOD'   : target_mod,
+                'TARGET_FUNC'  : target['function'],
+                'TARGET_ARGS'  : target['args'],
+                'TARGET_KWARGS': target['kwargs'],
+            }, f)
     
-    # --------------------------------------------------------------------------
+    def _generate_pylauncher():
+        _ext_paths = list(map(
+            lambda d: global_dirs.relpath(
+                global_dirs.to_dist(d) if not d.startswith(root_dir) else d,
+                start=abs_paths['launch_dir']
+            ),
+            extend_sys_paths
+        ))
     
-    if create_launch_bat is False:
-        return launch_file
+        with ropen(global_dirs.template('pylauncher.txt')) as f:
+            template = f.read()
+            code = template.format(
+                # see `template/pylauncher.txt > docs:placeholders`
+                PROJ_LIB_DIR=rel_paths['lib_dir'],
+                EXTEND_PATHS=str(_ext_paths),
+                # DEFAULT_CONF='default.pkl',
+            )
     
-    if enable_venv:  # suggest
-        template = loads(global_dirs.template('launch_by_venv.bat'))
-    else:
-        template = loads(global_dirs.template('launch_by_system.bat'))
-    code = template.format(
-        PYVERSION=pyversion.replace('.', ''),  # ...|'37'|'38'|'39'|...
-        VENV_RELDIR=global_dirs.relpath(f'{root_dir}/venv', launch_dir)
-            .replace('/', '\\'),
-        LAUNCHER_RELDIR=global_dirs.relpath(launch_dir, root_dir)
-            .replace('/', '\\'),
-        LAUNCHER_NAME=f'{bootloader_name}.py',
-    )
-    bat_file = f'{root_dir}/{launcher_name}.bat'
-    # lk.logt('[D3432]', code)
-    dumps(code, bat_file)
+        with wopen(abs_paths['launch_file']) as f:
+            f.write(code)
+
+    def _generate_bat():
+        with ropen(global_dirs.template('launch.bat')) as f:
+            template = f.read()
+            if enable_venv:
+                code = template.format(
+                    PYTHON='{}/python.exe'.format(
+                        rel_paths['venv_dir']).replace('/', '\\'),
+                    PYCONF='%*' if is_main_conf else rel_paths['conf_file']
+                    #   '%*' supports passing multiple arguments to python. for
+                    #   example:
+                    #       example.bat:
+                    #           python test.py %*
+                    #       test.py
+                    #           import sys
+                    #           print(sys.argv)
+                    #       cmd:
+                    #           example.bat hello world 1 2 3
+                    #       output:
+                    #           ['test.py', 'hello', 'world', '1', '2', '3']
+                )
+            else:
+                code = template.format(
+                    PYTHON='python',
+                    PYCONF='%*' if is_main_conf else rel_paths['conf_file']
+                )
     
-    # 这是一个耗时操作 (大约需要 10s), 我们把它放在子线程执行
-    def generate_exe(bat_file, exe_file, icon_file, *options):
-        from .bat_2_exe import bat_2_exe
-        lk.loga('converting bat to exe... '
-                'it may take several seconds ~ one minute...')
-        bat_2_exe(bat_file, exe_file, icon_file, *options)
-        lk.loga('convertion bat-to-exe done')
+        with wopen(abs_paths['bat_file']) as f:
+            f.write(code)
+            
+    def _generate_exe():
+        def _run(bat_file, exe_file, icon_file, *options):
+            from .bat_2_exe import bat_2_exe
+            lk.loga('converting bat to exe... '
+                    'it may take several seconds ~ one minute...')
+            bat_2_exe(bat_file, exe_file, icon_file, *options)
+            lk.loga('convertion bat-to-exe done')
+
+        # 这是一个耗时操作 (大约需要 10s), 我们把它放在子线程执行
+        global thread
+        thread = runnin_new_thread(
+            _run,
+            abs_paths['bat_file'], abs_paths['exe_file'], icon, '/x64',
+            '' if enable_console else '/invisible'
+        )
+
+    _generate_target_conf()
+    if generate_pylauncher:
+        _generate_pylauncher()
+    if generate_bat:
+        _generate_bat()
+        if generate_exe:
+            _generate_exe()
     
-    global thread
-    thread = runnin_new_thread(
-        generate_exe,
-        bat_file, f'{root_dir}/{launcher_name}.exe', icon, '/x64',
-        '' if enable_console else '/invisible'
-    )
-    
-    return launch_file
+    return abs_paths['launch_file']

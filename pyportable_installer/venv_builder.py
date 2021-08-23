@@ -58,10 +58,11 @@ def create_venv(
             mode = 'empty_folder'
             lk.logt(
                 '[W3359]',
-                ''' cannot create symbol link acrossing different drivers:
-                        {} --x--> {}
-                    will do nothing instead. you need to copy them by manual
-                    after installer finished.
+                '''
+                cannot create symbol link acrossing different drivers:
+                    {} --x--> {}
+                pyportable won't create this link. you need to copy them
+                manually after the installation finished.
                 '''.format(
                     f'{src_venv_dir}/lib/site-packages',
                     f'{dst_venv_dir}/site-packages'
@@ -149,7 +150,6 @@ def _build_venv_by_pip(requirements: TRequirements, pypi_url, local, offline,
                 aliyun      http://mirrors.aliyun.com/pypi/simple/
                 ustc        https://pypi.mirrors.ustc.edu.cn/simple/
                 douban      http://pypi.douban.com/simple/
-                
         local:
         offline:
         pyversion:

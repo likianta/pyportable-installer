@@ -1,0 +1,121 @@
+"""
+Funtions:
+    1. Update `sys.path`.
+    2. Locate and check out target module.
+    3. Passing args and kwargs to target function.
+
+Placeholders:
+    PROJ_LIB_DIR        dir
+    EXTEND_PATHS        list[dir]
+    *DEFAULT_CONF*      file[*.pkl]
+        TARGET_DIR      dir
+        TARGET_PKG      str
+        TARGET_MOD      str
+        TARGET_FUNC     str
+        TARGET_ARGS     list[val]
+        TARGET_KWARGS   dict[var, val]
+"""
+import os
+import sys
+import traceback
+
+from importlib import import_module
+from os.path import abspath
+
+# add current dir to `sys.path` (this is necessary for embed python)
+sys.path.append(abspath('.'))
+
+# add project lib to environment
+sys.path.append(abspath('{PROJ_LIB_DIR}'))
+
+ext_paths = {EXTEND_PATHS}
+if ext_paths:
+    sys.path.extend(map(abspath, ext_paths))
+
+
+# ------------------------------------------------------------------------------
+
+def parse_target_conf(args):
+    if len(args) == 2 and args[1].endswith('.exe'):
+        args.pop(1)
+
+    if len(args) == 0:
+        raise Exception(args)
+    elif len(args) == 1:
+        conf = 'default.pkl'
+    elif len(args) == 2:
+        conf = args[1]
+    else:
+        # TODO: see https://www.cnblogs.com/techflow/p/13631509.html
+        # from argparse import ArgumentParser
+        # parser = ArgumentParser()
+        # parser.add_argument('file')
+        # parser.add_argument('...')
+        raise NotImplemented('PyPortable-Installer doesn\'t support parsing '
+                             'custom `sys.argv` for now', args)
+    if conf.endswith('.json'):
+        from json import load
+    elif conf.endswith('.pkl'):
+        from pickle import load
+    else:
+        raise Exception('Unknown file type to load config!', conf)
+    with open(conf, 'rb') as f:
+        return load(f)
+
+
+def launch(main_func, *args, **kwargs):
+    try:
+        main_func(*args, **kwargs)
+    except Exception:
+        _show_error_info(traceback.format_exc())
+    finally:
+        input('Press enter or close the window to leave...')
+        sys.exit()
+
+
+def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):
+    """
+    Args:
+        err_msg: suggest passing `traceback.format_exc()`.
+        title:
+        terminal:
+
+    Rerferences:
+        https://stackoverflow.com/questions/1278705/when-i-catch-an-exception
+            -how-do-i-get-the-type-file-and-line-number
+        https://stackoverflow.com/questions/17280637/tkinter-messagebox-without
+            -window
+        https://www.cnblogs.com/freeweb/p/5048833.html
+    """
+    if terminal == 'console':
+        print(title + ':', err_msg)
+    elif terminal == 'tkinter':
+        from tkinter import Tk, messagebox
+        root = Tk()
+        root.withdraw()
+        messagebox.showerror(title=title, message=err_msg)
+    elif terminal == 'vbsbox':
+        return os.popen(
+            'echo msgbox "{{msg}}", 64, "{{title}}" > '
+            'alert.vbs && start '
+            'alert.vbs && ping -n 2 127.1 > '
+            'nul && del alert.vbs'.format(title=title, msg=err_msg)
+        ).read()
+
+
+if __name__ == '__main__':
+    try:
+        conf = parse_target_conf(sys.argv)
+
+        # check in target dir to make sure all sequent relative paths
+        # references are based on the target dir.
+        os.chdir(conf['TARGET_DIR'])
+
+        mod = import_module(conf['TARGET_MOD'], conf['TARGET_PKG'])
+        if conf['TARGET_FUNC']:
+            main = getattr(mod, conf['TARGET_FUNC'])
+            launch(main, *conf['TARGET_ARGS'], **conf['TARGET_KWARGS'])
+
+    except Exception:
+        _show_error_info(traceback.format_exc())
+        input('Press enter or close the window to leave...')

@@ -128,6 +128,7 @@ class _TBuildConf(TypedDict):
     dist_dir: TPath
     icon: TPath
     target: TTarget
+    side_utils: list[TTarget]
     readme: TPath
     module_paths: list[TPath]
     attachments: TAttachments
