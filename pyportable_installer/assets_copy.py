@@ -108,6 +108,7 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
     Yields:
         *.py file which needs to be compiled
     """
+    global _excludes
     
     def handle_assets(dir_i, dir_o):
         shutil.copytree(dir_i, dir_o, dirs_exist_ok=True)
@@ -117,17 +118,15 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
         yield from handle_root_assets_and_compile(dir_i, dir_o)
         # then handle subdirs'
         for dp_i, dp_o in handle_only_folders(dir_i, dir_o):
-            for fp, fn in filesniff.find_files(dp_i, fmt='zip'):
-                fp_i, fp_o = fp, f'{dp_o}/{fn}'
-                if fn.endswith('.py'):
-                    yield fp_i, fp_o
-                else:
-                    shutil.copyfile(fp_i, fp_o)
+            yield from handle_root_assets_and_compile(dp_i, dp_o)
     
     def handle_root_assets_and_compile(dir_i, dir_o):
         # if not ospath.exists(dir_o):
         #     os.mkdir(dir_o)
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+            if _excludes.is_protected(fn, fp, 'file'):
+                lk.logt('[D1408]', 'skip making file', fp)
+                continue
             fp_i, fp_o = fp, f'{dir_o}/{fn}'
             if fn.endswith('.py'):
                 yield fp_i, fp_o
@@ -136,6 +135,9 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
     
     def handle_root_assets(dir_i, dir_o):
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
+            if _excludes.is_protected(fn, fp, 'file'):
+                lk.logt('[D1408]', 'skip making file', fp)
+                continue
             shutil.copyfile(fp, f'{dir_o}/{fn}')
     
     # noinspection PyUnusedLocal
@@ -143,7 +145,6 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
         assert ospath.exists(dir_o)
     
     def handle_only_folders(dir_i, dir_o):
-        global _excludes
         out = []
         for dp, dn in filesniff.findall_dirs(
                 dir_i, fmt='zip', exclude_protected_folders=False
@@ -151,7 +152,7 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
                 #   set this param to False, we will use our own exclusion rule
                 #   (i.e. `globals:_excludes.is_protected`) instead.
         ):
-            if _excludes.is_protected(dn, dp):
+            if _excludes.is_protected(dn, dp, 'dir'):
                 lk.logt('[D1409]', 'skip making dir', dp)
                 continue
             subdir_i, subdir_o = dp, dp.replace(dir_i, dir_o, 1)
@@ -234,10 +235,16 @@ class ExcludedPaths:
     
     def __init__(self):
         self.protected_dirnames = ('__pycache__', '.git', '.idea', '.svn')
+        self.protected_filenames = ('.gitkeep', '.gitignore')
         self.excluded_paths = set()
     
-    def is_protected(self, name: str, path: str):
-        if name in self.protected_dirnames or \
+    def is_protected(self, name: str, path: str, ftype):
+        if ftype == 'file':
+            _protected_list = self.protected_filenames
+        else:
+            _protected_list = self.protected_dirnames
+        
+        if name in _protected_list or \
                 path.startswith(tuple(self.excluded_paths)):
             self.excluded_paths.add(path + '/')
             return True
