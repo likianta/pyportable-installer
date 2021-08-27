@@ -6,6 +6,7 @@
     "build": {
         "proj_dir": "",
         "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "launcher_name": "{app_name}",
         "icon": "",
         "target": {
             "file": "",
@@ -23,16 +24,21 @@
             "mode": "source_venv",
             "options": {
                 "depsland": {
-                    "requirements": []
+                    "venv_name": "{app_name_lower}_venv",
+                    "venv_id": "",
+                    "requirements": ""
                 },
                 "source_venv": {
                     "path": ""
                 },
                 "pip": {
-                    "requirements": [],
+                    "requirements": "",
                     "pypi_url": "https://pypi.python.org/simple/",
                     "local": "",
                     "offline": false
+                },
+                "embed_python": {
+                    "path": ""
                 }
             }
         },
@@ -53,5 +59,6 @@
         },
         "enable_console": true
     },
-    "note": ""
+    "note": "",
+    "pyportable_installer_version": "3.5.0"
 }

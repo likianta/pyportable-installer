@@ -2,9 +2,9 @@ from os import path as ospath
 
 from lk_logger import lk
 
-from .no1_extract_pyproject import main as step1
-from .no2_prebuild_pyproject import main as step2
-from .no3_build_pyproject import main as step3
+from .step1_extract_pyproject import main as step1
+from .step2_prebuild_pyproject import main as step2
+from .step3_build_pyproject import main as step3
 from .typehint import TConf, TMisc, TPath
 
 
@@ -37,30 +37,30 @@ class Misc:
         }
 
 
-def full_build(file, **kwargs):
+def full_build(file, additional_conf=None):
     Misc.create_checkup_tools = True
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'copy'
-    return main(file, kwargs, Misc.dump())
+    return main(file, additional_conf or {}, Misc.dump())
 
 
-def min_build(file, **kwargs):
+def min_build(file, additional_conf=None):
     Misc.create_checkup_tools = False
     Misc.create_launch_bat = True
     #   True (suggest) | False
     Misc.how_venv_created = 'empty_folder'
     #   'empty_folder' (suggest) | 'symbolink'
-    return main(file, kwargs, Misc.dump())
+    return main(file, additional_conf or {}, Misc.dump())
 
 
-def debug_build(file, **kwargs):
+def debug_build(file, additional_conf=None):
     Misc.create_checkup_tools = False
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'symbolink'
     Misc.compile_scripts = False
     Misc.do_aftermath = False
     Misc.log_verbose = True
-    return main(file, kwargs, Misc.dump())
+    return main(file, additional_conf or {}, Misc.dump())
 
 
 def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
@@ -72,8 +72,8 @@ def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
         lk.lite_mode = True
     
     prj_conf = step1(pyproj_file, additional_conf)
-    ________ = step2(prj_conf)  # 下划线只是为了让代码看起来整齐, 无实际意义
-    dst_root = step3(prj_conf['app_name'], **prj_conf['build'], **misc)
+    ________ = step2(prj_conf)
+    dst_root = step3(**prj_conf['build'], **misc)
     
     m, n = ospath.split(dst_root)
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')

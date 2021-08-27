@@ -1,0 +1,63 @@
+"""
+Placeholders:
+    VENV_NAME
+    REQUIREMENTS
+    VENV_ID
+    LAUNCHER
+    INVISIBLE
+
+Workflow:
+    1. import depsland
+    2. depsland create venv
+    3. generate exe
+    4. delete setup.bat
+"""
+import os
+import sys
+
+from os.path import abspath, dirname, exists, normpath
+from shutil import move
+
+os.chdir(dirname(__file__))
+
+assert os.getenv('DEPSLAND')
+sys.path.insert(0, os.getenv('DEPSLAND'))
+
+try:
+    from depsland import launch
+    from depsland.setup import bat_2_exe
+    from lk_utils import loads, dumps
+except ImportError as e:
+    raise e
+
+
+def main():
+    # create depsland venv
+    venv_dir = launch(
+        "{VENV_NAME}",
+        {REQUIREMENTS},
+        venv_id="{VENV_ID}"
+    )
+
+    # generate launcher
+    launcher = loads('{LAUNCHER}.bat')
+    launcher = launcher.format(PYTHON=normpath(f'{{venv_dir}}/python.exe'))
+    dumps(launcher, '{LAUNCHER}.bat')
+
+    if exists('launcher.ico'):
+        icon = abspath('launcher.ico')
+    else:
+        icon = ''
+    bat_2_exe(abspath('{LAUNCHER}.bat'), abspath('../{LAUNCHER}.exe'),
+              icon, '{INVISIBLE}')
+
+    # remove setup file
+    move('../setup.bat', './setup.bat')
+    # os.remove('../setup.bat')
+
+
+try:
+    main()
+except Exception as e:
+    print('Error', e)
+    input('Press enter or close the window ...')

@@ -14,8 +14,7 @@ thread = None
 
 
 def main(
-        app_name: str,
-        proj_dir: TPath, dist_dir: TPath,
+        launcher_name, proj_dir: TPath, dist_dir: TPath,
         target: TTarget,
         side_utils: list[TTarget],
         venv: TVenvBuildConf,
@@ -39,7 +38,7 @@ def main(
                 |- ...
     
     Args:
-        app_name: Use normal case. e.g. 'Hello World'
+        launcher_name: launcher name
         proj_dir: See `this_docstring: Project Structure Example`.
         dist_dir: See `this_docstring: Project Structure Example`.
             Note this directory is equivalent to `global_dirs.py::global_vars
@@ -88,10 +87,20 @@ def main(
     
     # venv
     embed_py_mgr = EmbedPythonManager(venv['python_version'])
+    # FIXME
     if venv['enable_venv']:
-        create_venv(
-            embed_py_mgr, venv, root_dir, misc.get('how_venv_created', 'copy')
-        )
+        if venv['mode'] == 'depsland':
+            pass
+        elif venv['mode'] == 'embed_python':
+            options = venv['options'][venv['mode']]
+            shutil.copytree(
+                options['path'], f'{root_dir}/venv'
+            )
+        else:
+            create_venv(
+                embed_py_mgr, venv, root_dir,
+                misc.get('how_venv_created', 'copy')
+            )
     
     # --------------------------------------------------------------------------
     # compile
@@ -114,34 +123,32 @@ def main(
     pyfiles_to_compile.extend(copy_assets(attachments))
     
     # noinspection PyUnusedLocal
-    launch_file = _create_launcher(
-        app_name, misc.get('icon', ''), target, root_dir,
-        is_main_conf=True,
-        extend_sys_paths=module_paths,
-        enable_venv=venv['enable_venv'],
-        enable_console=misc.get('enable_console', True),
-        generate_bat=misc.get('create_launch_bat', True),  # FIXME: rename misc:key
-        generate_exe=True,
-    )
-    # pyfiles_to_compile.append(launch_file)
-
-    names = []
-    for i in side_utils:
-        name = filesniff.get_filename(i['file'], suffix=False)
-        if name in names:  # TODO: need optimization
-            lk.logt('[W2628]', 'duplicated names found in side utils',
-                    names, name)
-            name += str(uuid1())
-        _create_launcher(
-            name, '', i, root_dir,
-            is_main_conf=False,
+    for i, options in enumerate((target, *side_utils)):
+        # module_paths.insert(0, ospath.dirname(proj_dir))
+        _is_depsland_mode = bool(venv['mode'] == 'depsland')
+        _icon = misc.get('icon', '') if i == 0 else ''
+        
+        _bat_file = _create_launcher(
+            root_dir, ospath.dirname(global_dirs.to_dist(proj_dir)),
+            launcher_name, _icon, options,
+            is_main_conf=bool(i == 0),
             extend_sys_paths=module_paths,
             enable_venv=venv['enable_venv'],
             enable_console=misc.get('enable_console', True),
-            generate_pylauncher=False,
-            generate_bat=True,
-            generate_exe=False,  # False | True
+            generate_bat=misc.get('create_launch_bat', True),
+            generate_exe=not _is_depsland_mode,
+            depsland_mode=_is_depsland_mode
         )
+        
+        if _is_depsland_mode:
+            options = venv['options']['depsland']
+            _create_depsland_setup(
+                root_dir, launcher_name, _icon, **options,
+                enable_console=misc.get('enable_console', True)
+            )
+            shutil.move(_bat_file, f'{root_dir}/build/{launcher_name}.bat')
+            # do not generate side utils in depsland mode
+            break  # FIXME
     
     # lk.logp('[D2021]', pyfiles_to_compile)
     if misc.get('compile_scripts', True):
@@ -161,41 +168,23 @@ def _precheck(prj_dir, dst_dir, readme_file, attachments):
     assert ospath.exists(f'{dst_dir}/build')
     assert ospath.exists(f'{dst_dir}/lib')
     assert ospath.exists(f'{dst_dir}/src')
-    assert ospath.exists(f'{dst_dir}/src/.pylauncher_conf')
     assert readme_file == '' or ospath.exists(readme_file)
     assert all(map(ospath.exists, attachments.keys()))
 
 
 def _create_launcher(
-        app_name, icon, target, root_dir, is_main_conf: bool,
+        root_dir, proj_dir,
+        launcher_name, icon, target, is_main_conf: bool,
         extend_sys_paths=None, enable_venv=True, enable_console=True,
         generate_pylauncher=True, generate_bat=True, generate_exe=True,
+        **kwargs
 ):
     """ Create launcher ({srcdir}/bootloader.py).
-
-    Args:
-        app_name (str): application name, this will be used as exe file's name:
-            e.g. `app_name = 'Hello World'` -> will generate 'Hello World.exe'
-        icon (str): *.ico file
-        target (dict): {
-            'file': filepath,
-            'function': str,
-            'args': [...],
-            'kwargs': {...}
-        }
-        root_dir (str):
-        is_main_conf:
-        extend_sys_paths (list[str]):
-        enable_venv (bool):
-        enable_console (bool):
-        generate_pylauncher
-        generate_bat
-        generate_exe
     
     详细说明
         启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
         启动器图标位于: '{root_dir}/{app_name}.exe'
-        引导装载程序位于: '{root_dir}/src/pylauncher.py'
+        引导装载程序位于: '{proj_dir}/pylauncher.py'
     
         1. 二者的体积都非常小
         2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的
@@ -213,31 +202,40 @@ def _create_launcher(
     abs_paths = {
         'target_file': target['file'],
         'target_dir' : global_dirs.to_dist(ospath.dirname(target['file'])),
-        'launch_file': f'{root_dir}/src/pylauncher.py',
-        'launch_dir' : f'{root_dir}/src',
-        'conf_file'  : f'{root_dir}/src/.pylauncher_conf/{conf_filename}.pkl',
-        'bat_file'   : f'{root_dir}/{app_name}.bat',
-        'exe_file'   : f'{root_dir}/{app_name}.exe',
+        'launch_file': f'{proj_dir}/pylauncher.py',
+        'launch_dir' : f'{proj_dir}',
+        'conf_dir'   : f'{proj_dir}/.pylauncher_conf',
+        'conf_file'  : f'{proj_dir}/.pylauncher_conf/{conf_filename}.pkl',
+        'bat_file'   : f'{root_dir}/{launcher_name}.bat',
+        'exe_file'   : f'{root_dir}/{launcher_name}.exe',
     }
     
-    _rel = lambda p: global_dirs.relpath(p, abs_paths['launch_dir'])
+    if not ospath.exists(d := abs_paths['conf_dir']):
+        os.mkdir(d)
+    
+    _rel0 = lambda p: global_dirs.relpath(p, root_dir)
+    _rel1 = lambda p: global_dirs.relpath(p, proj_dir)
     rel_paths = {
-        'lib_dir'   : _rel(f'{root_dir}/lib'),
-        'target_dir': _rel(abs_paths['target_dir']),
-        'conf_file' : _rel(abs_paths['conf_file']),
-        'venv_dir'  : _rel(f'{root_dir}/venv'),
+        'lib_dir'    : _rel1(f'{root_dir}/lib'),
+        'launch_file': _rel0(abs_paths['launch_file']),
+        'target_dir' : _rel1(abs_paths['target_dir']),
+        'conf_file'  : _rel1(abs_paths['conf_file']),
+        'venv_dir'   : _rel0(f'{root_dir}/venv'),
+        'venv_python': _rel0(f'{root_dir}/venv/python.exe')
     }
-    del _rel
+    del _rel0, _rel1
     
     # --------------------------------------------------------------------------
     
     def _generate_target_conf():
         with open(abs_paths['conf_file'], 'wb') as f:
             target_dir = rel_paths['target_dir']
+            target_pkg = ''
             # target_pkg = target_dir.replace('/', '.')
-            target_pkg = target_dir
-            target_mod = '.' + filesniff.get_filename(
-                abs_paths['target_file'], suffix=False)
+            target_mod = '{}.{}'.format(
+                target_dir.replace('/', '.'),
+                filesniff.get_filename(abs_paths['target_file'], suffix=False)
+            )
             
             pickle.dump({
                 'TARGET_DIR'   : target_dir,
@@ -256,7 +254,7 @@ def _create_launcher(
             ),
             extend_sys_paths
         ))
-    
+        
         with ropen(global_dirs.template('pylauncher.txt')) as f:
             template = f.read()
             code = template.format(
@@ -265,17 +263,23 @@ def _create_launcher(
                 EXTEND_PATHS=str(_ext_paths),
                 # DEFAULT_CONF='default.pkl',
             )
-    
+        
         with wopen(abs_paths['launch_file']) as f:
             f.write(code)
-
+    
     def _generate_bat():
         with ropen(global_dirs.template('launch.bat')) as f:
             template = f.read()
-            if enable_venv:
+            if kwargs.get('depsland_mode', False):  # FIXME
                 code = template.format(
-                    PYTHON='{}/python.exe'.format(
-                        rel_paths['venv_dir']).replace('/', '\\'),
+                    PYTHON='{PYTHON}',
+                    PYLAUNCHER=rel_paths['launch_file'],
+                    PYCONF='%*' if is_main_conf else rel_paths['conf_file']
+                )
+            elif enable_venv:
+                code = template.format(
+                    PYTHON=rel_paths['venv_python'].replace('/', '\\'),
+                    PYLAUNCHER=rel_paths['launch_file'],
                     PYCONF='%*' if is_main_conf else rel_paths['conf_file']
                     #   '%*' supports passing multiple arguments to python. for
                     #   example:
@@ -292,12 +296,13 @@ def _create_launcher(
             else:
                 code = template.format(
                     PYTHON='python',
+                    PYLAUNCHER=rel_paths['launch_file'],
                     PYCONF='%*' if is_main_conf else rel_paths['conf_file']
                 )
-    
+        
         with wopen(abs_paths['bat_file']) as f:
             f.write(code)
-            
+    
     def _generate_exe():
         def _run(bat_file, exe_file, icon_file, *options):
             from .bat_2_exe import bat_2_exe
@@ -305,7 +310,7 @@ def _create_launcher(
                     'it may take several seconds ~ one minute...')
             bat_2_exe(bat_file, exe_file, icon_file, *options)
             lk.loga('convertion bat-to-exe done')
-
+        
         # 这是一个耗时操作 (大约需要 10s), 我们把它放在子线程执行
         global thread
         thread = runnin_new_thread(
@@ -313,7 +318,7 @@ def _create_launcher(
             abs_paths['bat_file'], abs_paths['exe_file'], icon, '/x64',
             '' if enable_console else '/invisible'
         )
-
+    
     _generate_target_conf()
     if generate_pylauncher:
         _generate_pylauncher()
@@ -322,4 +327,32 @@ def _create_launcher(
         if generate_exe:
             _generate_exe()
     
-    return abs_paths['launch_file']
+    if generate_exe:
+        return abs_paths['exe_file']
+    else:
+        return abs_paths['bat_file']
+
+
+def _create_depsland_setup(root_dir, launcher_name, icon,
+                           venv_name, venv_id, requirements, **misc):
+    with ropen(global_dirs.template('setup_for_depsland.txt')) as f:
+        template = f.read()
+        
+        code = template.format(
+            LAUNCHER=launcher_name,
+            VENV_NAME=venv_name,
+            VENV_ID=venv_id,
+            REQUIREMENTS=requirements,
+            INVISIBLE='' if misc.get('enable_console', True) else '/invisible'
+        )
+    
+    with wopen(f'{root_dir}/build/setup.py') as f:
+        f.write(code)
+    
+    shutil.copyfile(
+        global_dirs.template('launch_for_depsland.bat'),
+        f'{root_dir}/setup.bat'
+    )
+    
+    if icon:
+        shutil.copyfile(icon, f'{root_dir}/build/launcher.ico')

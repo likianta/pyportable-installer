@@ -23,7 +23,8 @@ from importlib import import_module
 from os.path import abspath
 
 # add current dir to `sys.path` (this is necessary for embed python)
-sys.path.append(abspath('.'))
+os.chdir(os.path.dirname(__file__))
+sys.path.insert(0, abspath('.'))
 
 # add project lib to environment
 sys.path.append(abspath('{PROJ_LIB_DIR}'))
@@ -42,7 +43,7 @@ def parse_target_conf(args):
     if len(args) == 0:
         raise Exception(args)
     elif len(args) == 1:
-        conf = './pylauncher_conf/default.pkl'
+        conf = './.pylauncher_conf/default.pkl'
     elif len(args) == 2:
         conf = args[1]
     else:

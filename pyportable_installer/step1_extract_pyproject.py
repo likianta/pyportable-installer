@@ -1,7 +1,7 @@
 from os import path as ospath
 
 from lk_logger import lk
-from lk_utils.read_and_write import loads
+from lk_utils.read_and_write import load_list, loads
 
 from .global_dirs import global_dirs, pretty_path
 from .typehint import *
@@ -23,40 +23,51 @@ def main(pyproj_file: TPath, addional_conf=None, refmt_to='abspath') -> TConf:
     lk.loga(pyproj_root)
     
     conf = loads(pyproj_file)  # type: TConf
-    conf = reformat_paths(
+    
+    if addional_conf:
+        _update_additional_conf(conf, addional_conf)
+    
+    conf = format_conf(
         conf, PathFormatter(
             pyproj_root, refmt_to=refmt_to
         )
     )
     
-    def udpate_conf(node: dict, subject: dict):
+    return conf
+
+
+def _update_additional_conf(main_conf, additional):
+    def _update(node: dict, subject: dict):
         for k, v in node.items():
             if isinstance(v, dict):
-                udpate_conf(v, subject[k])
+                _update(v, subject[k])
             elif isinstance(v, list):
                 subject[k].extend(v)
             else:
                 subject[k] = v
     
-    if addional_conf:
-        udpate_conf(addional_conf, conf)
-    
-    return conf
+    _update(additional, main_conf)
+    return main_conf
 
 
-def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
+def format_conf(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
     # tip: read the following code together with `./template/pyproject.json`
+    placeholders = {
+        'app_name': conf['app_name'],
+        'app_name_lower': conf['app_name'].lower().replace(' ', '_'),
+        'app_version': conf['app_version'],
+    }
     
     conf['build']['proj_dir'] = path_fmt(
         conf['build']['proj_dir']
     )
     
     conf['build']['dist_dir'] = path_fmt(
-        conf['build']['dist_dir'].format(
-            app_name=conf['app_name'],
-            app_name_lower=conf['app_name'].lower().replace(' ', '_'),
-            app_version=conf['app_version']
-        )
+        conf['build']['dist_dir'].format(**placeholders)
+    )
+    
+    conf['build']['launcher_name'] = (
+        conf['build']['launcher_name'].format(**placeholders)
     )
     
     conf['build']['icon'] = path_fmt(
@@ -73,7 +84,7 @@ def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
             dist_dir=conf['build']['dist_dir']
         )
     )
-
+    
     for t in conf['build']['side_utils']:
         t['file'] = path_fmt(
             t['file'].format(
@@ -122,12 +133,30 @@ def reformat_paths(conf: TConf, path_fmt: Union['PathFormatter', Callable]):
     options['pip']['local'] = path_fmt(
         options['pip']['local']
     )
+
+    options['embed_python']['path'] = path_fmt(
+        options['embed_python']['path']
+    )
+
+    options['depsland']['venv_name'] = (
+        options['depsland']['venv_name'].format(**placeholders)
+    )
+    if not options['depsland']['venv_id']:
+        from uuid import uuid1
+        options['depsland']['venv_id'] = str(uuid1()).replace('-', '')
+        
+    def _load_requirements(file):
+        if file:
+            return [x for x in load_list(file)
+                    if x and not x.startswith('#')]
+        else:
+            return []
     
     if isinstance((x := options['depsland']['requirements']), str):
-        options['depsland']['requirements'] = path_fmt(x)
+        options['depsland']['requirements'] = _load_requirements(path_fmt(x))
     
     if isinstance((x := options['pip']['requirements']), str):
-        options['pip']['requirements'] = path_fmt(x)
+        options['pip']['requirements'] = _load_requirements(path_fmt(x))
     
     # from lk_utils.read_and_write import dumps
     # dumps(conf, '../tests/test.json')

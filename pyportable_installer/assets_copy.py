@@ -121,8 +121,6 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
             yield from handle_root_assets_and_compile(dp_i, dp_o)
     
     def handle_root_assets_and_compile(dir_i, dir_o):
-        # if not ospath.exists(dir_o):
-        #     os.mkdir(dir_o)
         for fp, fn in filesniff.find_files(dir_i, fmt='zip'):
             if _excludes.is_protected(fn, fp, 'file'):
                 lk.logt('[D1408]', 'skip making file', fp)
@@ -156,7 +154,7 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
                 lk.logt('[D1409]', 'skip making dir', dp)
                 continue
             subdir_i, subdir_o = dp, dp.replace(dir_i, dir_o, 1)
-            os.mkdir(subdir_o)
+            if not ospath.exists(subdir_o): os.mkdir(subdir_o)
             out.append((subdir_i, subdir_o))
         return out
     

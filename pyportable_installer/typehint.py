@@ -45,6 +45,8 @@ class TMisc(TypedDict):
 
 class _TDepslandOptions(TypedDict):
     # `template/pyproject.json::build:venv:options:depsland`
+    venv_name: str
+    venv_id: str
     requirements: TRequirements
 
 
@@ -61,6 +63,11 @@ class _TPipOptions(TypedDict):
     offline: bool
 
 
+class _TEmbedPythonOptions(TypedDict):
+    # `template/pyproject.json::build:venv:options:embed_python`
+    path: TPath
+
+
 # TMode: 'source_venv', 'pip', 'zipapp', 'depsland', 'pycrypto', 'nuitka',
 #   'iron_python', etc. For now (v3.x) there're only first two get supported.
 TMode = Literal['depsland', 'source_venv', 'pip']
@@ -72,6 +79,7 @@ class _TVenvModeOptions(TypedDict):
     depsland: _TDepslandOptions
     source_venv: _TSourceVenvOptions
     pip: _TPipOptions
+    embed_python: _TEmbedPythonOptions
 
 
 class TVenvBuildConf(TypedDict):
@@ -126,6 +134,7 @@ class _TBuildConf(TypedDict):
     # `template/pyproject.json::build`
     proj_dir: TPath
     dist_dir: TPath
+    launcher_name: str
     icon: TPath
     target: TTarget
     side_utils: list[TTarget]
@@ -145,6 +154,7 @@ class TConf(TypedDict):
     author: Union[str, list[str]]
     build: _TBuildConf
     note: str
+    pyportable_installer_version: str
 
 
 TPyFilesToCompile = list[tuple[TPath, TPath]]

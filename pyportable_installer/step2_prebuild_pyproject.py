@@ -15,7 +15,6 @@ def main(conf: TConf):
     mkdir(conf['build']['dist_dir'] + '/build')
     mkdir(conf['build']['dist_dir'] + '/lib')
     mkdir(conf['build']['dist_dir'] + '/src')
-    mkdir(conf['build']['dist_dir'] + '/src/.pylauncher_conf')
     
     dist_tree = DistTree()
     
@@ -103,11 +102,12 @@ class DistTree:
         #   implementation in `method:self.add_src_dirs`.
     
     def add_src_dirs(self, *paths: str):
-        for p in paths:
-            if p:
-                assert ospath.exists(p)
-                self.paths.append(_get_dir(p))
-                # lk.logt('[D1118]', p)
+        for p in filter(None, paths):
+            assert ospath.exists(p), (
+                'Source path doesn\'t exist, you may check path spelling '
+                'in your pyproject file', p
+            )
+            self.paths.append(_get_dir(p))
     
     def suggest_src_root(self):
         try:
