@@ -69,11 +69,6 @@ class _TEmbedPythonOptions(TypedDict):
     path: TPath
 
 
-# TMode: 'source_venv', 'pip', 'zipapp', 'depsland', 'pycrypto', 'nuitka',
-#   'iron_python', etc. For now (v3.x) there're only first two get supported.
-TMode = Literal['depsland', 'source_venv', 'pip']
-
-
 class _TVenvModeOptions(TypedDict):
     # `template/pyproject.json::build:venv:options`
     # note: keep `this:members:name` sync with `TMode`
@@ -81,6 +76,10 @@ class _TVenvModeOptions(TypedDict):
     source_venv: _TSourceVenvOptions
     pip: _TPipOptions
     embed_python: _TEmbedPythonOptions
+
+
+# TMode: _TVenvModeOptions:attrs
+TMode = Literal['depsland', 'embed_python', 'pip', 'source_venv']
 
 
 class TVenvBuildConf(TypedDict):
