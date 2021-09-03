@@ -8,14 +8,15 @@
         "dist_dir": "dist/{app_name_lower}_{app_version}",
         "launcher_name": "{app_name}",
         "icon": "",
-        "target": {
-            "file": "",
-            "function": "main",
-            "args": [],
-            "kwargs": {}
-        },
-        "side_utils": [],
-        "readme": "README.md",
+        "target": [
+            {
+                "file": "",
+                "function": "main",
+                "args": [],
+                "kwargs": {}
+            }
+        ],
+        "readme": "",
         "attachments": {},
         "module_paths": [],
         "venv": {
@@ -60,5 +61,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "3.5.0"
+    "pyportable_installer_version": "3.5.0dev1"
 }

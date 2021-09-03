@@ -1,6 +1,6 @@
 from os import popen
 
-from .base import BaseCompiler
+from .base_compiler import BaseCompiler
 
 
 class PycCompiler(BaseCompiler):

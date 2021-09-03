@@ -5,47 +5,55 @@ from lk_logger import lk
 from .step1_extract_pyproject import main as step1
 from .step2_prebuild_pyproject import main as step2
 from .step3_build_pyproject import main as step3
-from .typehint import TConf, TMisc, TPath
+from .typehint import TConf
+from .typehint import TMisc
+from .typehint import TPath
 
 
 class Misc:
-    # 是否将 `./checkup/*` 中的工具拷贝到打包目录.
-    create_checkup_tools = True
-    # 是否创建启动器.
+    # whether to copy checkup tools (`~/pyportable_installer/checkup`) to dist
+    # dir.
+    copy_checkup_tools = True
+    # whether to create launcher file (exe format).
     create_launch_bat = True
-    # 创建 venv 的方式.
-    # 注: 该选项仅在用户在配置文件中启用 venv 时才有效.
+    # how to create venv.
+    # note: this option only effects when user enables venv in config file.
     how_venv_created = 'copy'
-    # 是否混淆源代码.
-    compile_scripts = True
-    # 是否做善后工作. 如是, 详见 `aftermath.py` 模块.
+    # whether to obfuscate source code.
+    obfuscate_source_code = True
+    # whether to do aftermath work. see `aftermath.py`.
     do_aftermath = True
-    # 是否打印详细信息. 默认是 False (关闭). 注意即使是 False, 也会打印原本应该
-    # 打印的内容, 只是 False 状态不会打印 sourcemap 信息.
-    log_verbose = False
+    # how to print messages when pyportable-installer is processing.
+    #   0: disable print function.
+    #   1: print main messages (i.e. the built-in `print` behavior).
+    #   2: print messages with sourcemap (i.e. default `lk-logger` behavior).
+    #   suggestion:
+    #       for pyportable-installer self distribution package, set to 0;
+    #       for pyportable-installer open source package, set to 1 (default);
+    #       for developing and debugging pyportable-installer project, set to 2.
+    log_level = 2
     
     @classmethod
     def dump(cls) -> TMisc:
-        # noinspection PyTypeChecker
         return {
-            'create_checkup_tools': cls.create_checkup_tools,
-            'create_launch_bat'   : cls.create_launch_bat,
-            'how_venv_created'    : cls.how_venv_created,
-            'compile_scripts'     : cls.compile_scripts,
-            'do_aftermath'        : cls.do_aftermath,
-            'log_verbose'         : cls.log_verbose,
+            'copy_checkup_tools'   : cls.copy_checkup_tools,
+            'create_launch_bat'    : cls.create_launch_bat,
+            'how_venv_created'     : cls.how_venv_created,
+            'obfuscate_source_code': cls.obfuscate_source_code,
+            'do_aftermath'         : cls.do_aftermath,
+            'log_level'            : cls.log_level,
         }
 
 
 def full_build(file, additional_conf=None):
-    Misc.create_checkup_tools = True
+    Misc.copy_checkup_tools = True
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'copy'
     return main(file, additional_conf or {}, Misc.dump())
 
 
 def min_build(file, additional_conf=None):
-    Misc.create_checkup_tools = False
+    Misc.copy_checkup_tools = False
     Misc.create_launch_bat = True
     #   True (suggest) | False
     Misc.how_venv_created = 'empty_folder'
@@ -54,10 +62,10 @@ def min_build(file, additional_conf=None):
 
 
 def debug_build(file, additional_conf=None):
-    Misc.create_checkup_tools = False
+    Misc.copy_checkup_tools = False
     Misc.create_launch_bat = True
     Misc.how_venv_created = 'symbolink'
-    Misc.compile_scripts = False
+    Misc.obfuscate_source_code = False
     Misc.do_aftermath = False
     Misc.log_verbose = True
     return main(file, additional_conf or {}, Misc.dump())
@@ -65,11 +73,23 @@ def debug_build(file, additional_conf=None):
 
 def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
     """
-    几个关键目录的区分和说明: `../docs/devnote/difference-between-roots.md`
+    Args:
+        pyproj_file: basic configurations in 'pyproject.json'.
+        additional_conf: partial congurations to override the basic one's. you
+            can pass some dynamic configurations through a build script, this
+            is convenient for developers to customize their own dist flow in a
+            flexible way, which convers the shortage of using static pyproject
+            file.
+        misc:
+    
+    References:
+        '~/docs/devnote/difference-between-roots.md'
     """
-    # TODO: temply commented
-    if misc.get('log_verbose', False) is False:
-        lk.lite_mode = True
+    lvl = misc.get('log_level', 0)
+    if lvl == 0:
+        lk.disable()
+    elif lvl == 1:
+        lk.enable_lite_mode()
     
     prj_conf = step1(pyproj_file, additional_conf)
     ________ = step2(prj_conf)
@@ -82,5 +102,7 @@ def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
     if misc.get('do_aftermath', True):
         from .aftermath import main as do_aftermath
         do_aftermath(pyproj_file, prj_conf, dst_root)
+    
+    lk.enable()
     
     return prj_conf

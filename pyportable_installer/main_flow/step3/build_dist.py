@@ -1,74 +1,70 @@
 import pickle
-from uuid import uuid1
 
 from lk_utils.read_and_write import ropen, wopen
 
-from .assets_copy import *
-from .encryption import get_compiler
-from .embed_python import EmbedPythonManager
-from .typehint import *
-from .utils import runnin_new_thread
-from .venv_builder import create_venv
+from ...assets_copy import *
+from ...encryption import get_compiler
+from ...embed_python import EmbedPythonManager
+from ...typehint import *
+from ...utils import runnin_new_thread
+from ...venv_builder import create_venv
 
 thread = None
 
 
 def main(
-        launcher_name, proj_dir: TPath, dist_dir: TPath,
-        target: TTarget,
-        side_utils: list[TTarget],
+        launcher_name,
+        targets: list[TTarget],
+        attachments: TAttachments,
+        module_paths: list[TPath],
         venv: TVenvBuildConf,
         compiler: TCompiler,
-        module_paths: list[TPath],
-        attachments: TAttachments,
         **misc
 ):
     """
-    
+
     Project Structure Example:
-        hello_world_project
-        |= hello_world  # <- `params:proj_dir`
-            |- main.py  # <- script launcher
+        
+        # from pyportable_installer.path_model src_model, dst_model
+        
+        hello_world_project # src_model.src_root
+        |= hello_world      # src_model.prj_root
+            |- main.py      # source project entry
         |= dist
-            |= hello_world_1.0.0  # <- `params:dist_dir`
-                |= build  # <- `vars:build_dir`
-                |= lib    # <- `vars:lib_dir`
-                |= src    # <- `vars:src_dir`
-                |= venv   # <- `vars:venv_dir`
+            |= hello_world_1.0.0    # dst_model.dst_root
+                |= build            # dst_model.build
+                |= lib              # dst_model.lib
+                |= src              # dst_model.src (aka. dst_model.prj_root)
+                |= venv             # dst_model.venv
                 |- ...
-    
+
     Args:
-        launcher_name: launcher name
-        proj_dir: See `this_docstring: Project Structure Example`.
-        dist_dir: See `this_docstring: Project Structure Example`.
-            Note this directory is equivalent to `global_dirs.py::global_vars
-            :global_dirs::attrs:dst_root`, this is the parent dir of that.
-        target: See `docs/pyproject-template.md::build:target`
-        side_utils:
-        module_paths: See `func:_create_launcher`
-        attachments: See `assets_copy.py::copy_assets::docstring:attachments`
-        venv: See `docs/pyproject-template.md::build:venv`
+        launcher_name: launcher name use title case, for example 'Hello World'.
+        targets:
+            e.g. [{'file': 'main.py', 'args': [], 'kwargs': {}},
+                  {'file': 'reindexing.py', 'args': [True], 'kwargs': {}},
+                  {'file': 'repair_toolbox.py', 'args': [],
+                   'kwargs': {'debug': True}}, ...]
+            * assert `len(targets) >= 1`.
+            * the first file is recognized as main entry. there will be a
+              launcher (.exe file) points to the first file.
+              * the launcher's real name is `params:launcher_name`.
+            * the subsequent files are recognized as standalone and excutable
+              accessories. there're also launcher files (.exe) generated and
+              pointed to them.
+              * the launchers' names are followed the accessories as is.
+              * if duplicate names conflict found, an incremental number suffix
+                will be added to each of them.
+        module_paths: see `func:_create_launcher`
+        attachments: see `assets_copy.py::copy_assets::docstring:attachments`
+        venv: see `docs/pyproject-template.md::build:venv`
         compiler: Literal['pyarmor', 'pyc', 'pycrypto']. Compiler name.
-        **misc: See `typehint.TMisc`
-            Some keys are from `main.py:main:conf['build']` (e.g. 'readme',
+        **misc: see `typehint.TMisc`
+            some keys are from `main.py:main:conf['build']` (e.g. 'readme',
             'icon', 'enable_console'), the others are from `main.py::class:Misc
             ::dump`.
-    
-    Warnings:
-        Do not modify this function's parameter names, they are bound with
-        `...typehint._TBuildConf > attrs`. If you want to modify them, you need
-        also to modify ...
-            ~/pyportable_installer/typehint.py > func:main
-            ~/pyportable_installer/template/pyproject.json > keys:build
-                > children keys
-            ~/pyportable_installer/main.py > func:main
+
     """
-    # init args
-    readme_file = misc.get('readme', '')
-    
-    # precheck
-    _precheck(proj_dir, dist_dir, readme_file, attachments)
-    
     # see `../docs/devnote/dist-folders-structure.md`
     # these dirs already exist, see creation at `no2_prebuild_pyproject.py:cmt
     # :'create build_dir, lib_dir, src_dir'`
@@ -167,16 +163,6 @@ def main(
 
 # ------------------------------------------------------------------------------
 
-def _precheck(prj_dir, dst_dir, readme_file, attachments):
-    assert ospath.exists(prj_dir)
-    assert ospath.exists(dst_dir)
-    assert ospath.exists(f'{dst_dir}/build')
-    assert ospath.exists(f'{dst_dir}/lib')
-    assert ospath.exists(f'{dst_dir}/src')
-    assert readme_file == '' or ospath.exists(readme_file)
-    assert all(map(ospath.exists, attachments.keys()))
-
-
 def _create_launcher(
         root_dir, proj_dir,
         launcher_name, icon, target, is_main_conf: bool,
@@ -185,12 +171,12 @@ def _create_launcher(
         **kwargs
 ):
     """ Create launcher ({srcdir}/bootloader.py).
-    
+
     详细说明
         启动器分为两部分, 一个是启动器图标, 一个引导装载程序.
         启动器图标位于: '{root_dir}/{app_name}.exe'
         引导装载程序位于: '{proj_dir}/pylauncher.py'
-    
+
         1. 二者的体积都非常小
         2. 启动器本质上是一个带有自定义图标的 bat 脚本. 它指定了 Python 编译器的
            路径和 pylauncher.py 的路径, 通过调用编译器执行 pylauncher.py
@@ -198,7 +184,7 @@ def _create_launcher(
             1. 更新 sys.path
             2. 获取 target 的相关信息
             3. 调用 target, 并捕获可能的报错, 并输出打印到控制台
-    
+
     Returns:
         launch_file: '{root_dir}/src/pylauncher.py'
     """

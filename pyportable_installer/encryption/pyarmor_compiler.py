@@ -3,7 +3,7 @@ from shutil import copyfile
 
 from lk_logger import lk
 
-from .base import BaseCompiler
+from .base_compiler import BaseCompiler
 from ..utils import send_cmd, new_thread
 
 

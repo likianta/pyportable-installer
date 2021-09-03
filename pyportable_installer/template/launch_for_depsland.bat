@@ -1,3 +1,3 @@
 cd %~dp0
-depsland build\setup.py
+"%DEPSLAND%\depsland.bat" build\setup.py
 pause

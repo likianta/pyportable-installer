@@ -6,7 +6,7 @@ import importlib
 import zipfile
 from io import BytesIO
 
-from .base import BaseRuntimeLoader
+from .base_compiler import BaseRuntimeLoader
 
 
 class ZipImpLoader(BaseRuntimeLoader):

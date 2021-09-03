@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyportable-installer"
-version = "3.5.0a11"
+version = "3.5.0dev0"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"

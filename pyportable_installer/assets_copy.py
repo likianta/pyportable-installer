@@ -9,21 +9,14 @@ from .global_dirs import global_dirs
 from .typehint import *
 
 
-def copy_checkup_tool(assets_dir: TPath, build_dir: TPath):
-    """
-    TODO: add `update.py`
-    
-    Args:
-        assets_dir: `pyportable_installer/checkup`
-        build_dir
-    """
-    dir_i, dir_o = assets_dir, build_dir
+def copy_checkup_tools(dir_i, dir_o):
     shutil.copyfile(
         f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py'
     )
     shutil.copyfile(
         f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py'
     )
+    # TODO: add copy: 'update.py'
     return f1, f2
 
 
@@ -216,17 +209,18 @@ def copy_assets(attachments: TAttachments) -> list[tuple[TPath, TPath]]:
 
 
 def create_readme(file_i: TPath, file_o: TPath):
-    # TODO: import a markdown_2_html converter.
-    #   e.g. https://github.com/likianta/markdown_images_to_base64
-    # if file_i.endswith('.md'):
-    #     try:
-    #         from markdown_images_to_base64 import md_2_html_base64
-    #         return md_2_html_base64(
-    #             file_i, file_o.removesuffix('.md') + '.html'
-    #         )
-    #     except ImportError:
-    #         pass
-    shutil.copyfile(file_i, file_o)
+    if file_i.endswith('.md'):
+        try:
+            # TODO: import a markdown_2_html converter.
+            #   https://github.com/likianta/markdown_images_to_base64
+            from markdown_images_to_base64 import md_2_html_base64
+            file_o = file_o.removesuffix('.md') + '.html'
+            #  ~.removesuffix: introduced in Python 3.9.
+            md_2_html_base64(file_i, file_o)
+        except ImportError:
+            shutil.copyfile(file_i, file_o)
+    else:
+        shutil.copyfile(file_i, file_o)
 
 
 class ExcludedPaths:

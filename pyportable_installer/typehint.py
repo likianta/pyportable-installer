@@ -10,6 +10,7 @@ from typing import *
 """
 
 TPath = str  # abspath
+TPathFormat = Literal['abspath', 'relpath']
 
 TPyVersion = str
 #   e.g.
@@ -35,12 +36,12 @@ class TMisc(TypedDict):
     icon: TPath
     enable_console: bool
     # `main.py::class:Misc`
-    create_checkup_tools: bool
+    copy_checkup_tools: bool
     create_launch_bat: bool
     how_venv_created: THowVenvCreated
-    compile_scripts: bool
+    obfuscate_source_code: bool
     do_aftermath: bool
-    log_verbose: bool
+    log_level: Literal[0, 1, 2]
 
 
 class _TDepslandOptions(TypedDict):
@@ -136,8 +137,7 @@ class _TBuildConf(TypedDict):
     dist_dir: TPath
     launcher_name: str
     icon: TPath
-    target: TTarget
-    side_utils: list[TTarget]
+    target: list[TTarget]
     readme: TPath
     module_paths: list[TPath]
     attachments: TAttachments

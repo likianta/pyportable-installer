@@ -1,3 +1,4 @@
-lk-logger
+cython
+lk-logger >= 4.0.0a0
 lk-utils
 pyarmor

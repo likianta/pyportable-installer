@@ -1,6 +1,6 @@
-from .base import BaseCompiler, BaseRuntimeLoader
+from .base_compiler import BaseCompiler, BaseRuntimeLoader
 from .pyarmor_compiler import PyArmorCompiler
-from .pyc_compiler import PycCompiler
+from .py_2_pyc import PycCompiler
 # TODO: from .pyportable_crypto_compiler import PyPortableCryptoCompiler
 
 from ..typehint import *
