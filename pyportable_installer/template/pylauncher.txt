@@ -43,7 +43,9 @@ def parse_target_conf(args):
     if len(args) == 0:
         raise Exception(args)
     elif len(args) == 1:
-        conf = './.pylauncher_conf/default.pkl'
+        conf = './.pylauncher_conf/main.pkl'
+        #   see `pyportable_installer.main_flow.step3.step3_3.create_launcher
+        #       ._create_launcher > vars:conf_name`
     elif len(args) == 2:
         conf = args[1]
     else:

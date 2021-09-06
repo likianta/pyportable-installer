@@ -2,9 +2,7 @@ from os import path as ospath
 
 from lk_logger import lk
 
-from .step1_extract_pyproject import main as step1
-from .step2_prebuild_pyproject import main as step2
-from .step3_build_pyproject import main as step3
+from . import main_flow
 from .typehint import TConf
 from .typehint import TMisc
 from .typehint import TPath
@@ -91,18 +89,12 @@ def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
     elif lvl == 1:
         lk.enable_lite_mode()
     
-    prj_conf = step1(pyproj_file, additional_conf)
-    ________ = step2(prj_conf)
-    dst_root = step3(**prj_conf['build'], **misc)
+    conf = main_flow.main(pyproj_file, additional_conf, **misc)
     
-    m, n = ospath.split(dst_root)
+    m, n = ospath.split(conf['build']['dist_dir'])
     lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
     #   this path link is clickable in pycharm console  ^-----^
     
-    if misc.get('do_aftermath', True):
-        from .aftermath import main as do_aftermath
-        do_aftermath(pyproj_file, prj_conf, dst_root)
-    
     lk.enable()
     
-    return prj_conf
+    return conf

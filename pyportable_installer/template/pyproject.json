@@ -53,6 +53,7 @@
                 "pyc": {
                     "optimize_level": 0
                 },
+                "cython": {},
                 "zip": {
                     "password": ""
                 }
@@ -61,5 +62,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "3.5.0dev1"
+    "pyportable_installer_version": "4.0.0a0"
 }

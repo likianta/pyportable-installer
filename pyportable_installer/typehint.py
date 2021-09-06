@@ -1,14 +1,5 @@
 from typing import *
 
-"""
-注意事项:
-
-1.  Pycharm 的类型检查系统不支持识别 `xxx = TypedDict(...)` 格式, 只支持
-    `class Xxx(TypedDict): ...` 格式
-2.  Pycharm 对 Literal['a', 'b', 'c'] 在实际传入 'a' 时会给出 'expect Literal,
-    got str instead' 的错误提示, 怀疑是个 bug, 所以暂不使用 Literal
-"""
-
 TPath = str  # abspath
 TPathFormat = Literal['abspath', 'relpath']
 
@@ -27,15 +18,12 @@ THowVenvCreated = Literal['copy', 'symbolink', 'empty_folder']  # default 'copy'
 class TMisc(TypedDict):
     """
     References:
-        `class:_TConfBuild`
-        `main.py::class:Misc`
-        `no3_build_pyproject.py::func:main::params:misc`
+        `pyportable_installer.main > class:Misc`
+        `pyportable_installer.main_flow.step3.build_dist > func:main`
     """
-    # part of `class:_TConfBuild`
     readme: TPath
     icon: TPath
     enable_console: bool
-    # `main.py::class:Misc`
     copy_checkup_tools: bool
     create_launch_bat: bool
     how_venv_created: THowVenvCreated
@@ -101,7 +89,14 @@ class TTarget(TypedDict):
 # `template/pyproject.json::build:attachments`
 # TAttachments = Dict[TPath, str]
 _TMark = Literal[
-    'asset', 'assets', 'compile', 'only_folder', 'only_folders', 'top_assets',
+    'asset', 'assets', 'root_assets',
+    'compile',
+    'only_folder', 'only_folders',
+]
+_TMarks = Literal[
+    ('asset',), ('assets',), ('root_assets',),
+    ('only_folder',), ('only_folders',),
+    ('asset', 'compile'), ('assets', 'compile'), ('root_assets', 'compile')
 ]
 
 
@@ -113,7 +108,7 @@ class _TAttachmentsValue(TypedDict):
 TAttachments = dict[TPath, _TAttachmentsValue]
 
 # `template/pyproject.json::build:compiler:name`
-TCompilerNames = Literal['pyarmor', 'pyc', 'zipapp']
+TCompilerName = Literal['cython', 'pyarmor', 'pyc', 'zipapp']
 
 
 class _TCompilerOptions(TypedDict):
@@ -126,11 +121,11 @@ class _TCompilerOptions(TypedDict):
 
 class TCompiler(TypedDict):
     # `template/pyproject.json::build:compiler`
-    name: TCompilerNames
+    name: TCompilerName
     options: _TCompilerOptions
 
 
-class _TBuildConf(TypedDict):
+class TBuildConf(TypedDict):
     # `template/pyproject.json::build`
     proj_dir: TPath
     dist_dir: TPath
@@ -151,7 +146,7 @@ class TConf(TypedDict):
     app_version: str
     description: str
     author: Union[str, list[str]]
-    build: _TBuildConf
+    build: TBuildConf
     note: str
     pyportable_installer_version: str
 

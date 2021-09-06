@@ -17,7 +17,7 @@ Examples:
 from os import popen
 from os.path import abspath
 
-from lk_utils import send_cmd
+from ..utils import send_cmd
 
 _bat_2_exe_converter = abspath(f'{__file__}/../bat_to_exe_converter.exe')
 

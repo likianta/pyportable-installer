@@ -73,5 +73,6 @@ Double marks:
 
 - asset,compile
 - assets,compile
+- root_assets,compile
 
 [TODO]

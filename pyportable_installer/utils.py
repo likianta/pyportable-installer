@@ -93,17 +93,6 @@ def set_pyinterpreter(new_interpreter: str):
 
 def exhaust(generator):
     # https://stackoverflow.com/questions/47456631/simpler-way-to-run-a
-    # -generator-function-without-caring-about-items
+    #   -generator-function-without-caring-about-items
     for _ in generator:
         pass
-
-
-def new_thread(func):
-    # use this as a python decorator.
-    return lambda *args, **kwargs: runnin_new_thread(func, *args, **kwargs)
-
-
-def runnin_new_thread(func, *args, **kwargs):
-    t = Thread(target=func, args=args, kwargs=kwargs)
-    t.start()
-    return t

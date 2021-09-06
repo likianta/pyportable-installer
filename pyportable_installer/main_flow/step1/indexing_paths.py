@@ -6,8 +6,7 @@ from lk_logger import lk
 from lk_utils.filesniff import normpath
 
 from .path_formatter import PathFormatter
-from ...path_model import prj_model
-from ...path_model import src_2_dst
+from ...path_model import prj_model, src_2_dst
 from ...typehint import *
 
 

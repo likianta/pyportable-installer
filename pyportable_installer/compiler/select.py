@@ -1,16 +1,11 @@
-from .base_compiler import BaseCompiler, BaseRuntimeLoader
-from .pyarmor_compiler import PyArmorCompiler
-from .py_2_pyc import PycCompiler
-# TODO: from .pyportable_crypto_compiler import PyPortableCryptoCompiler
-
 from ..typehint import *
 
 
-def get_compiler(compiler_name: TCompilerNames,
-                 python_interpreter: TPath,
-                 **kwargs):
+def get_compiler(
+        compiler_name: TCompilerName, python_interpreter: TPath, **kwargs
+):
     """
-    
+
     Args:
         compiler_name:
         python_interpreter:
@@ -38,6 +33,7 @@ def get_compiler(compiler_name: TCompilerNames,
     compiler = None
     
     if compiler_name == 'pyarmor':
+        from .pyarmor_compile import PyArmorCompiler
         from ..utils import mkdirs
         from ..global_dirs import global_dirs
         compiler = PyArmorCompiler(python_interpreter)
@@ -48,6 +44,7 @@ def get_compiler(compiler_name: TCompilerNames,
         )
     
     elif compiler_name == 'pyc':
+        from .py_2_pyc import PycCompiler
         compiler = PycCompiler()
     
     elif compiler_name == 'zip':
