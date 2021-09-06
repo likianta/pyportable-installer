@@ -9,7 +9,7 @@ from lk_utils import wopen
 from lk_utils.concurrency import run_new_thread
 from lk_utils.filesniff import get_filename
 
-from .bat_2_exe import bat_2_exe
+from ....bat_2_exe import bat_2_exe
 from ....path_model import *
 from ....typehint import TBuildConf
 
