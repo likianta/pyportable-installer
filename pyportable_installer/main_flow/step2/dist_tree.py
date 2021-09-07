@@ -21,7 +21,8 @@ class DistTree:
                 'Source path doesn\'t exist, you may check path spelling '
                 'in your pyproject file', p
             )
-            self.paths.append(_get_dir(p))
+            if (d := _get_dir(p)) not in self.paths:
+                self.paths.append(d)
     
     def suggest_src_root(self):
         try:  # check whether paths are from one hard driver.
@@ -55,7 +56,7 @@ class DistTree:
             if dir_ not in existed:
                 existed.add(dir_)
                 if not exists(dir_):
-                    lk.logt('[D0604]', 'creat empty folder', dir_)
+                    lk.logt('[D0604]', 'create empty folder', dir_)
                     # mkdir(dir_)
                     makedirs(dir_)
         

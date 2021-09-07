@@ -1,10 +1,10 @@
 from os import path as ospath
 
-from ..global_dirs import curr_dir as _parent_dir
+from ..path_model import prj_model
 from ..typehint import *
 from ..utils import mkdirs
 
-curr_dir = f'{_parent_dir}/embed_python'
+curr_dir = f'{prj_model.cur_root}/embed_python'
 
 
 class EmbedPythonManager:
