@@ -1,0 +1,65 @@
+{
+    "app_name": "Hello World",
+    "app_version": "0.1.11",
+    "description": "Say hello to someone given name.",
+    "author": "Likianta <likianta@foxmail.com>",
+    "build": {
+        "proj_dir": "hello_world",
+        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
+        "launcher_name": "{app_name}",
+        "icon": "",
+        "target": [
+            {
+                "file": "hello_world/hello.py",
+                "function": "main",
+                "args": [],
+                "kwargs": {}
+            }
+        ],
+        "readme": "",
+        "attachments": {},
+        "module_paths": [],
+        "venv": {
+            "enable_venv": false,
+            "python_version": "",
+            "mode": "source_venv",
+            "options": {
+                "depsland": {
+                    "venv_name": "{app_name_lower}_venv",
+                    "venv_id": "",
+                    "requirements": ""
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": "",
+                    "pypi_url": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                },
+                "embed_python": {
+                    "path": ""
+                }
+            }
+        },
+        "compiler": {
+            "name": "cython",
+            "options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "zip": {
+                    "password": ""
+                }
+            }
+        },
+        "enable_console": true
+    },
+    "note": "",
+    "pyportable_installer_version": "4.0.0a0"
+}

@@ -1,0 +1,74 @@
+{
+    "app_name": "PyPortable Installer",
+    "app_version": "4.0.0-alpha.0-dist.11",
+    "description": "",
+    "author": "Likianta <likianta@foxmail.com>",
+    "build": {
+        "proj_dir": "../../pyportable_installer",
+        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
+        "launcher_name": "{app_name}",
+        "icon": "",
+        "target": [
+            {
+                "file": "../../shortcut/build.py",
+                "function": "main",
+                "args": [],
+                "kwargs": {}
+            }
+        ],
+        "readme": "",
+        "attachments": {
+            "../../dist": "only_folder",
+            "../../embed_python_downloader": "assets,compile",
+            "../../shortcut": "assets,dist:{name}",
+            "../../sidework": "assets,compile,dist:{name}",
+            "../../temp": "only_folder"
+        },
+        "module_paths": [],
+        "venv": {
+            "enable_venv": true,
+            "python_version": "3.9",
+            "mode": "depsland",
+            "options": {
+                "depsland": {
+                    "venv_name": "{app_name_lower}_venv",
+                    "venv_id": "",
+                    "requirements": ""
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": "",
+                    "pypi_url": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                },
+                "embed_python": {
+                    "path": ""
+                }
+            }
+        },
+        "compiler": {
+            "name": "nuitka",
+            "options": {
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "nuitka": {},
+                "cython": {},
+                "mypyc": {},
+                "zip": {
+                    "password": ""
+                }
+            }
+        },
+        "enable_console": true
+    },
+    "note": "",
+    "pyportable_installer_version": "4.0.0a0"
+}
