@@ -1,5 +1,7 @@
 from shutil import copyfile
 
+from lk_logger import lk
+
 from .attachments import copy_attachments
 from ....path_model import dst_model
 from ....path_model import prj_model
@@ -20,6 +22,9 @@ def main(conf: TConf, **kwargs):
     """
     src_model.assert_ready()
     dst_model.assert_ready()
+
+    lk.logt('[D3033]', src_model.src_root, src_model.prj_root)
+    lk.logt('[D3034]', dst_model.dst_root, dst_model.prj_root)
     
     if src_model.readme:
         _create_readme(src_model.readme, dst_model.readme)
@@ -34,7 +39,7 @@ def main(conf: TConf, **kwargs):
     #     pass
 
     pyfiles = []
-    pyfiles.extend(_copy_sources(src_model.prj_root, dst_model.prj_root))
+    pyfiles.extend(_copy_sources())
     pyfiles.extend(copy_attachments(conf['build']['attachments']))
     return pyfiles
 
@@ -65,15 +70,8 @@ def _create_readme(file_i: TPath, file_o: TPath):
         copyfile(file_i, file_o)
 
 
-def _copy_sources(dir_i, dir_o):
-    """
-    将 proj_dir 的内容全部拷贝到 src_dir 下, 并返回 src_dir 以及 src_dir 的所有
-    子目录.
-
-    Args:
-        dir_i: source project directory. i.e. `src_model.prj_root`.
-        dir_o: dist project directory. i.e. `dst_model.prj_root`.
-    """
+def _copy_sources():
     yield from copy_attachments({
-        dir_i: {'marks': ('assets', 'compile'), 'path': dir_o}
+        src_model.prj_root: {'marks': ('assets', 'compile'),
+                             'path': dst_model.prj_root}
     })

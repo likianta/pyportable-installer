@@ -66,7 +66,7 @@ def _create_launcher(
         'target_file': src_2_dst(target['file']),
         'target_dir' : src_2_dst(dirname(target['file'])),
         'launch_file': dst_model.pylauncher,
-        'launch_dir' : dst_model.prj_root,
+        'launch_dir' : dst_model.src_root,
         'conf_dir'   : dst_model.pylauncher_conf,
         'conf_file'  : f'{dst_model.pylauncher_conf}/{conf_name}.pkl',
         'bat_file'   : f'{dst_model.dst_root}/{launcher_name}.bat',
@@ -76,8 +76,8 @@ def _create_launcher(
     # if not exists(d := abs_paths['conf_dir']):
     #     mkdir(d)
     
-    _rel0 = lambda p: relpath(p, dst_model.dst_root)
-    _rel1 = lambda p: relpath(p, dst_model.prj_root)
+    _rel0 = lambda p: relpath(p, dst_model.dst_root)  # starts from dst root
+    _rel1 = lambda p: relpath(p, dst_model.src_root)  # strats from pylauncher dir
     rel_paths = {
         'lib_dir'    : _rel1(dst_model.lib),  # '../lib'
         'launch_file': _rel0(abs_paths['launch_file']),  # 'src/pylauncher.py'

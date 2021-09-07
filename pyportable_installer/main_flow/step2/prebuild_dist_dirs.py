@@ -94,13 +94,15 @@ def _precheck(conf: TConf):
 def _init_path_models(src_root, dst_root, conf: TConf):
     from ...path_model import dst_model
     from ...path_model import src_model
+    from ...path_model import relpath
     
     src_model.init(
         src_root=src_root, prj_root=conf['build']['proj_dir'],
         readme=conf['build']['readme']
     )
     dst_model.init(
-        dst_root=dst_root, prj_root=f'{dst_root}/src',
+        dst_root=dst_root,
+        prj_relroot=relpath(src_model.prj_root, src_model.src_root),
         launcher_name=conf['build']['launcher_name'],
         readme=conf['build']['readme']
     )

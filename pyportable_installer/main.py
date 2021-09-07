@@ -92,8 +92,8 @@ def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:
     conf = main_flow.main(pyproj_file, additional_conf, **misc)
     
     m, n = ospath.split(conf['build']['dist_dir'])
-    lk.logt("[I2501]", f'See distributed project at \n\t"{m}:0" >> {n}')
-    #   this path link is clickable in pycharm console  ^-----^
+    lk.logt("[I2501]", f'See distributed project at: \n\t"{m}:0" >> {n}')
+    #   this path link is clickable in pycharm console   ^-----^
     
     lk.enable()
     
