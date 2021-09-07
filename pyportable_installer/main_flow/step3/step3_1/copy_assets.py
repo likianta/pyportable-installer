@@ -22,9 +22,12 @@ def main(conf: TConf, **kwargs):
     """
     src_model.assert_ready()
     dst_model.assert_ready()
-
-    lk.logt('[D3033]', src_model.src_root, src_model.prj_root)
-    lk.logt('[D3034]', dst_model.dst_root, dst_model.prj_root)
+    
+    lk.logp(
+        'model paths overview',
+        (src_model.src_root, src_model.prj_root),
+        (dst_model.dst_root, dst_model.src_root, dst_model.prj_root),
+    )
     
     if src_model.readme:
         _create_readme(src_model.readme, dst_model.readme)

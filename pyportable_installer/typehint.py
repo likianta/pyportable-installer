@@ -108,12 +108,15 @@ class _TAttachmentsValue(TypedDict):
 TAttachments = dict[TPath, _TAttachmentsValue]
 
 # `template/pyproject.json::build:compiler:name`
-TCompilerName = Literal['cython', 'pyarmor', 'pyc', 'zipapp']
+TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc', 'zipapp']
 
 
 class _TCompilerOptions(TypedDict):
     # `template/pyproject.json::build:compiler:compiler_options`
     # note: keep `this:members:name` sync with `TCompilerNames`
+    cython: dict
+    mypyc: dict
+    nuitka: dict
     pyarmor: dict
     pyc: dict
     zipapp: dict

@@ -1,6 +1,7 @@
 """
 注意: 本模块在运行时而非编译时生效.
 FIXME: 本模块不应放在 `pyportable_installer/compiler` 目录, 请转移.
+TODO: this module is under construction.
 """
 import importlib
 import zipfile

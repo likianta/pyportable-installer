@@ -32,17 +32,16 @@ class PyPortablePathModel:
     
     # template/*
     launch_bat = f'{template}/launch.bat'
-    launch_bat_for_depsland = f'{template}/launch_for_depsland.bat'
     pyarmor = f'{template}/pyarmor'
     pylauncher = f'{template}/pylauncher.txt'
     pyproject = f'{template}/pyproject.json'
     python_ico = f'{template}/python.ico'
     pytransform = f'{template}/pytransform.txt'
     setup_for_depsland = f'{template}/setup_for_depsland.txt'
+    setup_for_depsland_bat = f'{template}/setup_for_depsland.bat'
     
     # specific files
     bat_2_exe_converter = f'{cur_root}/bat_2_exe/bat_to_exe_converter.exe'
-    py_2_pyd = f'{cur_root}/compiler/py_2_pyd.bat'
 
 
 class SourcePathModel:

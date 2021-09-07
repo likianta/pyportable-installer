@@ -1,2 +1,5 @@
+cython
+mypy
+nuitka
 pillow
 pycryptodome

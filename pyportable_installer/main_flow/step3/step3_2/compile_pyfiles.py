@@ -1,12 +1,17 @@
 from lk_logger import lk
 
-from .... import compiler
+from .... import compilers
 from ....typehint import TCompilerName
 
 
 def get_compiler(name: TCompilerName):
+    lk.logt('[I1028]', 'compiler name', name)
     if name == 'cython':
-        return compiler.CythonCompiler()
+        return compilers.CythonCompiler()
+    elif name == 'mypyc':
+        return compilers.MypycCompiler()
+    elif name == 'nuitka':
+        return compilers.NuitkaCompiler()
     else:
         raise NotImplemented(
             'Unopened compiler in current pyportable version', name
@@ -15,6 +20,9 @@ def get_compiler(name: TCompilerName):
 
 def main(compiler_name, pyfiles):
     my_compiler = get_compiler(compiler_name)
-    with lk.counting(len(pyfiles)):
-        for file_o in my_compiler.compile_all(*pyfiles):
-            lk.logtx('[D0226]', file_o)
+    for _ in my_compiler.compile_all(*pyfiles):
+        pass
+    # from lk_logger import lk
+    # with lk.counting(len(pyfiles)):
+    #     for file_o in my_compiler.compile_all(*pyfiles):
+    #         lk.logtx('[D0226]', file_o)

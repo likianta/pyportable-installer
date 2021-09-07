@@ -53,8 +53,7 @@
                 "pyc": {
                     "optimize_level": 0
                 },
-                "cython": {},
-                "zip": {
+                "zipapp": {
                     "password": ""
                 }
             }

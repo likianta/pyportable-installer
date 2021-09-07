@@ -211,7 +211,7 @@ def _create_depsland_setup(launcher_name, icon,
         f.write(code)
     
     copyfile(
-        prj_model.launch_bat_for_depsland,
+        prj_model.setup_for_depsland_bat,
         dst_model.setup_bat,
     )
     

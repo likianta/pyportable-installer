@@ -23,7 +23,7 @@ def main(conf: TConf, **misc):
                 |- ...
     """
     pyfiles = step3_1(conf, **misc)
-    step3_2('cython', pyfiles)
+    step3_2(conf['build']['compiler']['name'], pyfiles)
     step3_3(conf['build'])
 
 

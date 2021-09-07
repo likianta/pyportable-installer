@@ -1,30 +1,29 @@
 """
-References:
-    https://github.com/TechLearnersInc/cythonizer
-    https://www.youtube.com/watch?v=qYgKr_AYNjY
-
-Prerequisites:
-    cython package
-    windows c compiler (install microsoft visual studio build tools, follow the
-        guide of https://www.youtube.com/watch?v=qYgKr_AYNjY)
+Warnings:
+    ~/docs/devnote/currently-known-compilers-issues.md
 """
+import os
+import subprocess
+import sys
 from os import listdir
 from os import mkdir
 from os.path import basename
+from os.path import dirname
 from shutil import copyfile
 from shutil import rmtree
+from textwrap import dedent
 from uuid import uuid1
 
 from lk_logger import lk
+from lk_utils import dumps
 from lk_utils import find_dirs
 from lk_utils import run_new_thread
-from lk_utils import send_cmd
 
 from .base_compiler import BaseCompiler
 from ..path_model import prj_model
 
 
-class CythonCompiler(BaseCompiler):
+class MypycCompiler(BaseCompiler):
     """
     Tree:
         |= hello_world
@@ -44,28 +43,58 @@ class CythonCompiler(BaseCompiler):
     
     # noinspection PyMissingConstructor
     def __init__(self):
-        self._bat_file = prj_model.py_2_pyd
         self._temp_dir = prj_model.temp
     
     def compile_all(self, *pyfiles):
-        for i, o in pyfiles:
-            o += 'd'  # py -> pyd
-            yield from self.compile_one(i, o)
+        with lk.counting(len(pyfiles)):
+            for i, o in pyfiles:
+                o += 'd'  # py -> pyd
+                lk.logtx('[D5520]', 'compiling', i, o)
+                yield from self.compile_one(i, o)
         run_new_thread(self._cleanup)
     
     def compile_one(self, src_file, dst_file):
-        # copy source file
+        """
+        Notes:
+            Code uses `~/python/scripts/mypyc` source code for reference.
+        """
+        # copy source file from src_dir to tmp_dir
         tmp_dir = f'{self._temp_dir}/{uuid1()}'
+        lk.logt('[D1402]', tmp_dir)
         mkdir(tmp_dir)
         tmp_file = f'{tmp_dir}/{basename(src_file)}'
         copyfile(src_file, tmp_file)
         
-        # FIXME: the cythonize is installed in system python/scripts location.
-        send_cmd(f'cythonize -3 -i "{tmp_file}"')
+        # create setup.py
+        setup_file = f'{tmp_dir}/setup.py'
+        setup_code = dedent('''\
+            from os import chdir
+            from distutils.core import setup
+            from mypyc.build import mypycify
+            
+            chdir(r'{0}')
+            
+            setup(name='mypyc_output',
+                  ext_modules=mypycify({1}, opt_level="{2}"))
+        ''').format(tmp_dir, [tmp_file], 3)
+        dumps(setup_code, setup_file)
         
-        pyd_name = [x for x in listdir(tmp_dir) if x.endswith('.pyd')][0]
+        # run setup
+        env = os.environ.copy()
+        env['PYTHONPATH'] = dirname(sys.executable)
+        cmd = subprocess.run(
+            [sys.executable, setup_file, 'build_ext', '--inplace'], env=env
+        )
+        if cmd.returncode != 0:
+            raise RuntimeError(cmd, tmp_file)
+        
+        # get pyd file generated in tmp_dir
+        pyd_names = [x for x in listdir(tmp_dir) if x.endswith('.pyd')]
+        assert len(pyd_names) == 1
+        pyd_name = pyd_names[0]
         pyd_file = f'{tmp_dir}/{pyd_name}'
         
+        # copy pyd file from tmp_dir to dst_dir
         copyfile(pyd_file, dst_file)
         
         yield dst_file
@@ -74,7 +103,3 @@ class CythonCompiler(BaseCompiler):
         for d in find_dirs(self._temp_dir):
             lk.logt('[D5334]', 'delete dir', d)
             rmtree(d)
-        # for f in find_files(self._temp_dir):
-        #     if f.endswith('/.gitkeep'):
-        #         continue
-        #     os.remove(f)
