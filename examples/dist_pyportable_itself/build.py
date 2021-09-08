@@ -1,9 +1,16 @@
+import shutil
+
 from pyportable_installer import full_build
 
 
 def main():
     # _precheck()
-    full_build('pyproject.json')
+    conf = full_build('pyproject.json')
+    
+    dir_i = '../../pyportable_installer/template/pyportable_crypto'
+    dir_o = conf['build']['dist_dir'] + '/src/pyportable_installer/template/pyportable_crypto'
+    shutil.rmtree(dir_o)
+    shutil.copytree(dir_i, dir_o)
 
 
 def _precheck():

@@ -18,6 +18,7 @@
         ],
         "readme": "",
         "attachments": {},
+        "attachments_exist_scheme": "error",
         "module_paths": [],
         "venv": {
             "enable_venv": true,
@@ -44,7 +45,7 @@
             }
         },
         "compiler": {
-            "name": "pyarmor",
+            "name": "pyportable_crypto",
             "options": {
                 "pyarmor": {
                     "liscense": "trial",
@@ -52,6 +53,9 @@
                 },
                 "pyc": {
                     "optimize_level": 0
+                },
+                "pyportable_crypto": {
+                    "key": "{random}"
                 },
                 "zipapp": {
                     "password": ""

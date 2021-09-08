@@ -14,6 +14,7 @@ Prerequisites:
 from os import listdir
 from os import mkdir
 from os.path import basename
+from os.path import exists
 from shutil import copyfile
 from shutil import rmtree
 from uuid import uuid1
@@ -54,8 +55,8 @@ class CythonCompiler(BaseCompiler):
             for i, o in pyfiles:
                 o += 'd'  # py -> pyd
                 lk.logtx('[D5520]', 'compiling', i, o)
-                yield from self.compile_one(i, o)
-        run_new_thread(self._cleanup)
+                yield self.compile_one(i, o)
+        run_new_thread(self.cleanup)
     
     def compile_one(self, src_file, dst_file):
         if basename(src_file) == '__init__.py':
@@ -64,13 +65,38 @@ class CythonCompiler(BaseCompiler):
             lk.logt('[D0359]', 'cython doesn\'t compile __init__.py (leave it '
                                'uncompiled, just copy to the dist)', src_file)
             copyfile(src_file, dst_file)
-            yield dst_file
-            return
+            return dst_file
         
         # copy source file
         tmp_dir = f'{self._temp_dir}/{uuid1()}'
-        mkdir(tmp_dir)
         tmp_file = f'{tmp_dir}/{basename(src_file)}'
+        
+        if len(tmp_file) > (path_limit := 150):  # TODO: 150 or lower?
+            # the file path is too long, it will cause cythonize failed by
+            # 'cl.exe > fatal error code C1081' (see more infomation at
+            # https://docs.microsoft.com/en-us/cpp/error-messages/compiler
+            # -errors-1/fatal-error-c1081).
+            # we have to move `tmp_file` to another place.
+            lk.logt('[I3926]', f'the tmp_file path is too long '
+                               f'({len(tmp_file)} > {path_limit}), we have to '
+                               f'create it in your desktop direcotry (it will '
+                               f'be auto removed when compilation done)')
+            _desktop_mode = True
+            
+            # ref: https://blog.csdn.net/u013948858/article/details/75072873
+            import os.path
+            desktop_dir = os.path.join(os.path.expanduser("~"), 'Desktop')
+            assert exists(desktop_dir)
+            tmp_dir = f'{desktop_dir}/{uuid1()}'
+            tmp_file = f'{tmp_dir}/{basename(src_file)}'
+            assert len(tmp_file) <= path_limit, (
+                'The file name is too long to compile!',
+                f'{tmp_file = }', f'{src_file = }'
+            )
+        else:
+            _desktop_mode = False
+        
+        mkdir(tmp_dir)
         copyfile(src_file, tmp_file)
         
         # FIXME: the cythonize is installed in system python/scripts location.
@@ -84,9 +110,12 @@ class CythonCompiler(BaseCompiler):
         
         copyfile(pyd_file, dst_file)
         
-        yield dst_file
+        if _desktop_mode:
+            rmtree(tmp_dir)
+
+        return dst_file
     
-    def _cleanup(self):
+    def cleanup(self):
         for d in find_dirs(self._temp_dir):
             lk.logt('[D5334]', 'delete dir', d)
             rmtree(d)

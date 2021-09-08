@@ -35,15 +35,12 @@ def main(conf: TConf, **kwargs):
     if kwargs.get('copy_checkup_tools', True):
         _copy_checkup_tools(prj_model.checkup, dst_model.build)
     
-    # mode = conf['build']['venv']['mode']  # type: TMode
-    # options = conf['build']['venv']['options'][mode]
-    #
-    # if mode in ('source_venv', 'embed_python'):
-    #     pass
-
     pyfiles = []
     pyfiles.extend(_copy_sources())
-    pyfiles.extend(copy_attachments(conf['build']['attachments']))
+    pyfiles.extend(copy_attachments(
+        conf['build']['attachments'],
+        conf['build']['attachments_exist_scheme']
+    ))
     return pyfiles
 
 

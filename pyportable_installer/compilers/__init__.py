@@ -2,6 +2,7 @@ if 1:
     from .nuitka_compiler import NuitkaCompiler
     from .pyarmor_compile import PyArmorCompiler
     from .pyc_compiler import PycCompiler
+    from .pyportable_encryptor import PyportableEncryptor
 
 # Currently not availables
 if 2:

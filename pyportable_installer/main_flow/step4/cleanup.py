@@ -24,4 +24,8 @@ def _cleanup_scaffold_files():
 def _generate_manifest(pyproj_file, file_o, additional_conf):
     from ..step1.indexing_paths import main
     conf = main(pyproj_file, additional_conf, 'relpath')
+    try:
+        conf['build']['compiler']['options']['pyportable_crypto']['key'] = ''
+    except KeyError:
+        pass
     dumps(conf, file_o)

@@ -19,8 +19,7 @@ def __example_keygen() -> str:
     #     pass
     
     # FIXME: use a more complicated method to generate KEY in runtime!
-    return '{KEY}'
-    #   see `pyportable_installer.compilers.pyportable_encryptor
+    return '{KEY}'  # see `pyportable_installer.compilers.pyportable_encryptor
     #   ._generate_runtime_lib`
 
 

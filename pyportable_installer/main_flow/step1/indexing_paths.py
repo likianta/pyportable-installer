@@ -1,6 +1,7 @@
 from os.path import abspath
 from os.path import basename
 from os.path import dirname
+from uuid import uuid1
 
 from lk_logger import lk
 from lk_utils.filesniff import normpath
@@ -175,7 +176,6 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         options['requirements'] = _load_requirements(options['requirements'])
         options['venv_name'] = options['venv_name'].format(**interpolations)
         if not options['venv_id']:
-            from uuid import uuid1
             options['venv_id'] = str(uuid1()).replace('-', '')
     else:
         raise ValueError(mode)

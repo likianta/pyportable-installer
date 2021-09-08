@@ -1,4 +1,5 @@
 from os import mkdir
+from os import remove
 from os.path import exists
 from os.path import isfile
 from shutil import copyfile
@@ -11,8 +12,32 @@ from lk_utils import findall_dirs
 from ....path_model import src_2_dst
 from ....typehint import *
 
+_file_exists_scheme = 'error'
 
-def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]:
+
+def _handle_file_exists(file_o):
+    """
+    Returns:
+        str['go_on', 'done']
+            'go_on': going on to do the left things.
+            'done': all things have done, do not handle this file.
+    """
+    if _file_exists_scheme == 'error':
+        raise FileExistsError(file_o)
+    elif _file_exists_scheme == 'merge':
+        return 'go_on'
+    elif _file_exists_scheme == 'override':
+        remove(file_o)
+        return 'go_on'
+    elif _file_exists_scheme == 'skip':
+        return 'done'
+    else:
+        raise Exception('Unknown scheme', _file_exists_scheme)
+
+
+def copy_attachments(
+        attachments: TAttachments, exists_scheme='error'
+) -> Iterator[tuple[TPath, TPath]]:
     """ Specific for handling attachmets in format of `~.typehint.TAttachments`.
     
     Attachments Marks (`~.typehint.TAttachments._TAttachmentsValue.marks`):
@@ -31,7 +56,8 @@ def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]
     Yields:
         tuple[src_pyfile, dst_pyfile]
     """
-    global _excludes
+    global _excludes, _file_exists_scheme
+    _file_exists_scheme = exists_scheme
     
     for k, v in attachments.items():
         path_i = k
@@ -47,7 +73,7 @@ def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]
         # 1. `path_i` is file
         if 'asset' in marks or isfile(path_i):
             if is_yield_pyfile:
-                yield from _handle_compile(path_i, '')
+                yield from _handle_compile(path_i, path_o)
             else:
                 _handle_asset(path_i, path_o)
             continue
@@ -56,7 +82,6 @@ def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]
         dir_i = path_i
         dir_o = path_o
         
-        # # assert exists(dir_o)
         if not exists(dir_o):
             mkdir(dir_o)
         
@@ -105,6 +130,8 @@ def _handle_root_assets_and_compile(dir_i, dir_o):
             continue
         fp_i, fp_o = fp, f'{dir_o}/{fn}'
         if fn.endswith('.py'):  # TODO: ~.endswith(('.py', '.pyw', ...))
+            if exists(fp_o) and _handle_file_exists(fp_o) == 'done':
+                continue
             yield fp_i, fp_o
         else:
             copyfile(fp_i, fp_o)
@@ -147,6 +174,8 @@ def _handle_asset(file_i, file_o):
 # noinspection PyUnusedLocal
 def _handle_compile(file_i, file_o):
     assert file_i.endswith('.py')
+    if exists(file_o) and _handle_file_exists(file_o) == 'done':
+        return
     yield file_i, file_o
 
 

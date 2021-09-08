@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.0.0-alpha.0-dist.11",
+    "app_version": "4.0.0-alpha.0-dist.40",
     "description": "",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
@@ -20,13 +20,14 @@
         "attachments": {
             "../../dist": "only_folder",
             "../../embed_python_downloader": "assets,compile",
-            "../../shortcut": "assets,dist:{name}",
+            "../../shortcut": "assets,compile",
             "../../sidework": "assets,compile,dist:{name}",
             "../../temp": "only_folder"
         },
+        "attachments_exist_scheme": "override",
         "module_paths": [],
         "venv": {
-            "enable_venv": true,
+            "enable_venv": false,
             "python_version": "3.9",
             "mode": "depsland",
             "options": {
@@ -50,8 +51,11 @@
             }
         },
         "compiler": {
-            "name": "nuitka",
+            "name": "pyportable_crypto",
             "options": {
+                "cython": {},
+                "mypyc": {},
+                "nuitka": {},
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
@@ -59,10 +63,10 @@
                 "pyc": {
                     "optimize_level": 0
                 },
-                "nuitka": {},
-                "cython": {},
-                "mypyc": {},
-                "zip": {
+                "pyportable_crypto": {
+                    "key": "{random}"
+                },
+                "zipapp": {
                     "password": ""
                 }
             }

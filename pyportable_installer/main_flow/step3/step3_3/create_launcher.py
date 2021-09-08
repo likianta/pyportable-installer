@@ -19,7 +19,8 @@ _is_depsland_mode = False
 
 def main(build: TBuildConf):
     global _is_depsland_mode
-    _is_depsland_mode = bool(build['venv']['mode'] == 'depsland')
+    _is_depsland_mode = build['venv']['enable_venv'] and \
+                        bool(build['venv']['mode'] == 'depsland')
     
     exe_names = {}
     

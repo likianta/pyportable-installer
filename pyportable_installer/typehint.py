@@ -108,7 +108,8 @@ class _TAttachmentsValue(TypedDict):
 TAttachments = dict[TPath, _TAttachmentsValue]
 
 # `template/pyproject.json::build:compiler:name`
-TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc', 'zipapp']
+TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc',
+                        'pyportable_crypto', 'zipapp']
 
 
 class _TCompilerOptions(TypedDict):
@@ -119,6 +120,7 @@ class _TCompilerOptions(TypedDict):
     nuitka: dict
     pyarmor: dict
     pyc: dict
+    pyportable_crypto: dict  # {'key': str}
     zipapp: dict
 
 
@@ -138,6 +140,7 @@ class TBuildConf(TypedDict):
     readme: TPath
     module_paths: list[TPath]
     attachments: TAttachments
+    attachments_exist_scheme: Literal['error', 'merge', 'override', 'skip']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     enable_console: bool

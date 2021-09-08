@@ -23,7 +23,11 @@ def main(conf: TConf, **misc):
                 |- ...
     """
     pyfiles = step3_1(conf, **misc)
-    step3_2(conf['build']['compiler']['name'], pyfiles)
+    
+    name = conf['build']['compiler']['name']
+    options = conf['build']['compiler']['options'][name]
+    step3_2(name, pyfiles, options)
+    
     step3_3(conf['build'])
 
 
