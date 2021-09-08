@@ -11,10 +11,12 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
 default = true
 
 [tool.poetry.dependencies]
-python = "^3.9"
-lk-logger = "^3.6"
-lk-utils = "*"
-pyarmor = "*"
+python = ">=3.9"
+cython = ""
+lk-logger = ">=4.0.0a2"
+lk-utils = ">=2.0.0a0"
+pyarmor = ""
+pycryptodomex = ""
 
 [tool.poetry.dev-dependencies]
 

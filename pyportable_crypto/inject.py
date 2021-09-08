@@ -36,23 +36,23 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
         """
         Notes:
             1. Here we copy part of source code from `./decrypt.py`.
-               Note that do not import `.decrypt.decrypt_data` because we want
-               to avoid decryption hijecked from outside.
-            2. cython cannot handle reassignment (i have no idea why this
+               Note that do not import `.decrypt.decrypt_data` into this file,
+               because we want to avoid decryption hijecked from outside.
+            2. cython cannot handle reassignment (have no idea why this
                happend):
                for example:
                     a = 'some string'
                     
                     # if we reassign a...
                     a = a.encode()
-                    # -> error: cannot encode because `a` is bytes
+                    # -> pyd runtime error: cannot encode because `a` is bytes
                     
                     # then if we think `a` is bytes but don't know why...
                     a = a.decode()
-                    # -> error: cannot decode because `a` is str
+                    # -> pyd runtime error: cannot decode because `a` is str
                     
-               to resolve this weired thing, we must replace the new variable
-               name to others:
+               to resolve this weired issue, we should assign to a new variable
+               name:
                     a = 'some string'
                     b = a.encode()
                     # it worked.
@@ -82,7 +82,7 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
     else:
         return locals_['__PYMOD_HOOK__']
     finally:
-        del key, locals_
+        del key, globals_, locals_
 
 
 def _validate_self_package():
