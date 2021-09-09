@@ -37,6 +37,8 @@ class _TDepslandOptions(TypedDict):
     venv_name: str
     venv_id: str
     requirements: TRequirements
+    offline: bool
+    local: TPath
 
 
 class _TSourceVenvOptions(TypedDict):
@@ -48,8 +50,8 @@ class _TPipOptions(TypedDict):
     # `template/pyproject.json::build:venv:options:pip`
     requirements: TRequirements
     pypi_url: str
-    local: TPath
     offline: bool
+    local: TPath
 
 
 class _TEmbedPythonOptions(TypedDict):
@@ -140,7 +142,7 @@ class TBuildConf(TypedDict):
     readme: TPath
     module_paths: list[TPath]
     attachments: TAttachments
-    attachments_exist_scheme: Literal['error', 'merge', 'override', 'skip']
+    attachments_exist_scheme: Literal['error', 'override', 'skip']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     enable_console: bool

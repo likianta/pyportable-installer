@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.0.0-alpha.0-dist.40",
+    "app_version": "4.0.0-alpha.1-dist.7",
     "description": "",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
@@ -20,12 +20,15 @@
         "attachments": {
             "../../dist": "only_folder",
             "../../embed_python_downloader": "assets,compile",
+            "../../lib/pyportable_crypto": "assets",
             "../../shortcut": "assets,compile",
             "../../sidework": "assets,compile,dist:{name}",
             "../../temp": "only_folder"
         },
         "attachments_exist_scheme": "override",
-        "module_paths": [],
+        "module_paths": [
+            "../../lib"
+        ],
         "venv": {
             "enable_venv": false,
             "python_version": "3.9",
@@ -34,7 +37,9 @@
                 "depsland": {
                     "venv_name": "{app_name_lower}_venv",
                     "venv_id": "",
-                    "requirements": ""
+                    "requirements": "",
+                    "offline": false,
+                    "local": ""
                 },
                 "source_venv": {
                     "path": ""

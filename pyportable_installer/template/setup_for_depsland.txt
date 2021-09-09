@@ -1,10 +1,15 @@
 """
 Placeholders:
-    VENV_NAME
-    REQUIREMENTS
-    VENV_ID
-    LAUNCHER
-    INVISIBLE
+    VENV_NAME       tell depsland what venv folder name to create.
+    REQUIREMENTS    list[str]. list of requirements with specifiers.
+    VENV_ID         venv id.
+    LAUNCHER        main launcher name.
+    OFFLINE         bool[False]. set pip offline mode.
+    LOCAL_DIR       str. if offline enabled, the local should be a valid path
+                    which contains '*.whl' files.
+    INVISIBLE       show console or not.
+See `pyportable_installer.main_flow.step3.step3_3.create_launcher
+    ._create_depsland_setup`
 
 Workflow:
     1. import depsland
@@ -26,12 +31,23 @@ sys.path.insert(0, os.getenv('DEPSLAND'))
 try:
     from depsland import launch
     from depsland.setup import bat_2_exe
-    from lk_utils import loads, dumps
+    from lk_utils import loads, dumps, find_files
 except ImportError as e:
     raise e
 
 
-def main():
+def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
+    if offline:
+        assert exists(local)
+        from depsland import default_pip
+        from depsland.path_struct import src_struct
+        default_pip.change_pip_options(offline=True)
+        for fp, fn in find_files(local, fmt='zip'):
+            i = fp
+            o = f'{{src_struct.downloads}}/{{fn}}'
+            if not exists(o):
+                move(i, o)
+
     # create depsland venv
     venv_dir = launch(
         "{VENV_NAME}",

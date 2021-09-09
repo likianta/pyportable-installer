@@ -95,8 +95,10 @@ def _validate_source_file(filename):
     with open(filename, 'r', encoding='utf-8') as f:
         text = f.read().rstrip()
         text = sub(r"b'[^\']+'", "b'...'", text)
+        # see template generation at `pyportable_installer.compilers.pyportable
+        # _encryptor.PyportableEncryptor.__init__`
         if text != dedent('''\
-            from pyportable_crypto import inject
+            from pyportable_runtime import inject
             globals().update(inject(__file__, globals(), locals(), b'...'))
         ''').rstrip():
             raise RuntimeError(filename, 'Decompling stopped because the '

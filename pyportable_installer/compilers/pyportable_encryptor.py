@@ -1,13 +1,14 @@
 from os import mkdir
 from os import remove
 from os.path import basename
+from os.path import dirname
 from shutil import copyfile
+from shutil import copytree
 from textwrap import dedent
 
 from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import loads
-from lk_utils.filesniff import find_filenames
 
 from pyportable_crypto import encrypt_data
 from pyportable_crypto import keygen
@@ -29,40 +30,44 @@ class PyportableEncryptor(BaseCompiler):
         self._generate_runtime_lib()
         
         self._template = dedent('''\
-            from pyportable_crypto import inject
+            from pyportable_runtime import inject
             globals().update(inject(__file__, globals(), locals(), {ciphertext}))
         ''')
         #   `pyportable_crypto.inject._validate_source_file`
     
     def _generate_runtime_lib(self):
         # 1.
-        src_dir = prj_model.template + '/pyportable_crypto'
+        import Cryptodome
+        copytree(dirname(Cryptodome.__file__), f'{dst_model.lib}/Cryptodome')
+        
+        # 2.
+        src_dir = prj_model.pyportable_crypto
         tmp_dir = prj_model.temp
-        dst_dir = dst_model.lib + '/pyportable_crypto'
+        dst_dir = dst_model.lib + '/pyportable_runtime'
+        mkdir(dst_dir)
         
         # 2. TODO: if pyportable_crypto folder structure changes, we need to
         #       recheck here.
-        mkdir(dst_dir)
-        for name in find_filenames(src_dir):
-            # if name in ('__init__.py', 'inject.py'):
-            if name == 'inject.py':
-                continue
-            copyfile(f'{src_dir}/{name}', f'{dst_dir}/{name}')
+        # for name in find_filenames(src_dir):
+        #     # if name in ('__init__.py', 'inject.py'):
+        #     if name == 'inject.py':
+        #         continue
+        #     copyfile(f'{src_dir}/{name}', f'{dst_dir}/{name}')
         
-        # 3.
-        # dumps('from .inject import inject', f'{dst_dir}/__init__.py')
+        # 3. create '__init__.py' for `pyportable_runtime`
+        dumps('from .inject import inject', f'{dst_dir}/__init__.py')
         
-        # 4.
+        # 4. generate temporary 'inject.py' in tmp_dir
         code = loads(f'{src_dir}/inject.py')
         code = code.replace('{KEY}', self.__key)
         dumps(code, tmp_file := f'{tmp_dir}/inject.py')
         
-        # 5.
+        # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
         from .cython_compiler import CythonCompiler
         compiler = CythonCompiler()
         compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
         
-        # 6. cleanup
+        # 6. cleanup tmp_dir
         compiler.cleanup()
         remove(tmp_file)
     

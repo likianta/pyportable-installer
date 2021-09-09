@@ -24,8 +24,6 @@ def _handle_file_exists(file_o):
     """
     if _file_exists_scheme == 'error':
         raise FileExistsError(file_o)
-    elif _file_exists_scheme == 'merge':
-        return 'go_on'
     elif _file_exists_scheme == 'override':
         remove(file_o)
         return 'go_on'

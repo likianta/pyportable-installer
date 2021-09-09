@@ -39,7 +39,8 @@ def main(build: TBuildConf):
                 _create_depsland_setup(
                     build['launcher_name'], build['icon'],
                     options['venv_name'], options['venv_id'],
-                    options['requirements'], build['enable_console']
+                    options['requirements'], build['enable_console'],
+                    offline=options['offline'], local=options['local']
                 )
         else:
             name = get_filename(t['file'], suffix=False)
@@ -73,6 +74,10 @@ def _create_launcher(
         'bat_file'   : f'{dst_model.dst_root}/{launcher_name}.bat',
         'exe_file'   : f'{dst_model.dst_root}/{launcher_name}.exe',
     }
+    
+    if _is_depsland_mode:
+        abs_paths['bat_file'] = f'{dst_model.build}/{launcher_name}.bat'
+        abs_paths['exe_file'] = ''
     
     # if not exists(d := abs_paths['conf_dir']):
     #     mkdir(d)
@@ -112,7 +117,13 @@ def _create_launcher(
     
     def _generate_pylauncher():
         _ext_paths = list(map(
-            lambda d: relpath(d, start=abs_paths['launch_dir']),
+            lambda d: relpath(
+                d if not d.startswith('src:') else src_2_dst(d[4:]),
+                #   FIXME: this is a temp measure. see source point at
+                #       `pyportable_installer/main_flow/step1/indexing_paths.py
+                #        > vars:module_paths`
+                start=abs_paths['launch_dir']
+            ),
             extend_sys_paths
         ))
         
@@ -171,6 +182,9 @@ def _create_launcher(
             f.write(code)
     
     def _generate_exe():
+        if _is_depsland_mode:  # TODO
+            return
+        
         def _run(bat_file, exe_file, icon_file, *options):
             lk.loga('converting bat to exe... '
                     'it may take several seconds ~ one minute...')
@@ -191,12 +205,12 @@ def _create_launcher(
     _generate_bat()
     _generate_exe()
     
-    return abs_paths['exe_file']
+    return abs_paths['exe_file'] or abs_paths['bat_file']
 
 
 def _create_depsland_setup(launcher_name, icon,
                            venv_name, venv_id, requirements,
-                           enable_console=True):
+                           enable_console=True, **kwargs):
     with ropen(prj_model.setup_for_depsland) as f:
         template = f.read()
         
@@ -205,6 +219,8 @@ def _create_depsland_setup(launcher_name, icon,
             VENV_NAME=venv_name,
             VENV_ID=venv_id,
             REQUIREMENTS=requirements,
+            OFFLINE=kwargs.get('offline', False),
+            LOCAL_DIR=kwargs.get('local', ''),
             INVISIBLE='' if enable_console else '/invisible'
         )
     

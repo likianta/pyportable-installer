@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.3.5",
+    "app_version": "0.3.9",
     "description": "Say hello to someone given name.",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
@@ -28,7 +28,9 @@
                 "depsland": {
                     "venv_name": "{app_name_lower}_venv",
                     "venv_id": "",
-                    "requirements": ""
+                    "requirements": "",
+                    "offline": false,
+                    "local": ""
                 },
                 "source_venv": {
                     "path": ""

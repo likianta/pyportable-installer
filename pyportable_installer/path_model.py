@@ -24,13 +24,17 @@ class PyPortablePathModel:
     prj_root = dirname(cur_root)
     
     # prj_root/*
+    lib = f'{prj_root}/lib'
     temp = f'{prj_root}/temp'
+    
+    # prj_root/lib/*
+    pyportable_crypto = f'{lib}/pyportable_crypto'
     
     # cur_root/*
     checkup = f'{cur_root}/checkup'
     template = f'{cur_root}/template'
     
-    # template/*
+    # cur_root/template/*
     launch_bat = f'{template}/launch.bat'
     pyarmor = f'{template}/pyarmor'
     pylauncher = f'{template}/pylauncher.txt'
@@ -40,7 +44,7 @@ class PyPortablePathModel:
     setup_for_depsland = f'{template}/setup_for_depsland.txt'
     setup_for_depsland_bat = f'{template}/setup_for_depsland.bat'
     
-    # specific files
+    # other
     bat_2_exe_converter = f'{cur_root}/bat_2_exe/bat_to_exe_converter.exe'
 
 

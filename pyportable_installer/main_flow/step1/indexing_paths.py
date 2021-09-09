@@ -7,7 +7,7 @@ from lk_logger import lk
 from lk_utils.filesniff import normpath
 
 from .path_formatter import PathFormatter
-from ...path_model import prj_model, src_2_dst
+from ...path_model import prj_model
 from ...typehint import *
 
 
@@ -137,9 +137,12 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         if p.startswith('dist:'):
             p = path_fmt(p)
         else:
-            p = src_2_dst(
-                path_fmt(p), conf['build']['proj_dir'], path_fmt.dir_o
-            )
+            # FIXME: see `pyportable_installer/main_flow/step3/step3_3/create
+            #   _launcher.py > _generate_pylauncher > vars:_ext_paths`
+            # p = src_2_dst(
+            #     path_fmt(p), conf['build']['proj_dir'], path_fmt.dir_o
+            # )
+            p = 'src:' + path_fmt(p)
         module_paths[i] = p
     conf['build']['module_paths'] = module_paths
     del module_paths
@@ -156,8 +159,12 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     def _load_requirements(req: Union[str, list[str]]):
         if isinstance(req, str):
             if req:
+                # FIXME: path_fmt must be 'abspath'
+                if path_fmt.fmt == 'relpath':
+                    file = path_fmt.dir_i + '/' + path_fmt
+                    return ['...']
                 from lk_utils.read_and_write import load_list
-                file = req
+                file = path_fmt(req)
                 return [x for x in load_list(file)
                         if x and not x.startswith('#')]
             else:
@@ -177,6 +184,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         options['venv_name'] = options['venv_name'].format(**interpolations)
         if not options['venv_id']:
             options['venv_id'] = str(uuid1()).replace('-', '')
+        options['local'] = path_fmt(options['local'])
     else:
         raise ValueError(mode)
     

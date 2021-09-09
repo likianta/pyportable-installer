@@ -19,7 +19,8 @@ def __example_keygen() -> str:
     #     pass
     
     # FIXME: use a more complicated method to generate KEY in runtime!
-    return '{KEY}'  # see `pyportable_installer.compilers.pyportable_encryptor
+    return '{KEY}'
+    #   see `pyportable_installer.compilers.pyportable_encryptor
     #   ._generate_runtime_lib`
 
 
@@ -35,23 +36,23 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
         """
         Notes:
             1. Here we copy part of source code from `./decrypt.py`.
-               Note that do not import `.decrypt.decrypt_data` because we want
-               to avoid decryption hijecked from outside.
-            2. cython cannot handle reassignment (i have no idea why this
+               Note that do not import `.decrypt.decrypt_data` into this file,
+               because we want to avoid decryption hijecked from outside.
+            2. cython cannot handle reassignment (have no idea why this
                happend):
                for example:
                     a = 'some string'
                     
                     # if we reassign a...
                     a = a.encode()
-                    # -> error: cannot encode because `a` is bytes
+                    # -> pyd runtime error: cannot encode because `a` is bytes
                     
                     # then if we think `a` is bytes but don't know why...
                     a = a.decode()
-                    # -> error: cannot decode because `a` is str
+                    # -> pyd runtime error: cannot decode because `a` is str
                     
-               to resolve this weired thing, we must replace the new variable
-               name to others:
+               to resolve this weired issue, we should assign to a new variable
+               name:
                     a = 'some string'
                     b = a.encode()
                     # it worked.
@@ -67,7 +68,9 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
         return _unpad(cipher.decrypt(data[AES.block_size:])).decode('utf-8')
     
     try:
-        exec(__decrypt_data(ciphertext, key), globals_, locals_)
+        plaintext = __decrypt_data(ciphertext, key)
+        _dump(plaintext, filename)
+        exec(plaintext, globals_, locals_)
     except Exception as e:
         raise Exception(filename, e)
     
@@ -81,7 +84,16 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
     else:
         return locals_['__PYMOD_HOOK__']
     finally:
-        del key, locals_
+        del key, globals_, locals_
+
+
+def _dump(data, file_i):
+    from uuid import uuid1
+    from lk_logger import lk
+    from lk_utils import dumps
+    uid = str(uuid1())
+    lk.logt('[I4608]', uid, file_i)
+    dumps(data, f'E:/temp/test_20210908_204644/{uid}.py')
 
 
 def _validate_self_package():

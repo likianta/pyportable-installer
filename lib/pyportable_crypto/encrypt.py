@@ -1,7 +1,7 @@
 from base64 import b64encode
 from hashlib import sha256
+from os import urandom
 
-from Cryptodome import Random
 from Cryptodome.Cipher import AES
 
 
@@ -16,10 +16,8 @@ def encrypt_file(file_i, file_o, key: str):
 def encrypt_data(data: str, key: str) -> bytes:
     data = _pad(data).encode('utf-8')  # type: bytes
     key = sha256(key.encode('utf-8')).digest()  # type: bytes
-    
-    iv = Random.new().read(AES.block_size)
+    iv = urandom(AES.block_size)  # type: bytes
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    
     return b64encode(iv + cipher.encrypt(data))
 
 

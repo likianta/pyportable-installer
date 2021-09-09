@@ -107,6 +107,12 @@ def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):
 
 
 if __name__ == '__main__':
+    # try:
+    #     from lk_logger import lk
+    #     lk.enable_lite_mode()
+    # except Exception:
+    #     lk = None
+
     try:
         conf = parse_target_conf(sys.argv)
 
@@ -122,3 +128,7 @@ if __name__ == '__main__':
     except Exception:
         _show_error_info(traceback.format_exc())
         input('Press enter or close the window to leave...')
+
+    # finally:
+    #     if lk:
+    #         lk.enable()

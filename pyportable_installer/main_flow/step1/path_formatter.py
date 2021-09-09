@@ -25,6 +25,7 @@ class PathFormatter:
         if path == '':
             return ''
         if 'dist:' in path:  # if path.startswith('dist:')
+            # FIXME: if self.fmt == 'relpath': ...
             return normpath(path.replace('dist:', self.dir_o + '/'))
         elif os.path.isabs(path):
             if self.fmt == 'abspath':
