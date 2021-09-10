@@ -2,7 +2,7 @@
     "app_name": "",
     "app_version": "0.1.0",
     "description": "",
-    "author": "",
+    "authors": [],
     "build": {
         "proj_dir": "",
         "dist_dir": "dist/{app_name_lower}_{app_version}",
@@ -67,5 +67,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0a1"
+    "pyportable_installer_version": "4.0.0a2"
 }

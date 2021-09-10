@@ -153,7 +153,7 @@ class TConf(TypedDict):
     app_name: str
     app_version: str
     description: str
-    author: Union[str, list[str]]
+    authors: list[str]
     build: TBuildConf
     note: str
     pyportable_installer_version: str
