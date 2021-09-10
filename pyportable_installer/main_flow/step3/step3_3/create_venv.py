@@ -50,7 +50,9 @@ def create_venv(mode: TMode, options):
                          find_links and f'--find-links="{find_links}"',
                          offline and '--no-index',
                          index_url and f'--index-url={index_url}',
-                         trusted_host and f'--trusted-host={trusted_host}')
+                         trusted_host and f'--trusted-host={trusted_host}',
+                         '--no-python-version-warning',
+                         '--no-input')
         
         elif mode == 'source_venv' and options['path']:
             copytree(options['path'] + '/lib/site-packages',
