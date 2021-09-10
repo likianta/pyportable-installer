@@ -27,7 +27,7 @@ os.chdir(os.path.dirname(__file__))
 sys.path.insert(0, abspath('.'))
 
 # add project lib to environment
-sys.path.append(abspath('{PROJ_LIB_DIR}'))
+sys.path.insert(1, abspath('{PROJ_LIB_DIR}'))
 
 ext_paths = {EXTEND_PATHS}
 if ext_paths:
