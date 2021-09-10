@@ -8,11 +8,13 @@ from ....typehint import TCompilerName
 def get_compiler(name: TCompilerName, **kwargs):
     lk.logt('[I1028]', 'compiler name', name)
     if name == 'cython':
-        return compilers.CythonCompiler(gconf.full_python, gconf.python_version)
+        return compilers.CythonCompiler(gconf.full_python)
     elif name == 'mypyc':
-        return compilers.MypycCompiler()
+        return compilers.MypycCompiler(gconf.full_python)
     elif name == 'nuitka':
-        return compilers.NuitkaCompiler()
+        return compilers.NuitkaCompiler(gconf.full_python)
+    elif name == 'pyc':
+        return compilers.PycCompiler(gconf.embed_python)
     elif name == 'pyportable_crypto':
         return compilers.PyportableEncryptor(**kwargs)
     else:

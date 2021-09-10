@@ -3,22 +3,18 @@ from ..typehint import *
 
 class BaseCompiler:
     
-    def __init__(self, python_interpreter: TPath = ''):
+    def __init__(self, python_interpreter):
         """
-
         Args:
-            python_interpreter: 如果启用了虚拟环境, 则这里传入 `.venv_builder:
-                VEnvBuilder:get_embed_python:returns`; 如果没使用虚拟环境, 则留
-                空, 它将使用默认 (全局的) python 解释器和 pyarmor. 此时请确保该
-                解释器和 pyarmor 都可以在 cmd 中访问 (测试命令: `python
-                --version`, `pyarmor --version`).
-                参考: https://pyarmor.readthedocs.io/zh/latest/advanced.html
-                    子章节: "使用不同版本 Python 加密脚本"
+            python_interpreter: str. the path to system installed python dir or
+                an embedded python dir. for example 'c:/program files/python39'.
+                by default the embed python is suggested to pass in, which  you
+                can use is `pyportable_installer.global_conf.gconf.embed_python`.
+                (note that `~.gconf.embed_python` is instantiated after
+                `pyportable_installer.main_flow.step1.init_key_params.init_key
+                _params`.)
         """
-        if python_interpreter:  # FIXME: support only Windows platform.
-            self._interpreter = python_interpreter.replace('/', '\\')
-        else:
-            self._interpreter = 'python'
+        self._interpreter = python_interpreter
     
     def compile_all(self, pyfiles: TPyFilesToCompile):
         raise NotImplementedError

@@ -27,32 +27,20 @@ from lk_utils import find_dirs
 from lk_utils import run_cmd_args
 from lk_utils.subproc import run_new_thread
 
-from .accessory import where_python_installed
 from .base_compiler import BaseCompiler
 from ..path_model import prj_model
 
 
 class CythonCompiler(BaseCompiler):
-    """
-    Tree:
-        |= hello_world
-            |- hello.py  # 1. provide a source file
-        |= temp
-            |= <uid>
-                |- hello.py     # 2. copy of source
-                |= tmp0o4yav6k  # 3. auto created temp dir by cythonize
-                    |= release
-                        |= ...
-                            |- hello.cp39-win_amd64.exp
-                            |- hello.cp39-win_amd64.lib
-                            |- hello.obj
-                |- hello.cp39-win_amd64.pyd  # 4. generated pyd file (in the
-                |                            #    same dir with copy of source)
-    """
     
-    # noinspection PyMissingConstructor
-    def __init__(self, python, pyversion):
-        self.python = python or where_python_installed(pyversion)
+    def __init__(self, full_python_interpreter):
+        """
+        Args:
+            full_python_interpreter: system installed python (path), for
+                example 'c:/program files/python39'. usually we pass in
+                `~.global_conf.gconf.full_python`.
+        """
+        super().__init__(full_python_interpreter)
         self._temp_dir = prj_model.temp
         self._template = dedent('''
             # placeholders:
@@ -78,9 +66,9 @@ class CythonCompiler(BaseCompiler):
     def compile_all(self, *pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
-                o += 'd'  # py -> pyd
+                o += 'd'  # *.py -> *.pyd
                 lk.logtx('[D5520]', 'compiling', i, o)
-                yield self.compile_one(i, o)
+                self.compile_one(i, o)
         run_new_thread(self.cleanup)
     
     def compile_one(self, src_file, dst_file):
@@ -130,7 +118,7 @@ class CythonCompiler(BaseCompiler):
             filename=filename
         ), _setup := f'{tmp_dir}/_setup.py')
         
-        run_cmd_args(self.python, _setup, 'build_ext', '--inplace')
+        run_cmd_args(self._interpreter, _setup, 'build_ext', '--inplace')
         
         # get pyd file generated in tmp_dir
         pyd_names = [x for x in listdir(tmp_dir) if x.endswith('.pyd')]

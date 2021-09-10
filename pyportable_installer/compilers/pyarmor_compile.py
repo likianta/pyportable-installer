@@ -1,56 +1,38 @@
 from os import path as ospath
 from os import remove
 from shutil import copyfile
+from textwrap import dedent
 
 from lk_logger import lk
-from lk_utils.subproc import new_thread
+from lk_utils import dumps
+from lk_utils import loads
 from lk_utils import send_cmd
+from lk_utils.subproc import new_thread
 
 from .base_compiler import BaseCompiler
 
 
 class PyArmorCompiler(BaseCompiler):
     
-    # noinspection PyMissingConstructor
-    def __init__(self, python_interpreter=''):
-        """
+    def __init__(self, python_interpreter):
+        super().__init__(python_interpreter)
         
-        Args:
-            python_interpreter: 如果启用了虚拟环境, 则这里传入 `.venv_builder:
-                VEnvBuilder:get_embed_python:returns`; 如果没使用虚拟环境, 则留
-                空, 它将使用默认 (全局的) python 解释器和 pyarmor. 此时请确保该
-                解释器和 pyarmor 都可以在 cmd 中访问 (测试命令: `python
-                --version`, `pyarmor --version`).
-                参考: https://pyarmor.readthedocs.io/zh/latest/advanced.html
-                    子章节: "使用不同版本 Python 加密脚本"
-        
-        Warnings:
-            Currently only supports Windows platform.
-        """
         self._liscense = 'trial'
         #   TODO: see https://pyarmor.readthedocs.io/zh/latest/license.html
         
-        if python_interpreter:
-            # warnings: `docs/devnote/warnings-about-embed-python.md`
-            self._interpreter = python_interpreter.replace('/', '\\')
-            # create pyarmor file copy
-            origin_file = self._locate_pyarmor_script()
-            hacked_file = origin_file.removesuffix('.py') + '_copy.py'
-            if not ospath.exists(hacked_file):
-                from lk_utils.read_and_write import loads, dumps
-                content = loads(origin_file)
-                dumps('\n'.join([
-                    'from os.path import dirname',
-                    'from sys import path as syspath',
-                    'syspath.append(dirname(__file__))',
-                    content
-                ]), hacked_file)
-            self._pyarmor = hacked_file
-            self._head = f'"{self._interpreter}" "{self._pyarmor}"'
-        else:
-            self._interpreter = 'python'
-            self._pyarmor = 'pyarmor'
-            self._head = 'pyarmor'
+        # create pyarmor file copy
+        origin_file = self._locate_pyarmor_script()
+        hacked_file = origin_file.replace('.py', '.py.bak')
+        if not ospath.exists(hacked_file):
+            content = loads(origin_file)
+            dumps(dedent('''\
+                import sys
+                from os.path import dirname
+                sys.path.append(dirname(__file__))
+                {content}
+            ''').format(content=content), hacked_file)
+        self._pyarmor = hacked_file
+        self._head = f'"{self._interpreter}" "{self._pyarmor}"'
     
     @staticmethod
     def _locate_pyarmor_script():
@@ -78,7 +60,7 @@ class PyArmorCompiler(BaseCompiler):
     
     def compile_all(self, pyfiles):
         """
-        
+
         References:
             docs/devnote/how-does-pytransform-work.md
         """
@@ -93,10 +75,10 @@ class PyArmorCompiler(BaseCompiler):
         Args:
             src_file
             dst_file
-            
+
         References:
             `cmd:pyarmor obfuscate -h`
-        
+
         Results:
             the `dst_file` has the same content structure:
                 from pytransform import pyarmor_runtime
@@ -106,7 +88,7 @@ class PyArmorCompiler(BaseCompiler):
             `sys.path` in the startup (see `pyportable_installer/template/
             bootloader.txt` and `pyportable_installer/no3_build_pyproject.py::
             func:_create_launcher`).
-        
+
         Notes:
             table of `pyarmor obfuscate --bootstrap {0~4}`
 

@@ -61,7 +61,7 @@ class PyportableEncryptor(BaseCompiler):
         dumps(code, tmp_file := f'{tmp_dir}/inject.py')
         
         # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
-        compiler = CythonCompiler(gconf.full_python, gconf.python_version)
+        compiler = CythonCompiler(gconf.full_python)
         compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
         
         # 6. cleanup tmp_dir
@@ -72,7 +72,6 @@ class PyportableEncryptor(BaseCompiler):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
                 lk.logtx('[D5520]', 'compiling', i, o)
-                yield self.compile_one(i, o)
     
     def compile_one(self, src_file, dst_file):
         if basename(src_file) == '__init__.py':

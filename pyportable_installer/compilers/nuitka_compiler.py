@@ -1,3 +1,11 @@
+"""
+Warnings:
+    ~/docs/devnote/currently-known-compilers-issues.md
+
+FIXME:
+    This module is not suggest to use, it will be refactored with the guidance
+    of `.cython_compiler.CythonCompiler`.
+"""
 import sys
 from os import listdir
 from os import mkdir
@@ -16,25 +24,9 @@ from ..path_model import prj_model
 
 
 class NuitkaCompiler(BaseCompiler):
-    """
-    Tree:
-        |= hello_world
-            |- hello.py  # 1. provide a source file
-        |= temp
-            |= <uid>
-                |- hello.py     # 2. copy of source
-                |= tmp0o4yav6k  # 3. auto created temp dir by cythonize
-                    |= release
-                        |= ...
-                            |- hello.cp39-win_amd64.exp
-                            |- hello.cp39-win_amd64.lib
-                            |- hello.obj
-                |- hello.cp39-win_amd64.pyd  # 4. generated pyd file (in the
-                |                            #    same dir with copy of source)
-    """
     
-    # noinspection PyMissingConstructor
-    def __init__(self):
+    def __init__(self, full_python_interpreter):
+        super().__init__(full_python_interpreter)
         self._temp_dir = prj_model.temp
     
     def compile_all(self, *pyfiles):
@@ -42,7 +34,7 @@ class NuitkaCompiler(BaseCompiler):
             for i, o in pyfiles:
                 o += 'd'  # py -> pyd
                 lk.logtx('[D5520]', 'compiling', i, o, h='parent')
-                yield from self.compile_one(i, o)
+                self.compile_one(i, o)
         run_new_thread(self._cleanup)
     
     def compile_one(self, src_file, dst_file):
@@ -85,7 +77,7 @@ class NuitkaCompiler(BaseCompiler):
         # copy pyd file from tmp_dir to dst_dir
         copyfile(pyd_file, dst_file)
         
-        yield dst_file
+        return dst_file
     
     def _cleanup(self):
         for d in find_dirs(self._temp_dir):
