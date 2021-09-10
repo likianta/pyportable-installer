@@ -6,8 +6,8 @@ from uuid import uuid1
 from lk_logger import lk
 from lk_utils import ropen
 from lk_utils import wopen
-from lk_utils.concurrency import run_new_thread
 from lk_utils.filesniff import get_filename
+from lk_utils.subproc import run_new_thread
 
 from ....bat_2_exe import bat_2_exe
 from ....path_model import *

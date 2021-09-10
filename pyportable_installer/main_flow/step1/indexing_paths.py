@@ -161,7 +161,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
             if req:
                 # FIXME: path_fmt must be 'abspath'
                 if path_fmt.fmt == 'relpath':
-                    file = path_fmt.dir_i + '/' + path_fmt
+                    # file = path_fmt.dir_i + '/' + path_fmt
                     return ['...']
                 from lk_utils.read_and_write import load_list
                 file = path_fmt(req)

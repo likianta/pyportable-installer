@@ -17,6 +17,7 @@ def dialog():
 
 def main(file_i, file_o):
     try:
+        # noinspection PyPackageRequirements
         from PIL import Image  # pip install pillow
     except (ModuleNotFoundError, ImportError) as e:
         print('Please install pillow library (pip install pillow)')

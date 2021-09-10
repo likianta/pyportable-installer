@@ -21,8 +21,8 @@ from uuid import uuid1
 
 from lk_logger import lk
 from lk_utils import find_dirs
-from lk_utils import run_new_thread
 from lk_utils import send_cmd
+from lk_utils.subproc import run_new_thread
 
 from .base_compiler import BaseCompiler
 from ..path_model import prj_model

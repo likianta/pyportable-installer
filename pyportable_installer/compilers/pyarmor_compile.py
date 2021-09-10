@@ -3,7 +3,7 @@ from os import remove
 from shutil import copyfile
 
 from lk_logger import lk
-from lk_utils import new_thread
+from lk_utils.subproc import new_thread
 from lk_utils import send_cmd
 
 from .base_compiler import BaseCompiler

@@ -4,14 +4,27 @@ from pyportable_installer import *
 
 
 def main():
-    mode = input(dedent('''\
-        Build mode:
-            0   full build
-            1   min build
-            2   debug build
-        Input build mode number: ''')).strip()
+    print(dedent('''\
+        Command template:
+            <mode> <pyproject_file>
+            
+        For example:
+            0 D:\\my_project\\hello_world\\pyproject.json
+            
+        Params:
+            mode:
+                0   full build
+                1   min build
+                2   debug build
+            pyproject_file:
+                An absolute path to your 'pyproject.json'.
+                The filename is changeable, but please make sure it is placed
+                right in its project and all relative paths description in it
+                is calculated based on its directory.
+    '''))
     
-    file = input('Input pyproject configuration file (abspath): ')
+    cmd = input('Your command here: ')
+    mode, file = cmd.split(' ', 1)
     
     if mode == '0':
         build = full_build
