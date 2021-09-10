@@ -2,7 +2,7 @@
     "app_name": "Hello World",
     "app_version": "0.3.9",
     "description": "Say hello to someone given name.",
-    "author": "Likianta <likianta@foxmail.com>",
+    "authors": ["Likianta <likianta@foxmail.com>"],
     "build": {
         "proj_dir": "hello_world",
         "dist_dir": "../../dist/{app_name_lower}_{app_version}",

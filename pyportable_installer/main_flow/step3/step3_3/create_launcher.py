@@ -17,7 +17,7 @@ thread = None
 _is_depsland_mode = False
 
 
-def main(build: TBuildConf):
+def create_launcher(build: TBuildConf):
     global _is_depsland_mode
     _is_depsland_mode = build['venv']['enable_venv'] and \
                         bool(build['venv']['mode'] == 'depsland')

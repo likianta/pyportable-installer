@@ -1,13 +1,14 @@
 from lk_logger import lk
 
 from .... import compilers
+from ....global_conf import gconf
 from ....typehint import TCompilerName
 
 
 def get_compiler(name: TCompilerName, **kwargs):
     lk.logt('[I1028]', 'compiler name', name)
     if name == 'cython':
-        return compilers.CythonCompiler()
+        return compilers.CythonCompiler(gconf.full_python, gconf.python_version)
     elif name == 'mypyc':
         return compilers.MypycCompiler()
     elif name == 'nuitka':

@@ -32,7 +32,7 @@
         "venv": {
             "enable_venv": false,
             "python_version": "3.9",
-            "mode": "depsland",
+            "mode": "embed_python",
             "options": {
                 "depsland": {
                     "venv_name": "{app_name_lower}_venv",

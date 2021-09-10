@@ -13,6 +13,8 @@ from lk_utils import loads
 from pyportable_crypto import encrypt_data
 from pyportable_crypto import keygen
 from .base_compiler import BaseCompiler
+from .cython_compiler import CythonCompiler
+from ..global_conf import gconf
 from ..path_model import dst_model
 from ..path_model import prj_model
 
@@ -34,6 +36,10 @@ class PyportableEncryptor(BaseCompiler):
             globals().update(inject(__file__, globals(), locals(), {ciphertext}))
         ''')
         #   `pyportable_crypto.inject._validate_source_file`
+        
+        # self._cython_compiler = CythonCompiler(
+        #     gconf.python_interpreter, gconf.python_version
+        # )
     
     def _generate_runtime_lib(self):
         # 1.
@@ -46,14 +52,6 @@ class PyportableEncryptor(BaseCompiler):
         dst_dir = dst_model.lib + '/pyportable_runtime'
         mkdir(dst_dir)
         
-        # 2. TODO: if pyportable_crypto folder structure changes, we need to
-        #       recheck here.
-        # for name in find_filenames(src_dir):
-        #     # if name in ('__init__.py', 'inject.py'):
-        #     if name == 'inject.py':
-        #         continue
-        #     copyfile(f'{src_dir}/{name}', f'{dst_dir}/{name}')
-        
         # 3. create '__init__.py' for `pyportable_runtime`
         dumps('from .inject import inject', f'{dst_dir}/__init__.py')
         
@@ -63,8 +61,7 @@ class PyportableEncryptor(BaseCompiler):
         dumps(code, tmp_file := f'{tmp_dir}/inject.py')
         
         # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
-        from .cython_compiler import CythonCompiler
-        compiler = CythonCompiler()
+        compiler = CythonCompiler(gconf.full_python, gconf.python_version)
         compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
         
         # 6. cleanup tmp_dir

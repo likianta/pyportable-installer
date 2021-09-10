@@ -3,6 +3,7 @@ Warnings:
     ~/docs/devnote/currently-known-compilers-issues.md
 
 References:
+    https://cython.readthedocs.io/en/latest/src/tutorial/cython_tutorial.html
     https://github.com/TechLearnersInc/cythonizer
     https://www.youtube.com/watch?v=qYgKr_AYNjY
 
@@ -17,13 +18,16 @@ from os.path import basename
 from os.path import exists
 from shutil import copyfile
 from shutil import rmtree
+from textwrap import dedent
 from uuid import uuid1
 
 from lk_logger import lk
+from lk_utils import dumps
 from lk_utils import find_dirs
-from lk_utils import send_cmd
+from lk_utils import run_cmd_args
 from lk_utils.subproc import run_new_thread
 
+from .accessory import where_python_installed
 from .base_compiler import BaseCompiler
 from ..path_model import prj_model
 
@@ -47,8 +51,29 @@ class CythonCompiler(BaseCompiler):
     """
     
     # noinspection PyMissingConstructor
-    def __init__(self):
+    def __init__(self, python, pyversion):
+        self.python = python or where_python_installed(pyversion)
         self._temp_dir = prj_model.temp
+        self._template = dedent('''
+            # placeholders:
+            #   cythonize_packages
+            #   filename
+            
+            from os import chdir
+            from os.path import dirname
+            from sys import path
+            
+            curr_dir = dirname(__file__)
+            chdir(curr_dir)
+            path.append(curr_dir + '/' + r'{cythonize_packages}')
+            
+            from setuptools import setup
+            from Cython.Build import cythonize
+            
+            setup(ext_modules=cythonize('{filename}', language_level='3'))
+        ''')
+        #   TODO: we may turn to use loading './accessory/setup_for_cythonize
+        #       .py' instead of defining long string here in the future.
     
     def compile_all(self, *pyfiles):
         with lk.counting(len(pyfiles)):
@@ -59,7 +84,9 @@ class CythonCompiler(BaseCompiler):
         run_new_thread(self.cleanup)
     
     def compile_one(self, src_file, dst_file):
-        if basename(src_file) == '__init__.py':
+        filename = basename(src_file)
+        
+        if filename == '__init__.py':
             # https://stackoverflow.com/questions/58797673/how-to-compile-init
             #   -py-file-using-cython-on-windows
             lk.logt('[D0359]', 'cython doesn\'t compile __init__.py (leave it '
@@ -69,7 +96,7 @@ class CythonCompiler(BaseCompiler):
         
         # copy source file
         tmp_dir = f'{self._temp_dir}/{uuid1()}'
-        tmp_file = f'{tmp_dir}/{basename(src_file)}'
+        tmp_file = f'{tmp_dir}/{filename}'
         
         if len(tmp_file) > (path_limit := 150):  # TODO: 150 or lower?
             # the file path is too long, it will cause cythonize failed by
@@ -88,7 +115,7 @@ class CythonCompiler(BaseCompiler):
             desktop_dir = os.path.join(os.path.expanduser("~"), 'Desktop')
             assert exists(desktop_dir)
             tmp_dir = f'{desktop_dir}/{uuid1()}'
-            tmp_file = f'{tmp_dir}/{basename(src_file)}'
+            tmp_file = f'{tmp_dir}/{filename}'
             assert len(tmp_file) <= path_limit, (
                 'The file name is too long to compile!',
                 f'{tmp_file = }', f'{src_file = }'
@@ -98,9 +125,12 @@ class CythonCompiler(BaseCompiler):
         
         mkdir(tmp_dir)
         copyfile(src_file, tmp_file)
+        dumps(self._template.format(
+            cythonize_packages=prj_model.cythonize_required_packages_for_python3,
+            filename=filename
+        ), _setup := f'{tmp_dir}/_setup.py')
         
-        # FIXME: the cythonize is installed in system python/scripts location.
-        send_cmd(f'cythonize -3 -i "{tmp_file}"')
+        run_cmd_args(self.python, _setup, 'build_ext', '--inplace')
         
         # get pyd file generated in tmp_dir
         pyd_names = [x for x in listdir(tmp_dir) if x.endswith('.pyd')]
@@ -112,7 +142,7 @@ class CythonCompiler(BaseCompiler):
         
         if _desktop_mode:
             rmtree(tmp_dir)
-
+        
         return dst_file
     
     def cleanup(self):

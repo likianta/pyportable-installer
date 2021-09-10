@@ -46,6 +46,9 @@ class PyPortablePathModel:
     
     # other
     bat_2_exe_converter = f'{cur_root}/bat_2_exe/bat_to_exe_converter.exe'
+    cythonize_required_packages_for_python3 = \
+        f'{cur_root}/compilers/accessory/cythonize_required_packages_for' \
+        f'_python3.zip'
 
 
 class SourcePathModel:

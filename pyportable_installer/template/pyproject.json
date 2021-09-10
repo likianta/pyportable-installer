@@ -49,6 +49,10 @@
         "compiler": {
             "name": "pyportable_crypto",
             "options": {
+                "cythonize": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
@@ -57,7 +61,9 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "{random}"
+                    "key": "{random}",
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
                 },
                 "zipapp": {
                     "password": ""

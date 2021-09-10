@@ -1,66 +1,9 @@
-from os.path import abspath
 from os.path import basename
-from os.path import dirname
 from uuid import uuid1
-
-from lk_logger import lk
-from lk_utils.filesniff import normpath
 
 from .path_formatter import PathFormatter
 from ...path_model import prj_model
 from ...typehint import *
-
-
-def main(pyproj_file: TPath, addional_conf: Optional[TConf] = None,
-         path_format: TPathFormat = 'abspath') -> TConf:
-    """
-
-    Args:
-        pyproj_file: see template at `~/pyportable_installer/template/pyproject
-            .json`
-        addional_conf: Optional[dict]. partial TConf.
-        path_format: Literal['abspath', 'relpath']
-
-    References:
-        docs/pyproject-template.md
-        docs/devnote/difference-between-roots.md > h2:pyproj_root
-    """
-    pyproj_file = normpath(abspath(pyproj_file))
-    pyproj_dir = dirname(pyproj_file)
-    lk.loga(pyproj_dir)
-    
-    conf = _load_pyproj_conf(pyproj_file, addional_conf)
-    
-    conf = indexing_paths(
-        conf, PathFormatter(
-            pyproj_dir, fmt=path_format
-        )
-    )
-    
-    return conf
-
-
-def _load_pyproj_conf(pyproj_file, addional_conf) -> TConf:
-    from lk_utils.read_and_write import loads
-    conf = loads(pyproj_file)
-    
-    def _update_additional_conf(main_conf, additional):
-        def _update(node: dict, subject: dict):
-            for k, v in node.items():
-                if isinstance(v, dict):
-                    _update(v, subject[k])
-                elif isinstance(v, list):
-                    subject[k].extend(v)
-                else:
-                    subject[k] = v
-        
-        _update(additional, main_conf)
-        return main_conf
-    
-    if addional_conf:
-        _update_additional_conf(conf, addional_conf)
-    
-    return conf
 
 
 def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
