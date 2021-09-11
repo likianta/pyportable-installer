@@ -115,6 +115,8 @@ if __name__ == '__main__':
 
     try:
         conf = parse_target_conf(sys.argv)
+        # from lk_logger import lk
+        # lk.logp(conf)
 
         # check in target dir to make sure all sequent relative paths
         # references are based on the target dir.

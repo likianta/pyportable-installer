@@ -1,7 +1,6 @@
 from os.path import dirname
 from os.path import exists
 from os.path import relpath as _relpath
-from textwrap import dedent
 
 from lk_logger import lk
 from lk_utils.filesniff import normpath
@@ -92,11 +91,10 @@ class PyPortablePathModel:
             try:
                 import pyportable_crypto
                 from shutil import copytree
-                lk.logt("[I1125]", dedent('''
-                    copying `pyportable_crypto` package from "~/site-packages
-                    /pyportable_crypto" to "~/pyportable_installer/lib
-                    /pyportable_crypto"
-                '''))
+                lk.logt("[I1506]", 'copying `pyportable_crypto` package from '
+                                   '"~/site-packages/pyportable_crypto" to '
+                                   '"~/pyportable_installer/lib/pyportable'
+                                   '_crypto"')
                 copytree(dirname(pyportable_crypto.__file__),
                          self.pyportable_crypto)
             except ImportError:

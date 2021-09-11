@@ -132,6 +132,14 @@ class TCompiler(TypedDict):
     options: _TCompilerOptions
 
 
+class TExperimentalFeatures(TypedDict):
+    debug_mode: bool
+    add_tkinter: bool
+    support_pywin32: bool
+    tree_shaking: dict
+    alert_dialog_box: Literal['console', 'vbsbox', 'tkinter']
+
+
 class TBuildConf(TypedDict):
     # `template/pyproject.json::build`
     proj_dir: TPath
@@ -145,6 +153,7 @@ class TBuildConf(TypedDict):
     attachments_exist_scheme: Literal['error', 'override', 'skip']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
+    experimental_features: TExperimentalFeatures
     enable_console: bool
 
 
