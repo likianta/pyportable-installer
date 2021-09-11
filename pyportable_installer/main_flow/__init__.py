@@ -15,10 +15,10 @@ from .step3 import main as step3
 from .step4 import main as step4
 
 
-def main(pyproj_file, additional_conf, **misc):
+def main(pyproj_file, additional_conf):
     conf = step1(pyproj_file, additional_conf)
     step2(conf)
-    step3(conf, **misc)
+    step3(conf)
     step4(pyproj_file, additional_conf)
     return conf
 

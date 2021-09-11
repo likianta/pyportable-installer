@@ -15,21 +15,21 @@ TRequirements = Union[list[str], TPath]
 THowVenvCreated = Literal['copy', 'symbolink', 'empty_folder']  # default 'copy'
 
 
-class TMisc(TypedDict):
-    """
-    References:
-        `pyportable_installer.main > class:Misc`
-        `pyportable_installer.main_flow.step3.build_dist > func:main`
-    """
-    readme: TPath
-    icon: TPath
-    enable_console: bool
-    copy_checkup_tools: bool
-    create_launch_bat: bool
-    how_venv_created: THowVenvCreated
-    obfuscate_source_code: bool
-    do_aftermath: bool
-    log_level: Literal[0, 1, 2]
+# class TMisc(TypedDict):
+#     """
+#     References:
+#         `pyportable_installer.main > class:Misc`
+#         `pyportable_installer.main_flow.step3.build_dist > func:main`
+#     """
+#     readme: TPath
+#     icon: TPath
+#     enable_console: bool
+#     copy_checkup_tools: bool
+#     create_launch_bat: bool
+#     how_venv_created: THowVenvCreated
+#     obfuscate_source_code: bool
+#     do_aftermath: bool
+#     log_level: Literal[0, 1, 2]
 
 
 class _TDepslandOptions(TypedDict):
@@ -61,22 +61,24 @@ class _TEmbedPythonOptions(TypedDict):
 
 class _TVenvModeOptions(TypedDict):
     # `template/pyproject.json::build:venv:options`
-    # note: keep `this:members:name` sync with `TMode`
+    # note: keep `this:members:name` sync with `TVenvMode`
     depsland: _TDepslandOptions
-    source_venv: _TSourceVenvOptions
-    pip: _TPipOptions
     embed_python: _TEmbedPythonOptions
+    pip: _TPipOptions
+    source_venv: _TSourceVenvOptions
+    _no_venv: Optional[dict]  # empty dict or None
 
 
-# TMode: _TVenvModeOptions:attrs
-TMode = Literal['depsland', 'embed_python', 'pip', 'source_venv']
+# TVenvMode: _TVenvModeOptions:attrs
+TVenvMode = Literal['depsland', 'embed_python', 'pip', 'source_venv',
+                    '_no_venv']
 
 
 class TVenvBuildConf(TypedDict):
     # `template/pyproject.json::build:venv`
     enable_venv: bool
     python_version: TPyVersion
-    mode: TMode
+    mode: TVenvMode
     options: _TVenvModeOptions
 
 
@@ -109,10 +111,6 @@ class _TAttachmentsValue(TypedDict):
 
 TAttachments = dict[TPath, _TAttachmentsValue]
 
-# `template/pyproject.json::build:compiler:name`
-TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc',
-                        'pyportable_crypto', 'zipapp', '_no_compiler']
-
 
 class _TCompilerOptions(TypedDict):
     # `template/pyproject.json::build:compiler:compiler_options`
@@ -124,7 +122,12 @@ class _TCompilerOptions(TypedDict):
     pyc: dict
     pyportable_crypto: dict  # {'key': str}
     zipapp: dict
-    _no_compiler: dict  # empty dict
+    _no_compiler: Optional[dict]  # empty dict or None
+
+
+# `template/pyproject.json::build:compiler:name`
+TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc',
+                        'pyportable_crypto', 'zipapp', '_no_compiler']
 
 
 class TCompiler(TypedDict):

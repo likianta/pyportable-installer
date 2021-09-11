@@ -4,22 +4,11 @@ from lk_logger import lk
 
 from .attachments import copy_attachments
 from ....path_model import dst_model
-from ....path_model import prj_model
 from ....path_model import src_model
 from ....typehint import *
 
 
-def main(conf: TConf, **kwargs):
-    """
-    
-    Args:
-        conf:
-        **kwargs:
-
-    Keyword Args:
-        copy_checkup_tools: bool[True]
-        hello
-    """
+def main(conf: TConf):
     src_model.assert_ready()
     dst_model.assert_ready()
     
@@ -32,9 +21,6 @@ def main(conf: TConf, **kwargs):
     if src_model.readme:
         _create_readme(src_model.readme, dst_model.readme)
     
-    if kwargs.get('copy_checkup_tools', True):
-        _copy_checkup_tools(prj_model.checkup, dst_model.build)
-    
     pyfiles = []
     pyfiles.extend(_copy_sources())
     pyfiles.extend(copy_attachments(
@@ -44,15 +30,14 @@ def main(conf: TConf, **kwargs):
     return pyfiles
 
 
-def _copy_checkup_tools(dir_i, dir_o):
-    copyfile(
-        f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py'
-    )
-    copyfile(
-        f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py'
-    )
-    # TODO: add copy: 'update.py'
-    return f1, f2
+# def _copy_checkup_tools(dir_i, dir_o):
+#     copyfile(
+#         f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py'
+#     )
+#     copyfile(
+#         f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py'
+#     )
+#     return f1, f2
 
 
 def _create_readme(file_i: TPath, file_o: TPath):
@@ -73,5 +58,5 @@ def _create_readme(file_i: TPath, file_o: TPath):
 def _copy_sources():
     yield from copy_attachments({
         src_model.prj_root: {'marks': ('assets', 'compile'),
-                             'path': dst_model.prj_root}
+                             'path' : dst_model.prj_root}
     })

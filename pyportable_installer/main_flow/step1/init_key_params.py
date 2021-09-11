@@ -25,7 +25,7 @@ def init_key_params(conf: TConf, **kwargs):
     # --------------------------------------------------------------------------
     
     name = conf['build']['compiler']['name']  # type: TCompilerName
-    mode = conf['build']['venv']['mode']  # type: TMode
+    mode = conf['build']['venv']['mode']  # type: TVenvMode
     enable_venv = conf['build']['venv']['enable_venv']  # type: bool
     
     is_full_python_required = False

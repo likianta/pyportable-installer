@@ -4,7 +4,7 @@ from .step3_3 import main as step3_3
 from ...typehint import *
 
 
-def main(conf: TConf, **misc):
+def main(conf: TConf):
     """
 
     Project Structure Example:
@@ -22,7 +22,7 @@ def main(conf: TConf, **misc):
                 |= venv             # dst_model.venv
                 |- ...
     """
-    pyfiles = step3_1(conf, **misc)
+    pyfiles = step3_1(conf)
     
     name = conf['build']['compiler']['name']
     options = conf['build']['compiler']['options'][name]

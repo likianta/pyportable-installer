@@ -10,10 +10,10 @@ from ..step3_1.attachments import copy_attachments
 from ....global_conf import gconf
 from ....path_model import dst_model
 from ....path_model import prj_model
-from ....typehint import TMode
+from ....typehint import TVenvMode
 
 
-def create_venv(mode: TMode, options):
+def create_venv(mode: TVenvMode, options):
     if mode == 'depsland':
         pass
     
