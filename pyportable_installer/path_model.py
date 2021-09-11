@@ -1,7 +1,27 @@
 from os.path import dirname
+from os.path import exists
 from os.path import relpath as _relpath
+from textwrap import dedent
 
+from lk_logger import lk
 from lk_utils.filesniff import normpath
+
+# stand alone or self contained mode:
+#   True: stand alone. it means the project dir is parent dir of
+#       `pyportable_installer`.
+#       used for packaging this project as an application to pc users.
+#   False: self contained. it means the project dir is same with
+#       `pyportable_installer`.
+#       used for packaging this package as a whl file to upload to pypi.
+_STAND_ALONE_MODE = True
+
+if _STAND_ALONE_MODE is False:
+    if exists(f'{__file__}/../../examples/dist_pyportable_itself'):
+        lk.logt('[W1155]', 'It seems pyportable-installer is in standalone '
+                           'environment, but your _STAND_ALONE_MODE is off.')
+        if input('Do you want to continue? (Y/n): ') != 'Y':
+            import sys
+            sys.exit()
 
 
 def src_2_dst(src_path, src_dir='', dst_dir=''):
@@ -21,9 +41,10 @@ def relpath(path, start):
 
 class PyPortablePathModel:
     cur_root = normpath(dirname(__file__))
-    prj_root = dirname(cur_root)
+    prj_root = dirname(cur_root) if _STAND_ALONE_MODE else f'{cur_root}/assets'
     
     # prj_root/*
+    dist = f'{prj_root}/dist'
     lib = f'{prj_root}/lib'
     temp = f'{prj_root}/temp'
     
@@ -49,6 +70,38 @@ class PyPortablePathModel:
     cythonize_required_packages_for_python3 = \
         f'{cur_root}/compilers/accessory/cythonize_required_packages_for' \
         f'_python3.zip'
+    
+    # --------------------------------------------------------------------------
+    
+    def build_dirs(self):
+        from os import mkdir
+        from os.path import exists
+        
+        if _STAND_ALONE_MODE:
+            from sys import path
+            path.append(self.lib)
+            for d in (self.temp, self.dist):
+                if not exists(d):
+                    mkdir(d)
+        elif not exists(self.prj_root):
+            mkdir(self.prj_root)
+            mkdir(self.dist)
+            mkdir(self.lib)
+            mkdir(self.temp)
+        if not exists(self.pyportable_crypto):
+            try:
+                import pyportable_crypto
+                from shutil import copytree
+                lk.logt("[I1125]", dedent('''
+                    copying `pyportable_crypto` package from "~/site-packages
+                    /pyportable_crypto" to "~/pyportable_installer/lib
+                    /pyportable_crypto"
+                '''))
+                copytree(dirname(pyportable_crypto.__file__),
+                         self.pyportable_crypto)
+            except ImportError:
+                raise ImportError('Package not found: pyportable_crypto',
+                                  '(tip: `pip install pyportable_crypto`)')
 
 
 class SourcePathModel:
@@ -120,6 +173,8 @@ class DistributedPathModel:
 prj_model = PyPortablePathModel()
 src_model = SourcePathModel()
 dst_model = DistributedPathModel()
+
+prj_model.build_dirs()
 
 __all__ = [
     'src_2_dst', 'relpath',

@@ -63,7 +63,7 @@ class CythonCompiler(BaseCompiler):
         #   TODO: we may turn to use loading './accessory/setup_for_cythonize
         #       .py' instead of defining long string here in the future.
     
-    def compile_all(self, *pyfiles):
+    def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
                 o += 'd'  # *.py -> *.pyd
@@ -117,6 +117,10 @@ class CythonCompiler(BaseCompiler):
             cythonize_packages=prj_model.cythonize_required_packages_for_python3,
             filename=filename
         ), _setup := f'{tmp_dir}/_setup.py')
+        
+        from lk_utils.subproc import format_cmd
+        lk.logt('[D5200]', format_cmd(
+            self._interpreter, _setup, 'build_ext', '--inplace'))
         
         run_cmd_args(self._interpreter, _setup, 'build_ext', '--inplace')
         

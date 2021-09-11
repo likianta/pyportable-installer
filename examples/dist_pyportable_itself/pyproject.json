@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.0.0-alpha.1-dist.7",
+    "app_version": "4.0.0-alpha.1-dist.8",
     "description": "",
     "author": "Likianta <likianta@foxmail.com>",
     "build": {
@@ -19,7 +19,6 @@
         "readme": "",
         "attachments": {
             "../../dist": "only_folder",
-            "../../embed_python_downloader": "assets,compile",
             "../../lib/pyportable_crypto": "assets",
             "../../shortcut": "assets,compile",
             "../../sidework": "assets,compile,dist:{name}",
@@ -56,11 +55,17 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "name": "pyc",
             "options": {
-                "cython": {},
-                "mypyc": {},
-                "nuitka": {},
+                "cython": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
+                "mypyc": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
+                "nuitka": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
@@ -69,7 +74,9 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "{random}"
+                    "key": "{random}",
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
                 },
                 "zipapp": {
                     "password": ""
@@ -79,5 +86,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0a0"
+    "pyportable_installer_version": "4.0.0a1"
 }

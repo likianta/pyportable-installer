@@ -13,6 +13,8 @@ def get_compiler(name: TCompilerName, **kwargs):
         return compilers.MypycCompiler(gconf.full_python)
     elif name == 'nuitka':
         return compilers.NuitkaCompiler(gconf.full_python)
+    elif name == 'pyarmor':
+        return compilers.PyArmorCompiler(gconf.embed_python)
     elif name == 'pyc':
         return compilers.PycCompiler(gconf.embed_python)
     elif name == 'pyportable_crypto':
@@ -25,9 +27,4 @@ def get_compiler(name: TCompilerName, **kwargs):
 
 def main(compiler_name, pyfiles, options):
     my_compiler = get_compiler(compiler_name, **options)
-    for _ in my_compiler.compile_all(*pyfiles):
-        pass
-    # from lk_logger import lk
-    # with lk.counting(len(pyfiles)):
-    #     for file_o in my_compiler.compile_all(*pyfiles):
-    #         lk.logtx('[D0226]', file_o)
+    my_compiler.compile_all(pyfiles)

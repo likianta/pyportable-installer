@@ -1,16 +1,16 @@
 {
-    "app_name": "",
-    "app_version": "0.1.0",
+    "app_name": "Test Project",
+    "app_version": "0.1.1",
     "description": "",
     "authors": [],
     "build": {
-        "proj_dir": "",
-        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "proj_dir": ".",
+        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
         "launcher_name": "{app_name}",
         "icon": "",
         "target": [
             {
-                "file": "",
+                "file": "./main.py",
                 "function": "main",
                 "args": [],
                 "kwargs": {}
@@ -22,8 +22,8 @@
         "module_paths": [],
         "venv": {
             "enable_venv": true,
-            "python_version": "",
-            "mode": "source_venv",
+            "python_version": "3.9",
+            "mode": "pip",
             "options": {
                 "depsland": {
                     "venv_name": "{app_name_lower}_venv",
@@ -36,7 +36,7 @@
                     "path": ""
                 },
                 "pip": {
-                    "requirements": "",
+                    "requirements": "./requirements.txt",
                     "pypi_url": "https://pypi.python.org/simple/",
                     "offline": false,
                     "local": ""
@@ -47,7 +47,7 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "name": "pyc",
             "options": {
                 "cythonize": {
                     "c_compiler": "msvc",

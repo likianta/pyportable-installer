@@ -1,11 +1,13 @@
 import os
 import re
 
+from lk_utils.filesniff import normpath
+
 
 def where_python_installed(pyversion: str):  # pyversion: e.g. 'python39'
     for v in filter(None, os.getenv('PATH').lower().split(';')):
         if re.search(rf'[/\\]{pyversion}[/\\]?$', v):
-            return v.rstrip('/\\')
+            return normpath(v).rstrip('/')
     
     available_paths = (
         f'{os.path.expanduser("~")}/appdata/local/programs/python/{pyversion}',

@@ -1,4 +1,5 @@
 import re
+from os import makedirs
 from os import mkdir
 from shutil import copytree
 
@@ -43,7 +44,7 @@ def create_venv(mode: TMode, options):
             )
             
             dumps(options['requirements'], requirements)
-            mkdir(target_dir)
+            makedirs(target_dir)
             run_cmd_args(python, '-m', 'pip', 'install',
                          '-r', requirements,
                          '-t', target_dir,

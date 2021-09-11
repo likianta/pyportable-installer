@@ -29,7 +29,7 @@ class NuitkaCompiler(BaseCompiler):
         super().__init__(full_python_interpreter)
         self._temp_dir = prj_model.temp
     
-    def compile_all(self, *pyfiles):
+    def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
                 o += 'd'  # py -> pyd

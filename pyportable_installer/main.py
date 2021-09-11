@@ -33,6 +33,7 @@ class Misc:
     
     @classmethod
     def dump(cls) -> TMisc:
+        # noinspection PyTypeChecker
         return {
             'copy_checkup_tools'   : cls.copy_checkup_tools,
             'create_launch_bat'    : cls.create_launch_bat,

@@ -24,7 +24,10 @@ def main():
     '''))
     
     cmd = input('Your command here: ')
-    mode, file = cmd.split(' ', 1)
+    if cmd.startswith(('0 ', '1 ', '2 ')):
+        mode, file = cmd.split(' ', 1)
+    else:
+        mode, file = '0', cmd
     
     if mode == '0':
         build = full_build

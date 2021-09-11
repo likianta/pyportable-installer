@@ -13,13 +13,15 @@ from ...typehint import *
 
 def main(pyproj_file: TPath,
          addional_conf: Optional[TConf] = None,
-         path_format: TPathFormat = 'abspath') -> TConf:
+         path_format: TPathFormat = 'abspath',
+         _skip_init_key_params=False) -> TConf:
     pyproj_file = normpath(abspath(pyproj_file))
     pyproj_dir = dirname(pyproj_file)
     lk.loga(pyproj_dir)
     
     conf = load_conf(pyproj_file, addional_conf)
     conf = indexing_paths(conf, PathFormatter(pyproj_dir, fmt=path_format))
-    init_key_params(conf, pyproj_file=pyproj_file, pyproj_dir=pyproj_dir)
+    if _skip_init_key_params is False:
+        init_key_params(conf, pyproj_file=pyproj_file, pyproj_dir=pyproj_dir)
     
     return conf

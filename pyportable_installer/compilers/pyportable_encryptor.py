@@ -24,7 +24,7 @@ class PyportableEncryptor(BaseCompiler):
     _template: str
     
     # noinspection PyMissingConstructor
-    def __init__(self, key: str):
+    def __init__(self, key: str, **_):
         if key == '' or key == '{random}':
             key = keygen.generate_random_key()
         self.__key = key
@@ -68,7 +68,7 @@ class PyportableEncryptor(BaseCompiler):
         compiler.cleanup()
         remove(tmp_file)
     
-    def compile_all(self, *pyfiles):
+    def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
                 lk.logtx('[D5520]', 'compiling', i, o)

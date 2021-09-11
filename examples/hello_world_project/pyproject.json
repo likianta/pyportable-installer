@@ -1,10 +1,10 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.3.9",
-    "description": "Say hello to someone given name.",
+    "app_version": "0.3.29",
+    "description": "Say hello to the given name.",
     "authors": ["Likianta <likianta@foxmail.com>"],
     "build": {
-        "proj_dir": "hello_world",
+        "proj_dir": "./hello_world",
         "dist_dir": "../../dist/{app_name_lower}_{app_version}",
         "launcher_name": "{app_name}",
         "icon": "",
@@ -22,7 +22,7 @@
         "module_paths": [],
         "venv": {
             "enable_venv": false,
-            "python_version": "",
+            "python_version": "3.9",
             "mode": "source_venv",
             "options": {
                 "depsland": {
@@ -47,11 +47,17 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "name": "pyc",
             "options": {
-                "cython": {},
-                "mypyc": {},
-                "nuitka": {},
+                "cython": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
+                "mypyc": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
+                "nuitka": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"},
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
@@ -60,7 +66,9 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "{random}"
+                    "key": "{random}",
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
                 },
                 "zipapp": {
                     "password": ""
@@ -70,5 +78,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0a0"
+    "pyportable_installer_version": "4.0.0a1"
 }

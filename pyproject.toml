@@ -13,7 +13,8 @@ default = true
 [tool.poetry.dependencies]
 python = ">=3.9"
 cython = ""
-lk-logger = ">=4.0.0a2"
+embed-python-manager = ">=0.2.1"
+lk-logger = ">=4.0.0"
 lk-utils = ">=2.0.0b0"
 pyarmor = ""
 pycryptodomex = ""
