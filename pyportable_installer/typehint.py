@@ -111,7 +111,7 @@ TAttachments = dict[TPath, _TAttachmentsValue]
 
 # `template/pyproject.json::build:compiler:name`
 TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc',
-                        'pyportable_crypto', 'zipapp']
+                        'pyportable_crypto', 'zipapp', '_no_compiler']
 
 
 class _TCompilerOptions(TypedDict):
@@ -124,6 +124,7 @@ class _TCompilerOptions(TypedDict):
     pyc: dict
     pyportable_crypto: dict  # {'key': str}
     zipapp: dict
+    _no_compiler: dict  # empty dict
 
 
 class TCompiler(TypedDict):

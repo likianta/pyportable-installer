@@ -67,7 +67,20 @@ def debug_build(file, additional_conf=None):
     Misc.obfuscate_source_code = False
     Misc.do_aftermath = False
     Misc.log_verbose = True
-    return main(file, additional_conf or {}, Misc.dump())
+    
+    if additional_conf is None:
+        additional_conf = {'build': {'compiler': {
+            'name': '_no_compiler',
+            'options': {'_no_compiler': {}}
+        }}}
+    else:
+        node = additional_conf.setdefault('build', {})
+        node = node.setdefault('compiler', {})
+        node['name'] = '_no_compiler'
+        node = node.setdefault('options', {})
+        node['_no_compiler'] = {}
+
+    return main(file, additional_conf, Misc.dump())
 
 
 def main(pyproj_file: TPath, additional_conf: dict, misc: TMisc) -> TConf:

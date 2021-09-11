@@ -46,6 +46,7 @@ def init_key_params(conf: TConf, **kwargs):
     # --------------------------------------------------------------------------
     
     if is_full_python_required:
+        # noinspection PyTypedDict
         options = conf['build']['compiler']['options'][name]
         if options['python_path'] in ('auto_detect', ''):
             gconf.full_python = _get_full_python(pyversion)
