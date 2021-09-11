@@ -24,12 +24,14 @@ def create_venv(mode: TMode, options):
             mkdir(dst_model.venv)
     
     elif mode in ('pip', 'source_venv'):
-        copy_attachments({
+        # note that `copy_attachments` is an iterator, we need to exhaust it to
+        # drive it processing.
+        _ = list(copy_attachments({
             gconf.embed_python_dir: {
                 'marks': ('root_assets',),
                 'path' : dst_model.venv
             }
-        })
+        }))
         
         if mode == 'pip' and options['requirements']:
             python = gconf.embed_python

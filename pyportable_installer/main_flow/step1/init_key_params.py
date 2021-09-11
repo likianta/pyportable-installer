@@ -78,6 +78,7 @@ def _get_embed_python_from_local(pyversion):
 
 def _get_embed_python(pyversion, add_pip_suits: bool):
     manager = EmbedPythonManager(pyversion)
+    manager.change_source('npm_taobao_org.yml')
     manager.deploy(
         add_pip_suits=add_pip_suits,
         add_pip_scripts=False,

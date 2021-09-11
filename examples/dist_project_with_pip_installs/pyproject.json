@@ -1,6 +1,6 @@
 {
     "app_name": "Test Project",
-    "app_version": "0.1.1",
+    "app_version": "0.1.4",
     "description": "",
     "authors": [],
     "build": {
@@ -11,7 +11,7 @@
         "target": [
             {
                 "file": "./main.py",
-                "function": "main",
+                "function": "",
                 "args": [],
                 "kwargs": {}
             }
