@@ -121,16 +121,22 @@ def _create_launcher(
             }, f)
     
     def _generate_pylauncher():
-        _ext_paths = list(map(
-            lambda d: relpath(
-                d if not d.startswith('src:') else src_2_dst(d[4:]),
-                #   FIXME: this is a temp measure. see source point at
-                #       `pyportable_installer/main_flow/step1/indexing_paths.py
-                #        > vars:module_paths`
-                start=abs_paths['launch_dir']
-            ),
-            extend_sys_paths
-        ))
+        if not _is_debug_mode:
+            _ext_paths = list(map(
+                lambda d: relpath(
+                    d if not d.startswith('src:') else src_2_dst(d[4:]),
+                    #   FIXME: this is a temp measure. see source point at
+                    #       `pyportable_installer/main_flow/step1/indexing_paths.py
+                    #        > vars:module_paths`
+                    start=abs_paths['launch_dir']
+                ),
+                extend_sys_paths
+            ))
+        else:  # in debug mode, leave module paths as is.
+            _ext_paths = list(map(
+                lambda d: d[4:] if d.startswith('src:') else d,
+                extend_sys_paths
+            ))
         
         with ropen(prj_model.pylauncher) as f:
             template = f.read()
