@@ -13,14 +13,19 @@ from ....bat_2_exe import bat_2_exe
 from ....path_model import *
 from ....typehint import TBuildConf
 
-thread = None
+thread_of_bat_2_exe = None
 _is_depsland_mode = False
+_is_debug_mode = False
 
 
 def create_launcher(build: TBuildConf):
-    global _is_depsland_mode
-    _is_depsland_mode = build['venv']['enable_venv'] and \
-                        bool(build['venv']['mode'] == 'depsland')
+    global _is_depsland_mode, _is_debug_mode
+    if build['venv']['enable_venv']:
+        if build['venv']['mode'] == 'depsland':
+            _is_depsland_mode = True
+        elif build['venv']['mode'] == '_no_venv':
+            _is_debug_mode = True
+    #   these will effect `_create_launcher` function.
     
     exe_names = {}
     
@@ -182,7 +187,7 @@ def _create_launcher(
             f.write(code)
     
     def _generate_exe():
-        if _is_depsland_mode:  # TODO
+        if _is_depsland_mode or _is_debug_mode:  # TODO
             return
         
         def _run(bat_file, exe_file, icon_file, *options):
@@ -192,13 +197,13 @@ def _create_launcher(
             lk.loga('convertion bat-to-exe done')
         
         # this is a time-consuming operation (persists 1-10 seconds), we put it
-        # in a sub thread.
-        global thread
-        thread = run_new_thread(
+        # in a sub thread_of_bat_2_exe.
+        global thread_of_bat_2_exe
+        thread_of_bat_2_exe = run_new_thread(
             _run, abs_paths['bat_file'], abs_paths['exe_file'], icon, '/x64',
             '' if enable_console else '/invisible'
         )
-        #   the thread will be recycled in `..step3_4.cleanup`.
+        #   the thread_of_bat_2_exe will be recycled in `..step3_4.cleanup`.
     
     _generate_target_conf()
     _generate_pylauncher()
