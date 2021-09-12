@@ -3,9 +3,9 @@
 /dist/*
 /dist/!.gitkeep
 /history/
+/lib/[^.]*
 /pyportable_installer/template/pyarmor/
-/temp/*
-/temp/!.gitkeep
+/temp/[^.]*
 /tests/
 
 __pycache__

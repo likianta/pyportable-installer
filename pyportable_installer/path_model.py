@@ -49,6 +49,7 @@ class PyPortablePathModel:
     
     # prj_root/lib/*
     pyportable_crypto = f'{lib}/pyportable_crypto'
+    # pyportable_runtime = f'{lib}/pyportable_runtime'
     
     # cur_root/*
     checkup = f'{cur_root}/checkup'
@@ -70,7 +71,7 @@ class PyPortablePathModel:
     cythonize_required_packages_for_python3 = \
         f'{accessory}/cythonize_required_packages_for_python3.zip'
     _pyportable_crypto_trial = \
-        f'{accessory}/pyportable_crypto_trial_{{pyversion}}.zip'
+        f'{accessory}/pyportable_crypto_trial_{{pyversion}}'
     
     # --------------------------------------------------------------------------
     
@@ -118,14 +119,18 @@ class PyPortablePathModel:
             test their products in development environment!
             It is strongly suggest that all developers who clones this repo to
             generate his/her own trial verison.
+        
+        Returns:
+            A folder path. E.g. '~/pyportable_installer/compilers/accessory
+            /pyportable_crypto_trial_python39'.
         """
         from .global_conf import gconf
         if gconf.python_version:
-            file = self._pyportable_crypto_trial.format(
+            dir_ = self._pyportable_crypto_trial.format(
                 pyversion=gconf.python_version
             )
-            assert exists(file)
-            return file
+            assert exists(dir_)
+            return dir_
         else:
             raise Exception('`~.global_conf.gconf.python_version` is not set. '
                             'You could call this property after running '

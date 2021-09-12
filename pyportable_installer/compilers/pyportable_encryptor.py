@@ -1,19 +1,14 @@
 import os
-from os import mkdir
-from os import remove
 from os.path import basename
 from os.path import dirname
 from shutil import copyfile
 from shutil import copytree
 from textwrap import dedent
+from typing import Callable
 
 from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import loads
-
-import pyportable_crypto
-# from pyportable_crypto import encrypt_data
-# from pyportable_crypto import keygen
 
 from .base_compiler import BaseCompiler
 from .cython_compiler import CythonCompiler
@@ -25,6 +20,7 @@ from ..path_model import prj_model
 class PyportableEncryptor(BaseCompiler):
     trial_mode: bool
     # _cython_compiler: CythonCompiler
+    _encrypt_data: Callable
     _template: str
     __key: str
     
@@ -35,12 +31,13 @@ class PyportableEncryptor(BaseCompiler):
             trial_mode = True
         elif key in ('', '_random', '{random}', '<random>'):
             #   TODO: we'll support only '_random' in the future.
-            key = pyportable_crypto.keygen.generate_random_key()
+            from secrets import token_hex
+            key = token_hex(32)
         lk.logt('[D2858]', key)
         if trial_mode:
             lk.logt("[I3130]", 'the PyportableEncryptor is running under trial '
                                'mode, the `key` attribute is invalid.')
-
+        
         # assignments
         self.trial_mode = trial_mode
         # self._cython_compiler = CythonCompiler(
@@ -51,12 +48,12 @@ class PyportableEncryptor(BaseCompiler):
             globals().update(inject(__file__, globals(), locals(), {ciphertext}))
         ''')  # `pyportable_crypto.inject._validate_source_file`
         self.__key = key
-
+        
         # generate runtime lib
         self._generate_runtime_lib(trial_mode)
-        if trial_mode: self._load_pyportable_crypto_trial_version()
+        self._encrypt_data = self._load_pyportable_crypto(trial_mode)
     
-    def _generate_runtime_lib(self, trial_mode: bool):    
+    def _generate_runtime_lib(self, trial_mode: bool):
         # 1.
         src_dir = prj_model.pyportable_crypto
         tmp_dir = prj_model.temp
@@ -64,17 +61,15 @@ class PyportableEncryptor(BaseCompiler):
         
         # 2.
         if trial_mode:
-            from zipfile import ZipFile
-            with ZipFile(prj_model.pyportable_crypto_trial) as handle:
-                # notice: the extracted result from `handle` is a sole folder
-                # named 'pyportable_crypto'. we need to rename it to
-                # 'pyportable_runtime'.
-                handle.extractall(x := dirname(dst_dir))
-                os.rename(f'{x}/pyportable_crypto', dst_dir)
+            copytree(prj_model.pyportable_crypto_trial + '/pyportable_crypto',
+                     dst_dir)
+            #   notice: there's a sole subfolder in `prj_model.pyportable_crypto
+            #   _trial`, that's we need to copy, then rename it to
+            # 'pyportable_runtime'.
             return
         else:
-            mkdir(dst_dir)
-
+            os.mkdir(dst_dir)
+        
         # 3.
         import Cryptodome
         copytree(dirname(Cryptodome.__file__), f'{dst_model.lib}/Cryptodome')
@@ -93,19 +88,17 @@ class PyportableEncryptor(BaseCompiler):
         
         # 7. cleanup tmp_dir
         compiler.cleanup()
-        remove(tmp_file)
+        os.remove(tmp_file)
     
     @staticmethod
-    def _load_pyportable_crypto_trial_version():
-        lk.logt("[I3341]", 'replace `pyportable_crypto.encrypt_data` with '
-                           '`~.pyportable_crypto_trial_version.encrypt_data`')
-        import sys
-        from importlib import reload
-        sys.path.insert(0, prj_model.pyportable_crypto_trial)
-        reload(pyportable_crypto)
-        lk.loga(v := pyportable_crypto.__version__)
-        assert v.endswith('trial')
-    
+    def _load_pyportable_crypto(trial_mode: bool):
+        if trial_mode:
+            import sys
+            sys.path.insert(0, prj_model.pyportable_crypto_trial)
+        from pyportable_crypto import encrypt
+        lk.logt("[D1631]", encrypt.__file__)
+        return encrypt.encrypt_data
+
     def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
@@ -122,7 +115,7 @@ class PyportableEncryptor(BaseCompiler):
         
         data = loads(src_file)  # type: str
         data += '\n' + '__PYMOD_HOOK__.update(globals())'
-        data = pyportable_crypto.encrypt_data(data, self.__key)  # type: bytes
+        data = self._encrypt_data(data, self.__key)  # type: bytes
         code = self._template.format(ciphertext=data)  # type: str
         dumps(code, dst_file)
         return dst_file
