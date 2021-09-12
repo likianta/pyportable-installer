@@ -64,8 +64,8 @@ class PyportableEncryptor(BaseCompiler):
             copytree(prj_model.pyportable_crypto_trial + '/pyportable_crypto',
                      dst_dir)
             #   notice: there's a sole subfolder in `prj_model.pyportable_crypto
-            #   _trial`, that's we need to copy, then rename it to
-            # 'pyportable_runtime'.
+            #   _trial`, that's we need to copy, then rename it to 'pyportable
+            #   _runtime'.
             return
         else:
             os.mkdir(dst_dir)

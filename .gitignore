@@ -1,7 +1,6 @@
 # Project exclude paths
 /.idea/
-/dist/*
-/dist/!.gitkeep
+/dist/[^.]*
 /history/
 /lib/[^.]*
 /pyportable_installer/template/pyarmor/

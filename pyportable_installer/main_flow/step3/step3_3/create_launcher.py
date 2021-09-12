@@ -169,7 +169,7 @@ def _create_launcher(
                 #           example.bat hello world 1 2 3
                 #       output in console:
                 #           ['test.py', 'hello', 'world', '1', '2', '3']
-            elif enable_venv:
+            elif enable_venv and not _is_debug_mode:
                 code = template.format(
                     PYTHON=rel_paths['venv_python'].replace('/', '\\'),
                     PYLAUNCHER=rel_paths['launch_file'],
