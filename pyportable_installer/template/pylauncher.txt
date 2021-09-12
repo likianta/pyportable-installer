@@ -121,6 +121,7 @@ if __name__ == '__main__':
         # check in target dir to make sure all sequent relative paths
         # references are based on the target dir.
         os.chdir(conf['TARGET_DIR'])
+        sys.path.append(abspath('.'))
 
         mod = import_module(conf['TARGET_MOD'], conf['TARGET_PKG'])
         if conf['TARGET_FUNC']:
