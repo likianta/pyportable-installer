@@ -28,7 +28,7 @@
                 "depsland": {
                     "venv_name": "{app_name_lower}_venv",
                     "venv_id": "",
-                    "requirements": "",
+                    "requirements": [],
                     "offline": false,
                     "local": ""
                 },
@@ -36,7 +36,7 @@
                     "path": ""
                 },
                 "pip": {
-                    "requirements": "",
+                    "requirements": [],
                     "pypi_url": "https://pypi.python.org/simple/",
                     "offline": false,
                     "local": ""
@@ -61,7 +61,7 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "_random",
+                    "key": "_trial",
                     "c_compiler": "msvc",
                     "python_path": "auto_detect"
                 },
