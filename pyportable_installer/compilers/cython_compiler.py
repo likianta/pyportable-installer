@@ -37,8 +37,8 @@ class CythonCompiler(BaseCompiler):
         """
         Args:
             full_python_interpreter: system installed python (path), for
-                example 'c:/program files/python39'. usually we pass in
-                `~.global_conf.gconf.full_python`.
+                example 'c:/program files/python39/python.exe'. usually we pass
+                in `~.global_conf.gconf.full_python`.
         """
         super().__init__(full_python_interpreter)
         self._temp_dir = prj_model.temp
@@ -53,7 +53,7 @@ class CythonCompiler(BaseCompiler):
             
             curr_dir = dirname(__file__)
             chdir(curr_dir)
-            path.append(curr_dir + '/' + r'{cythonize_packages}')
+            path.append(r'{cythonize_packages}')
             
             from setuptools import setup
             from Cython.Build import cythonize

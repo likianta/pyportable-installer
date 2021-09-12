@@ -17,7 +17,7 @@ embed-python-manager = ">=0.2.2"
 lk-logger = ">=4.0.0"
 lk-utils = ">=2.0.0b0"
 pyarmor = ""
-pyportable-crypto = ""
+pyportable-crypto = ">=0.1.2"
 
 [tool.poetry.dev-dependencies]
 

@@ -61,7 +61,7 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "{random}",
+                    "key": "_random",
                     "c_compiler": "msvc",
                     "python_path": "auto_detect"
                 },

@@ -89,11 +89,11 @@ def inject(filename, globals_, locals_, ciphertext: bytes):
 
 def _dump(data, file_i):
     from uuid import uuid1
-    from lk_logger import lk
-    from lk_utils import dumps
     uid = str(uuid1())
-    lk.logt('[I4608]', uid, file_i)
-    dumps(data, f'E:/temp/test_20210908_204644/{uid}.py')
+    print('[pyportable_crypto.inject_debug._dump]', uid, file_i)
+    with open(f'E:/temp/test_20210908_204644/{uid}.py',
+              'w', encoding='utf-8') as f:
+        f.write(data)
 
 
 def _validate_self_package():

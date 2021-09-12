@@ -186,8 +186,8 @@ def _create_launcher(
             return
         
         def _run(bat_file, exe_file, icon_file, *options):
-            lk.loga('converting bat to exe... '
-                    'it may take several seconds ~ one minute...')
+            lk.loga('converting bat to exe ... '
+                    '(it may take several seconds ~ one minute)')
             bat_2_exe(bat_file, exe_file, icon_file, *options)
             lk.loga('convertion bat-to-exe done')
         

@@ -1,90 +1,93 @@
 {
-    "app_name": "PyPortable Installer",
-    "app_version": "4.0.0-alpha.1-dist.8",
-    "description": "",
-    "author": "Likianta <likianta@foxmail.com>",
-    "build": {
-        "proj_dir": "../../pyportable_installer",
-        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
-        "launcher_name": "{app_name}",
-        "icon": "",
-        "target": [
-            {
-                "file": "../../shortcut/build.py",
-                "function": "main",
-                "args": [],
-                "kwargs": {}
-            }
-        ],
-        "readme": "",
-        "attachments": {
-            "../../dist": "only_folder",
-            "../../lib/pyportable_crypto": "assets",
-            "../../shortcut": "assets,compile",
-            "../../sidework": "assets,compile,dist:{name}",
-            "../../temp": "only_folder"
-        },
-        "attachments_exist_scheme": "override",
-        "module_paths": [
-            "../../lib"
-        ],
-        "venv": {
-            "enable_venv": false,
-            "python_version": "3.9",
-            "mode": "embed_python",
-            "options": {
-                "depsland": {
-                    "venv_name": "{app_name_lower}_venv",
-                    "venv_id": "",
-                    "requirements": "",
-                    "offline": false,
-                    "local": ""
-                },
-                "source_venv": {
-                    "path": ""
-                },
-                "pip": {
-                    "requirements": "",
-                    "pypi_url": "https://pypi.python.org/simple/",
-                    "local": "",
-                    "offline": false
-                },
-                "embed_python": {
-                    "path": ""
-                }
-            }
-        },
-        "compiler": {
-            "name": "pyc",
-            "options": {
-                "cython": {
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"},
-                "mypyc": {
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"},
-                "nuitka": {
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"},
-                "pyarmor": {
-                    "liscense": "trial",
-                    "obfuscate_level": 0
-                },
-                "pyc": {
-                    "optimize_level": 0
-                },
-                "pyportable_crypto": {
-                    "key": "{random}",
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"
-                },
-                "zipapp": {
-                    "password": ""
-                }
-            }
-        },
-        "enable_console": true
+  "app_name": "PyPortable Installer",
+  "app_version": "4.0.0a1-dist.7",
+  "description": "",
+  "authors": [
+    "Likianta <likianta@foxmail.com>"
+  ],
+  "build": {
+    "proj_dir": "../../pyportable_installer",
+    "dist_dir": "../../dist/{app_name_lower}_{app_version}",
+    "launcher_name": "{app_name}",
+    "icon": "",
+    "target": [
+      {
+        "file": "../../shortcut/build.py",
+        "function": "main",
+        "args": [],
+        "kwargs": {}
+      }
+    ],
+    "readme": "",
+    "attachments": {
+      "../../dist": "only_folder",
+      "../../lib": "only_folder",
+      "../../shortcut": "assets,compile",
+      "../../sidework": "assets,compile,dist:{name}",
+      "../../temp": "only_folder"
     },
-    "note": "",
-    "pyportable_installer_version": "4.0.0a1"
+    "attachments_exist_scheme": "override",
+    "module_paths": [],
+    "venv": {
+      "enable_venv": false,
+      "python_version": "3.9",
+      "mode": "embed_python",
+      "options": {
+        "depsland": {
+          "venv_name": "{app_name_lower}_venv",
+          "venv_id": "",
+          "requirements": "",
+          "offline": false,
+          "local": ""
+        },
+        "source_venv": {
+          "path": ""
+        },
+        "pip": {
+          "requirements": "",
+          "pypi_url": "https://pypi.python.org/simple/",
+          "local": "",
+          "offline": false
+        },
+        "embed_python": {
+          "path": ""
+        }
+      }
+    },
+    "compiler": {
+      "name": "pyportable_crypto",
+      "options": {
+        "cython": {
+          "c_compiler": "msvc",
+          "python_path": "auto_detect"
+        },
+        "mypyc": {
+          "c_compiler": "msvc",
+          "python_path": "auto_detect"
+        },
+        "nuitka": {
+          "c_compiler": "msvc",
+          "python_path": "auto_detect"
+        },
+        "pyarmor": {
+          "liscense": "trial",
+          "obfuscate_level": 0
+        },
+        "pyc": {
+          "optimize_level": 0
+        },
+        "pyportable_crypto": {
+          "key": "_trial",
+          "c_compiler": "msvc",
+          "python_path": "auto_detect"
+        },
+        "zipapp": {
+          "password": ""
+        }
+      }
+    },
+    "enable_console": true
+  },
+  "note": "",
+  "pyportable_installer_version": "4.0.0a1"
 }

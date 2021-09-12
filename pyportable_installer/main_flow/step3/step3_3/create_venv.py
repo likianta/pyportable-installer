@@ -14,8 +14,11 @@ from ....typehint import TVenvMode
 
 
 def create_venv(mode: TVenvMode, options):
-    if mode == 'depsland':
-        pass
+    if mode == '_no_venv':
+        return
+    
+    elif mode == 'depsland':
+        return
     
     elif mode == 'embed_python':
         if options['path']:
