@@ -29,8 +29,11 @@ def init_key_params(conf: TConf, **kwargs):
     enable_venv = conf['build']['venv']['enable_venv']  # type: bool
     
     is_full_python_required = False
-    if name in ('cython', 'mypyc', 'nuitka', 'pyportable_crypto'):
+    if name in ('cython', 'mypyc', 'nuitka'):
         is_full_python_required = True
+    elif name == 'pyportable_crypto':
+        if conf['build']['compiler']['options'][name]['key'] != '_trial':
+            is_full_python_required = True
     
     is_embed_python_required = False
     if name in ('pyarmor', 'pyc') or \
@@ -48,7 +51,7 @@ def init_key_params(conf: TConf, **kwargs):
     if is_full_python_required:
         # noinspection PyTypedDict
         options = conf['build']['compiler']['options'][name]
-        if options['python_path'] in ('auto_detect', ''):
+        if options['python_path'] in ('_auto_detect', 'auto_detect', ''):
             gconf.full_python = _get_full_python(pyversion)
         else:
             gconf.full_python = options['python_path']
@@ -66,7 +69,17 @@ def init_key_params(conf: TConf, **kwargs):
 
 
 def _get_full_python(pyversion):
-    return where_python_installed(pyversion) + '/python.exe'
+    try:
+        return where_python_installed(pyversion) + '/python.exe'
+    except FileNotFoundError as e:
+        lk.logt("[E5951]", 'Cannot find installed python in your computer. '
+                           'Please pass in your python path manually (for '
+                           'example "C:\\Program Files\\Python38") ...')
+        path = input(f'Input path here ({pyversion}): ')
+        if not exists(path):
+            raise e
+        else:
+            return path
 
 
 def _get_embed_python_from_local(pyversion):

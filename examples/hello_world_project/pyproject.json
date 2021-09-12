@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.4.0",
+    "app_version": "0.4.4",
     "description": "Say hello to the given name.",
     "authors": ["Likianta <likianta@foxmail.com>"],
     "build": {
@@ -22,7 +22,7 @@
         "module_paths": [],
         "venv": {
             "enable_venv": false,
-            "python_version": "3.9",
+            "python_version": "3.8",
             "mode": "source_venv",
             "options": {
                 "depsland": {
@@ -47,7 +47,7 @@
             }
         },
         "compiler": {
-            "name": "pyc",
+            "name": "pyportable_crypto",
             "options": {
                 "cython": {
                     "c_compiler": "msvc",
@@ -66,7 +66,7 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "{random}",
+                    "key": "_trial",
                     "c_compiler": "msvc",
                     "python_path": "auto_detect"
                 },
@@ -78,5 +78,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0a1"
+    "pyportable_installer_version": "4.0.0b0"
 }

@@ -51,7 +51,7 @@
             "options": {
                 "cythonize": {
                     "c_compiler": "msvc",
-                    "python_path": "auto_detect"
+                    "python_path": "_auto_detect"
                 },
                 "pyarmor": {
                     "liscense": "trial",
@@ -63,7 +63,7 @@
                 "pyportable_crypto": {
                     "key": "_trial",
                     "c_compiler": "msvc",
-                    "python_path": "auto_detect"
+                    "python_path": "_auto_detect"
                 },
                 "zipapp": {
                     "password": ""

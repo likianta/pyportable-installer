@@ -2,6 +2,7 @@ import os
 import shutil
 from os.path import basename
 from secrets import token_hex  # secrets is introduced since Python 3.6
+from textwrap import dedent
 from uuid import uuid1
 
 import pyportable_crypto
@@ -14,7 +15,7 @@ from pyportable_installer.compilers import CythonCompiler
 from pyportable_installer.path_model import prj_model
 
 
-def _check_version(version):
+def _check_version():
     """
     Requirement: pyportable-crypto version must be >= v0.1.2.
     
@@ -30,23 +31,44 @@ def _check_version(version):
     files, if a variable (e.g. `a`) is reassigned with type changed, it will
     crash encrypt/decrypt processments.
     """
-    if version not in (req := ('0.1.2',)):
-        raise Exception(f'current pyportable-crypto version ({version}) is not '
-                        f'matched with our requirement ({req}).')
-
-
-def main():
     try:
-        pyportable_crypto_version = pyportable_crypto.__version__
+        version = pyportable_crypto.__version__
     except:  # note: pyportable_crypto v0.1.0 didn't have __version__ info.
         raise Exception('pyportable-crypto version is too low! please install '
                         'a newer version (pip install pyportable-crypto)')
-    _check_version(pyportable_crypto_version)
     
-    python = input('System Python dir: ') + '\\python.exe'
-    assert os.path.exists(python)
-    pyversion = get_dirname(python.replace('\\', '/')).lower()
+    if version not in (req := ('0.1.2',)):
+        raise Exception(f'current pyportable-crypto version ({version}) is not '
+                        f'matched with our requirement ({req}).')
     
+    return version
+
+
+def mainloop(key='', auto_move_to_accessory=False):
+    pyportable_crypto_version = _check_version()
+    
+    # https://blog.csdn.net/weixin_35667833/article/details/113979070
+    if not key: key = token_hex(16)
+    lk.loga(key)
+    assert (_len := len(key.encode('utf-8'))) == 32, _len
+    
+    dirs = []
+    while python_dir := input('System python dir: '):
+        python = f'{python_dir}\\python.exe'
+        assert os.path.exists(python)
+        pyversion = get_dirname(python.replace('\\', '/')).lower()
+        
+        lk.logd()
+        dir_ = _main(key, python, pyversion, pyportable_crypto_version,
+                     auto_move_to_accessory)
+        dirs.append(dir_)
+    
+    lk.logp(dirs, title='See result dirs')
+    return key
+
+
+def _main(key, python, pyversion, pyportable_crypto_version,
+          auto_move_to_accessory):
     crypto_src_dir = os.path.dirname(pyportable_crypto.__file__)
     temp_dir = f'{prj_model.temp}/{uuid1()}'
     crypto_dst_parent_dir = f'{temp_dir}/pyportable_crypto_trial_{pyversion}'
@@ -65,11 +87,6 @@ def main():
     file_b2 = f'{temp_dir}/encrypt.py'
     file_b3 = f'{crypto_dst_dir}/encrypt.pyd'
     
-    # https://blog.csdn.net/weixin_35667833/article/details/113979070
-    key = token_hex(16)
-    lk.loga(key)
-    assert (_len := len(key.encode('utf-8'))) == 32, _len
-    
     with ropen(file_a1) as f:
         lines = f.readlines()
         # just simply modify the 65th line
@@ -85,15 +102,30 @@ def main():
     compiler = CythonCompiler(python)
     compiler.compile_one(file_a2, file_a3)
     compiler.compile_one(file_b2, file_b3)
-    # dumps(pyversion, f'{crypto_dst_dir}/__pyversion__.txt')
     
     # generate __init__.py
-    dumps(
-        'from .encrypt import encrypt_data, encrypt_file\n'
-        'from .inject import inject\n\n'
-        '__version__ = "{}-trial"'.format(pyportable_crypto_version),
-        f'{crypto_dst_dir}/__init__.py'
-    )
+    code = dedent('''\
+        import sys
+        
+        current_pyversion = "python{{}}{{}}".format(
+            sys.version_info.major, sys.version_info.minor
+        )
+        target_pyversion = "{0}"
+        if current_pyversion != target_pyversion:
+            raise Exception(
+                "Python interpreter version doesn't matched!",
+                "Required: {{}}, got {{}} ({{}})".format(
+                    target_pyversion, current_pyversion, sys.executable
+                )
+            )
+    
+        from .encrypt import encrypt_data, encrypt_file
+        from .inject import inject
+        
+        __version__ = "{1}-trial"
+    ''').format(pyversion, pyportable_crypto_version)
+    dumps(code, f'{crypto_dst_dir}/__init__.py')
+    dumps(pyversion, f'{crypto_dst_dir}/__pyversion__.txt')
     
     ''' Note: Do Non Use `sys.path.append(xxx.zip)`
     
@@ -133,14 +165,18 @@ def main():
             accessory dir: {}
     '''.format(crypto_dst_parent_dir, crypto_dst_dir, prj_model.accessory))
     
-    if input('move it now? (y/n): ') == 'y':
+    if auto_move_to_accessory:
         dir_i = crypto_dst_parent_dir
         dir_o = prj_model.accessory + '/' + basename(crypto_dst_parent_dir)
         if os.path.exists(dir_o):
             shutil.rmtree(dir_o)
         shutil.move(dir_i, dir_o)
-        lk.loga('see result: ' + dir_o)
+        
+        out = dir_o
+    else:
+        out = crypto_dst_parent_dir
+    return out
 
 
 if __name__ == '__main__':
-    main()
+    mainloop(auto_move_to_accessory=True)

@@ -55,11 +55,15 @@ class PyportableEncryptor(BaseCompiler):
     
     def _generate_runtime_lib(self, trial_mode: bool):
         # 1.
+        import Cryptodome
+        copytree(dirname(Cryptodome.__file__), f'{dst_model.lib}/Cryptodome')
+        
+        # 2.
         src_dir = prj_model.pyportable_crypto
         tmp_dir = prj_model.temp
         dst_dir = dst_model.lib + '/pyportable_runtime'
         
-        # 2.
+        # 3.
         if trial_mode:
             copytree(prj_model.pyportable_crypto_trial + '/pyportable_crypto',
                      dst_dir)
@@ -69,10 +73,6 @@ class PyportableEncryptor(BaseCompiler):
             return
         else:
             os.mkdir(dst_dir)
-        
-        # 3.
-        import Cryptodome
-        copytree(dirname(Cryptodome.__file__), f'{dst_model.lib}/Cryptodome')
         
         # 4. create '__init__.py' for `pyportable_runtime`
         dumps('from .inject import inject', f'{dst_dir}/__init__.py')
@@ -94,7 +94,10 @@ class PyportableEncryptor(BaseCompiler):
     def _load_pyportable_crypto(trial_mode: bool):
         if trial_mode:
             import sys
-            sys.path.insert(0, prj_model.pyportable_crypto_trial)
+            # TODO: to be explained
+            sys.path.insert(0, prj_model.accessory +
+                            '/pyportable_crypto_trial_python39')
+            # sys.path.insert(0, prj_model.pyportable_crypto_trial)
         from pyportable_crypto import encrypt
         lk.logt("[D1631]", encrypt.__file__)
         return encrypt.encrypt_data
