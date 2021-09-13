@@ -12,7 +12,7 @@ from lk_utils.filesniff import normpath
 #   False: self contained. it means the project dir is same with
 #       `pyportable_installer`.
 #       used for packaging this package as a whl file to upload to pypi.
-_STAND_ALONE_MODE = True
+_STAND_ALONE_MODE = False
 
 if _STAND_ALONE_MODE is False:
     if exists(f'{__file__}/../../examples/dist_pyportable_itself'):
