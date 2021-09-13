@@ -44,6 +44,7 @@ class _TDepslandOptions(TypedDict):
 class _TSourceVenvOptions(TypedDict):
     # `template/pyproject.json::build:venv:options:source_venv`
     path: TPath
+    copy_venv: bool  # default True
 
 
 class _TPipOptions(TypedDict):
@@ -152,11 +153,11 @@ class TBuildConf(TypedDict):
     icon: TPath
     target: list[TTarget]
     readme: TPath
-    module_paths: list[TPath]
-    module_paths_scheme: Literal['translate', 'leave as-is']
     attachments: TAttachments
     attachments_exclusions: tuple[TPath]
     attachments_exist_scheme: Literal['error', 'override', 'skip']
+    module_paths: list[TPath]
+    module_paths_scheme: Literal['translate', 'leave as-is']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     experimental_features: TExperimentalFeatures

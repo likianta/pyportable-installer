@@ -3,6 +3,7 @@ from os import makedirs
 from os import mkdir
 from shutil import copytree
 
+from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import run_cmd_args
 
@@ -61,8 +62,13 @@ def create_venv(mode: TVenvMode, options):
                          '--no-input')
         
         elif mode == 'source_venv' and options['path']:
-            copytree(options['path'] + '/lib/site-packages',
-                     dst_model.venv + '/lib/site-packages')
+            if options['copy_venv']:
+                copytree(options['path'] + '/lib/site-packages',
+                         dst_model.venv + '/lib/site-packages')
+            else:
+                lk.logt('[W0644]', 'The source venv is not copied, you may '
+                                   'copy it later after progress finished',
+                        options['path'])
     
     else:
         raise NotImplemented(mode, options)

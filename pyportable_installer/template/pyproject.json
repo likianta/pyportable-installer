@@ -18,8 +18,8 @@
         ],
         "readme": "",
         "attachments": {},
+        "attachments_exclusions": [],
         "attachments_exist_scheme": "override",
-        "exclusions": [],
         "module_paths": [],
         "module_paths_scheme": "translate",
         "venv": {
@@ -35,7 +35,8 @@
                     "local": ""
                 },
                 "source_venv": {
-                    "path": ""
+                    "path": "",
+                    "copy_venv": true
                 },
                 "pip": {
                     "requirements": [],
