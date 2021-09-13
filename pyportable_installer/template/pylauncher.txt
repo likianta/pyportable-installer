@@ -80,12 +80,14 @@ def parse_target_conf(args):
                              'custom `sys.argv` for now', args)
     if conf.endswith('.json'):
         from json import load
+        with open(conf, 'r', encoding='utf-8') as f:
+            return load(f)
     elif conf.endswith('.pkl'):
         from pickle import load
+        with open(conf, 'rb') as f:
+            return load(f)
     else:
         raise Exception('Unknown file type to load config!', conf)
-    with open(conf, 'rb') as f:
-        return load(f)
 
 
 def launch(main_func, *args, **kwargs):
