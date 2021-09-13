@@ -15,7 +15,7 @@ from ....typehint import *
 
 def find_files(dir_i):
     for fp, fn in filter(
-            attachments_exclusions_handler.filter_files,
+            lambda x: attachments_exclusions_handler.filter_files(*x),
             filesniff.find_files(dir_i, fmt='zip')
     ):
         yield fp, fn
@@ -23,7 +23,7 @@ def find_files(dir_i):
 
 def find_dirs(dir_i):
     for dp, dn in filter(
-            attachments_exclusions_handler.filter_dirs,
+            lambda x: attachments_exclusions_handler.filter_dirs(*x),
             filesniff.find_dirs(
                 dir_i, fmt='zip', exclude_protected_folders=False
                 #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -6,8 +6,12 @@ from lk_logger import lk
 class AttachmentsExclusions:
     
     def __init__(self):
-        self.excluded_dirnames = ('__pycache__', '.git', '.idea', '.svn')
-        self.excluded_filenames = ('.gitkeep', '.gitignore')
+        self.excluded_dirnames = (
+            '__pycache__', '.git', '.idea', '.svn', '.vscode'
+        )
+        self.excluded_filenames = (
+            '.git', '.gitignore', '.gitkeep'
+        )
         self.excluded_paths = None  # type: Optional[set[str]]
     
     def _indexing_global_exlusion_list(self):

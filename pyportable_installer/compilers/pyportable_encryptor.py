@@ -1,8 +1,5 @@
 import os
-from os.path import basename
-from os.path import dirname
-from shutil import copyfile
-from shutil import copytree
+import shutil
 from textwrap import dedent
 from typing import Callable
 
@@ -15,6 +12,7 @@ from .cython_compiler import CythonCompiler
 from ..global_conf import gconf
 from ..path_model import dst_model
 from ..path_model import prj_model
+from ..path_model import src_model
 
 
 class PyportableEncryptor(BaseCompiler):
@@ -35,8 +33,9 @@ class PyportableEncryptor(BaseCompiler):
             key = token_hex(32)
         lk.logt('[D2858]', key)
         if trial_mode:
-            lk.logt("[I3130]", 'the PyportableEncryptor is running under trial '
-                               'mode, the `key` attribute is invalid.')
+            lk.logt('[I3130]', 'note: the PyportableEncryptor is running '
+                               'under trial mode, the `key` attribute is '
+                               'invalid.')
         
         # assignments
         self.trial_mode = trial_mode
@@ -56,7 +55,10 @@ class PyportableEncryptor(BaseCompiler):
     def _generate_runtime_lib(self, trial_mode: bool):
         # 1.
         import Cryptodome
-        copytree(dirname(Cryptodome.__file__), f'{dst_model.lib}/Cryptodome')
+        shutil.copytree(
+            os.path.dirname(Cryptodome.__file__),
+            f'{dst_model.lib}/Cryptodome'
+        )
         
         # 2.
         src_dir = prj_model.pyportable_crypto
@@ -65,8 +67,10 @@ class PyportableEncryptor(BaseCompiler):
         
         # 3.
         if trial_mode:
-            copytree(prj_model.pyportable_crypto_trial + '/pyportable_crypto',
-                     dst_dir)
+            shutil.copytree(
+                prj_model.pyportable_crypto_trial + '/pyportable_crypto',
+                dst_dir
+            )
             #   notice: there's a sole subfolder in `prj_model.pyportable_crypto
             #   _trial`, that's we need to copy, then rename it to 'pyportable
             #   _runtime'.
@@ -101,19 +105,19 @@ class PyportableEncryptor(BaseCompiler):
         from pyportable_crypto import encrypt
         lk.logt("[D1631]", encrypt.__file__)
         return encrypt.encrypt_data
-
+    
     def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
             for i, o in pyfiles:
-                lk.logx('compiling', i, o)
+                lk.logx('compiling', os.path.relpath(i, src_model.prj_root))
                 self.compile_one(i, o)
     
     def compile_one(self, src_file, dst_file):
-        if basename(src_file) == '__init__.py':
+        if os.path.basename(src_file) == '__init__.py':
             lk.logt('[D0359]', 'PyportableEncryptor doesn\'t compile '
                                '\'__init__.py\' (leave it uncompiled, just '
                                'copy to the dist)', src_file)
-            copyfile(src_file, dst_file)
+            shutil.copyfile(src_file, dst_file)
             return dst_file
         
         data = loads(src_file)  # type: str

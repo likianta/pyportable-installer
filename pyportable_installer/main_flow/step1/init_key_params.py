@@ -58,8 +58,11 @@ def init_key_params(conf: TConf, **kwargs):
     is_pip_required = False
     if enable_venv and mode == 'pip':
         is_pip_required = True
-    
-    lk.loga(is_full_python_required, is_embed_python_required, is_pip_required)
+
+    lk.logt('[I5239]',
+            is_full_python_required,
+            is_embed_python_required,
+            is_pip_required)
     
     # --------------------------------------------------------------------------
     
