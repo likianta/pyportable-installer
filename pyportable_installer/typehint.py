@@ -138,12 +138,12 @@ class TCompiler(TypedDict):
 
 
 class TExperimentalFeatures(TypedDict):
+    add_tkinter: bool
+    add_pywin32_support: bool
+    alert_dialog_box: Literal['console', 'vbsbox', 'tkinter']
     debug_mode: bool
     reserve_bat_file: bool
-    add_tkinter: bool
-    support_pywin32: bool
     tree_shaking: dict
-    alert_dialog_box: Literal['console', 'vbsbox', 'tkinter']
 
 
 class TBuildConf(TypedDict):

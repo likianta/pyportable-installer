@@ -39,6 +39,14 @@ def init_key_params(conf: TConf, **kwargs):
             is_full_python_required = True
     
     is_embed_python_required = False
+    if (
+            (name in ('pyarmor', 'pyc')) or
+            (enable_venv and mode == 'pip') or
+            (enable_venv and mode == 'source_venv' and
+             conf['build']['venv']['options']['source_venv']['copy_venv'])
+    ):
+        is_embed_python_required = True
+    
     if name in ('pyarmor', 'pyc') or \
             (enable_venv and mode in ('pip', 'source_venv')):
         is_embed_python_required = True

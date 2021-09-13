@@ -78,7 +78,7 @@
             }
         },
         "experimental_features": {
-
+            "add_pywin32_support": false
         },
         "enable_console": true
     },

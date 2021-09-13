@@ -6,7 +6,8 @@ Funtions:
 
 Placeholders:
     PROJ_LIB_DIR        dir
-    EXTEND_PATHS        list[dir]
+    ADD_PYWIN32_SUPPORT bool[False]
+    MODULE_PATHS        list[dir]
     *DEFAULT_CONF*      file[*.pkl]
         TARGET_DIR      dir
         TARGET_PKG      str
@@ -29,9 +30,30 @@ sys.path.insert(0, abspath('.'))
 # add project lib to environment
 sys.path.insert(1, abspath('{PROJ_LIB_DIR}'))
 
-ext_paths = {EXTEND_PATHS}
-if ext_paths:
-    sys.path.extend(map(abspath, ext_paths))
+module_paths = {MODULE_PATHS}
+if module_paths:
+    sys.path.extend(map(abspath, module_paths))
+
+add_pywin32_support = {ADD_PYWIN32_SUPPORT}
+if add_pywin32_support:
+    try:
+        # ref: https://stackoverflow.com/questions/58612306/how-to-fix
+        #      -importerror-dll-load-failed-while-importing-win32api
+        #      (see comment from @ocroquette)
+        import pywin32_system32
+        _pywin32_dir = pywin32_system32.__path__._path[0]
+        # -> ~/lib/site-packages/pywin32_system32
+        os.add_dll_directory(_pywin32_dir)
+        #   FIXME: this function is introduced since python 3.8.
+
+        _site_packages_dir = os.path.dirname(_pywin32_dir)
+        sys.path.extend((
+            _site_packages_dir + '/pythonwin',
+            _site_packages_dir + '/win32',
+            _site_packages_dir + '/win32/lib',
+        ))
+    except ImportError:
+        print('Adding pywin32 support failed')
 
 
 # ------------------------------------------------------------------------------

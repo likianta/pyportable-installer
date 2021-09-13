@@ -15,11 +15,11 @@ from ....typehint import TBuildConf
 
 thread_of_bat_2_exe = None
 _is_depsland_mode = False
-_is_debug_mode = False
 
 
 def create_launcher(build: TBuildConf):
-    global _is_depsland_mode, _is_debug_mode
+    global _is_depsland_mode
+    _is_debug_mode = False
     if build['venv']['enable_venv']:
         if build['venv']['mode'] == 'depsland':
             _is_depsland_mode = True
@@ -27,16 +27,25 @@ def create_launcher(build: TBuildConf):
             _is_debug_mode = True
     #   these will effect `_create_launcher` function.
     
-    exe_names = {}
+    deduplicator = LauncherNamesDeduplicator(build['launcher_name'])
+    fixed_kwargs_for_creating_launcher = {
+        'add_pywin32_support': build[
+            'experimental_features']['add_pywin32_support'],
+        'enable_console'     : build['enable_console'],
+        'enable_venv'        : build['venv']['enable_venv'],
+        'generate_exe'       : False if _is_depsland_mode or
+                                        _is_debug_mode else True,
+        'module_paths'       : build['module_paths'],
+        'module_paths_scheme': build['module_paths_scheme'],
+        'venv_python'        : 'python' if _is_debug_mode else '',
+    }
     
     for i, t in enumerate(build['target']):
         if i == 0:
             _create_launcher(
                 name=build['launcher_name'], icon=build['icon'],
                 target=t, is_main_entry=True,
-                module_paths=build['module_paths'],
-                enable_venv=build['venv']['enable_venv'],
-                enable_console=build['enable_console'],
+                **fixed_kwargs_for_creating_launcher
             )
             
             if _is_depsland_mode:
@@ -49,25 +58,37 @@ def create_launcher(build: TBuildConf):
                 )
         else:
             name = get_filename(t['file'], suffix=False)
-            if name not in exe_names:
-                exe_names[name] = 0
-            else:
-                name += ' ({})'.format(exe_names[name])
+            name = deduplicator.optimize_name(name, t['function'])
             _create_launcher(
                 name=name, icon='',
                 target=t, is_main_entry=False,
-                module_paths=build['module_paths'],
-                module_paths_scheme=build['module_paths_scheme'],
-                enable_venv=build['venv']['enable_venv'],
-                enable_console=build['enable_console'],
+                **fixed_kwargs_for_creating_launcher
             )
 
 
 def _create_launcher(
         name, icon, target, is_main_entry: bool,
         module_paths=None, module_paths_scheme='translate',
-        enable_venv=True, enable_console=True
+        enable_venv=True, **options
 ):
+    """
+    
+    Args:
+        name:
+        icon:
+        target:
+        is_main_entry:
+        **options:
+
+    Keyword Args:
+        add_pywin32_support: bool[False]
+        enable_console: bool[True]
+        enable_venv:
+        generate_exe: bool[True]
+        module_paths: list[str]
+        module_paths_scheme: Literal['translate', 'leave as-is']
+        venv_python: str
+    """
     launcher_name = name
     conf_name = 'main' if is_main_entry else str(uuid1())
     
@@ -97,7 +118,8 @@ def _create_launcher(
         'target_dir' : _rel1(abs_paths['target_dir']),  # 'hello_world'
         'conf_file'  : _rel1(abs_paths['conf_file']),  # '.pylauncher_conf'
         'venv_dir'   : _rel0(dst_model.venv),  # 'venv'
-        'venv_python': _rel0(dst_model.python)  # 'venv/python.exe'
+        'venv_python': options.get('venv_python') or
+                       _rel0(dst_model.python)  # 'venv/python.exe'
     }
     del _rel0, _rel1
     
@@ -145,7 +167,8 @@ def _create_launcher(
             code = template.format(
                 # see `~/template/pylauncher.txt > docs:placeholders`
                 PROJ_LIB_DIR=rel_paths['lib_dir'],
-                EXTEND_PATHS=str(_ext_paths),
+                ADD_PYWIN32_SUPPORT=str(options.get('add_pywin32_support', False)),
+                MODULE_PATHS=str(_ext_paths),
                 # DEFAULT_CONF='default.pkl',
             )
         
@@ -177,7 +200,7 @@ def _create_launcher(
                 #           example.bat hello world 1 2 3
                 #       output in console:
                 #           ['test.py', 'hello', 'world', '1', '2', '3']
-            elif enable_venv and not _is_debug_mode:
+            elif enable_venv:
                 code = template.format(
                     PYTHON=rel_paths['venv_python'].replace('/', '\\'),
                     PYLAUNCHER=rel_paths['launch_file'],
@@ -195,7 +218,7 @@ def _create_launcher(
             f.write(code)
     
     def _generate_exe():
-        if _is_depsland_mode or _is_debug_mode:  # TODO
+        if options.get('generate_exe', True) is False:
             return
         
         def _run(bat_file, exe_file, icon_file, *options):
@@ -209,7 +232,7 @@ def _create_launcher(
         global thread_of_bat_2_exe
         thread_of_bat_2_exe = run_new_thread(
             _run, abs_paths['bat_file'], abs_paths['exe_file'], icon, '/x64',
-            '' if enable_console else '/invisible'
+            '' if options.get('enable_console', True) else '/invisible'
         )
         #   the thread_of_bat_2_exe will be recycled in `..step3_4.cleanup`.
     
@@ -247,3 +270,22 @@ def _create_depsland_setup(launcher_name, icon,
     
     if icon:
         copyfile(icon, f'{dst_model.build}/launcher.ico')
+
+
+class LauncherNamesDeduplicator:
+    """ Make sure there's no duplicate name generated. """
+    
+    def __init__(self, *top_names):
+        self._names_counter = {}  # type: dict[str, int]
+        self._names_counter.update({n: 0 for n in top_names})
+    
+    def optimize_name(self, name, function=''):
+        if name in self._names_counter:
+            if function:
+                name += ' ({})'.format(function)
+                return self.optimize_name(name, '')
+            self._names_counter[name] += 1
+            name += ' ({})'.format(self._names_counter[name])
+        else:
+            self._names_counter[name] = 0
+        return name
