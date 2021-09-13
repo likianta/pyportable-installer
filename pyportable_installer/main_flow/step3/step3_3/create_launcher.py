@@ -34,7 +34,7 @@ def create_launcher(build: TBuildConf):
             _create_launcher(
                 name=build['launcher_name'], icon=build['icon'],
                 target=t, is_main_entry=True,
-                extend_sys_paths=build['module_paths'],
+                module_paths=build['module_paths'],
                 enable_venv=build['venv']['enable_venv'],
                 enable_console=build['enable_console'],
             )
@@ -56,7 +56,8 @@ def create_launcher(build: TBuildConf):
             _create_launcher(
                 name=name, icon='',
                 target=t, is_main_entry=False,
-                extend_sys_paths=build['module_paths'],
+                module_paths=build['module_paths'],
+                module_paths_scheme=build['module_paths_scheme'],
                 enable_venv=build['venv']['enable_venv'],
                 enable_console=build['enable_console'],
             )
@@ -64,7 +65,8 @@ def create_launcher(build: TBuildConf):
 
 def _create_launcher(
         name, icon, target, is_main_entry: bool,
-        extend_sys_paths=None, enable_venv=True, enable_console=True
+        module_paths=None, module_paths_scheme='translate',
+        enable_venv=True, enable_console=True
 ):
     launcher_name = name
     conf_name = 'main' if is_main_entry else str(uuid1())
@@ -121,7 +123,7 @@ def _create_launcher(
             }, f)
     
     def _generate_pylauncher():
-        if not _is_debug_mode:
+        if module_paths_scheme == 'translate':
             _ext_paths = list(map(
                 lambda d: relpath(
                     d if not d.startswith('src:') else src_2_dst(d[4:]),
@@ -130,12 +132,12 @@ def _create_launcher(
                     #        > vars:module_paths`
                     start=abs_paths['launch_dir']
                 ),
-                extend_sys_paths
+                module_paths
             ))
-        else:  # in debug mode, leave module paths as is.
+        else:  # leave module paths as is. (usually this is used in debug mode)
             _ext_paths = list(map(
                 lambda d: d[4:] if d.startswith('src:') else d,
-                extend_sys_paths
+                module_paths
             ))
         
         with ropen(prj_model.pylauncher) as f:

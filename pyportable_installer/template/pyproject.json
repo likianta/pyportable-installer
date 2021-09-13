@@ -21,6 +21,7 @@
         "attachments_exist_scheme": "override",
         "exclusions": [],
         "module_paths": [],
+        "module_paths_scheme": "translate",
         "venv": {
             "enable_venv": true,
             "python_version": "3.9",

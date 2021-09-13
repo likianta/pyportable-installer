@@ -56,7 +56,7 @@ def full_build(file, additional_conf=None):
     return main(file, additional_conf or {})
 
 
-def min_build(file, additional_conf=None):
+def min_build(file, additional_conf=None):  # FIXME
     Misc.copy_checkup_tools = False
     Misc.create_launch_bat = True
     #   True (suggest) | False
@@ -75,6 +75,8 @@ def debug_build(file, additional_conf=None):
     
     if additional_conf is None:
         additional_conf = {'build': {
+            'attachments_exist_scheme': 'override',
+            'module_paths_scheme': 'leave as-is',
             'compiler': {
                 'name': '_no_compiler',
                 'options': {'_no_compiler': {}}
@@ -86,6 +88,8 @@ def debug_build(file, additional_conf=None):
         }}
     else:
         node_0 = additional_conf.setdefault('build', {})
+        node_0['attachments_exists_scheme'] = 'override'
+        node_0['module_paths_scheme'] = 'leave as-is'
         node_a1 = node_0.setdefault('compiler', {})
         node_a1['name'] = '_no_compiler'
         node_a2 = node_a1.setdefault('options', {})

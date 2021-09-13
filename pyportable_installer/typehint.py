@@ -153,6 +153,7 @@ class TBuildConf(TypedDict):
     target: list[TTarget]
     readme: TPath
     module_paths: list[TPath]
+    module_paths_scheme: Literal['translate', 'leave as-is']
     attachments: TAttachments
     attachments_exclusions: tuple[TPath]
     attachments_exist_scheme: Literal['error', 'override', 'skip']
