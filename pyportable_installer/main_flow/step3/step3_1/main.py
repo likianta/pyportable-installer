@@ -13,9 +13,9 @@ def main(conf: TConf):
     dst_model.assert_ready()
     
     lk.logp(
-        'model paths overview',
         (src_model.src_root, src_model.prj_root),
         (dst_model.dst_root, dst_model.src_root, dst_model.prj_root),
+        title='model paths overview'
     )
     
     if src_model.readme:
@@ -23,21 +23,8 @@ def main(conf: TConf):
     
     pyfiles = []
     pyfiles.extend(_copy_sources())
-    pyfiles.extend(copy_attachments(
-        conf['build']['attachments'],
-        exists_scheme=conf['build']['attachments_exist_scheme']
-    ))
+    pyfiles.extend(copy_attachments(conf['build']['attachments']))
     return pyfiles
-
-
-# def _copy_checkup_tools(dir_i, dir_o):
-#     copyfile(
-#         f'{dir_i}/doctor.py', f1 := f'{dir_o}/doctor.py'
-#     )
-#     copyfile(
-#         f'{dir_i}/pretty_print.py', f2 := f'{dir_o}/pretty_print.py'
-#     )
-#     return f1, f2
 
 
 def _create_readme(file_i: TPath, file_o: TPath):

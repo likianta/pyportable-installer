@@ -71,16 +71,10 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     conf['build']['attachments'] = temp0
     del temp0
 
-    temp1 = []
-    for p in conf['build']['attachments_exclusions']:
-        assert not p.startswith('dist:'), (
-            'Attachments exclusions don\'t support `dist:` syntax!', p
-        )
-        p = path_fmt(p) + '/'
-        temp1.append(p)
     # noinspection PyTypedDict
-    conf['build']['attachments_exclusions'] = tuple(temp1)
-    del temp1
+    conf['build']['attachments_exclusions'] = tuple(
+        map(path_fmt, conf['build']['attachments_exclusions'])
+    )
     
     # --------------------------------------------------------------------------
     

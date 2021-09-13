@@ -3,40 +3,59 @@ from os import remove
 from os.path import exists
 from os.path import isfile
 from shutil import copyfile
-from shutil import copytree
 
 from lk_logger import lk
-from lk_utils import find_files
-from lk_utils import findall_dirs
+from lk_utils import filesniff
 
+from .exclusions import attachments_exclusions_handler
 from ....global_conf import gconf
 from ....path_model import src_2_dst
 from ....typehint import *
 
-_file_exists_scheme = 'error'
+
+def find_files(dir_i):
+    for fp, fn in filter(
+            attachments_exclusions_handler.filter_files,
+            filesniff.find_files(dir_i, fmt='zip')
+    ):
+        yield fp, fn
 
 
-def _handle_file_exists(file_o):
+def find_dirs(dir_i):
+    for dp, dn in filter(
+            attachments_exclusions_handler.filter_dirs,
+            filesniff.find_dirs(
+                dir_i, fmt='zip', exclude_protected_folders=False
+                #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                #   set this param to False, we will use `exclusions_handler`
+                #   to filter the protected folders.
+            )
+    ):
+        yield dp, dn
+
+
+def _handle_file_exists(file_o, scheme=''):
     """
     Returns:
         str['go_on', 'done']
             'go_on': going on to do the left things.
             'done': all things have done, do not handle this file.
     """
-    if _file_exists_scheme == 'error':
+    if scheme == '':  # see `TBuildConf.attachments_exist_scheme`
+        scheme = gconf.attachments_exist_scheme
+    
+    if scheme == 'error':
         raise FileExistsError(file_o)
-    elif _file_exists_scheme == 'override':
+    elif scheme == 'override':
         remove(file_o)
         return 'go_on'
-    elif _file_exists_scheme == 'skip':
+    elif scheme == 'skip':
         return 'done'
     else:
-        raise Exception('Unknown scheme', _file_exists_scheme)
+        raise Exception('Unknown scheme', scheme)
 
 
-def copy_attachments(
-        attachments: TAttachments, exists_scheme='error'
-) -> Iterator[tuple[TPath, TPath]]:
+def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]:
     """ Specific for handling attachmets in format of `~.typehint.TAttachments`.
     
     Attachments Marks (`~.typehint.TAttachments._TAttachmentsValue.marks`):
@@ -54,7 +73,6 @@ def copy_attachments(
             
     Args:
         attachments
-        exists_scheme: see `TBuildConf.attachments_exist_scheme`
         
     Notice:
         This function is a generator, if you just want to call and exhaust it,
@@ -64,9 +82,6 @@ def copy_attachments(
     Yields:
         tuple[src_pyfile, dst_pyfile]
     """
-    global _exclusion_handler, _file_exists_scheme
-    _file_exists_scheme = exists_scheme
-    
     for k, v in attachments.items():
         path_i = k
         path_o = v['path'] or src_2_dst(path_i)
@@ -80,16 +95,24 @@ def copy_attachments(
         
         # 1. `path_i` is file
         if 'asset' in marks or isfile(path_i):
-            if is_yield_pyfile:
-                yield from _handle_compile(path_i, path_o)
+            if attachments_exclusions_handler.monitor_transferring(
+                    '', path_i, 'file') is False:
+                lk.logt('[D4756]', 'the file is in conclusion list', path_i)
             else:
-                _handle_asset(path_i, path_o)
+                if is_yield_pyfile:
+                    yield from _handle_compile(path_i, path_o)
+                else:
+                    _handle_asset(path_i, path_o)
             continue
         
         # 2. `path_i` is dir
         dir_i = path_i
         dir_o = path_o
         
+        if attachments_exclusions_handler.monitor_transferring(
+                '', dir_i, 'dir') is False:
+            lk.logt('[D4757]', 'the file is in conclusion list', dir_i)
+            continue
         if not exists(dir_o):
             mkdir(dir_o)
         
@@ -120,60 +143,49 @@ def copy_attachments(
 # -----------------------------------------------------------------------------
 
 def _handle_assets(dir_i, dir_o):
-    copytree(dir_i, dir_o, dirs_exist_ok=True)
-
-
-def _handle_assets_and_compile(dir_i, dir_o):
-    # first handle roots'
-    yield from _handle_root_assets_and_compile(dir_i, dir_o)
-    # then handle subdirs'
-    for dp_i, dp_o in _handle_only_folders(dir_i, dir_o):
-        yield from _handle_root_assets_and_compile(dp_i, dp_o)
-
-
-def _handle_root_assets_and_compile(dir_i, dir_o):
-    for fp, fn in find_files(dir_i, fmt='zip'):
-        if _exclusion_handler.is_protected(fn, fp, 'file'):
-            lk.logt('[D1408]', 'skip making file', fp)
-            continue
-        fp_i, fp_o = fp, f'{dir_o}/{fn}'
-        if fn.endswith('.py'):  # TODO: ~.endswith(('.py', '.pyw', ...))
-            if exists(fp_o) and _handle_file_exists(fp_o) == 'done':
-                continue
-            if _exclusion_handler.filter_yielding(fp_i):
-                yield fp_i, fp_o  # MARK: 20210913113649
-        else:
-            copyfile(fp_i, fp_o)
+    _handle_root_assets(dir_i, dir_o)
+    for dp, dn in find_dirs(dir_i):
+        subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
+        mkdir(subdir_o)
+        _handle_assets(subdir_i, subdir_o)
 
 
 def _handle_root_assets(dir_i, dir_o):
-    for fp, fn in find_files(dir_i, fmt='zip'):
-        if _exclusion_handler.is_protected(fn, fp, 'file'):
-            lk.logt('[D1408]', 'skip making file', fp)
-            continue
-        copyfile(fp, f'{dir_o}/{fn}')
+    for fp, fn in find_files(dir_i):
+        file_i, file_o = fp, f'{dir_o}/{fn}'
+        copyfile(file_i, file_o)
+
+
+def _handle_assets_and_compile(dir_i, dir_o):
+    yield from _handle_root_assets_and_compile(dir_i, dir_o)
+    for dp, dn in find_dirs(dir_i):
+        subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
+        mkdir(subdir_o)
+        yield from _handle_assets_and_compile(subdir_i, subdir_o)
+
+
+def _handle_root_assets_and_compile(dir_i, dir_o):
+    for fp, fn in find_files(dir_i):
+        file_i, file_o = fp, f'{dir_o}/{fn}'
+        if fn.endswith('.py'):  # TODO: ~.endswith(('.py', '.pyw', ...))
+            if exists(file_o) and _handle_file_exists(file_o) == 'done':
+                continue
+            yield file_i, file_o  # MARK: 20210913113649
+        else:
+            copyfile(file_i, file_o)
+
+
+def _handle_only_folders(dir_i, dir_o):
+    for dp, dn in find_dirs(dir_i):
+        subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
+        _handle_only_folder(subdir_i, subdir_o)
+        _handle_only_folders(subdir_i, subdir_o)
 
 
 # noinspection PyUnusedLocal
 def _handle_only_folder(dir_i, dir_o):
-    assert exists(dir_o)
-
-
-def _handle_only_folders(dir_i, dir_o):
-    out = []
-    for dp, dn in findall_dirs(
-            dir_i, fmt='zip', exclude_protected_folders=False
-            #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            #   set this param to False, we will use our own exclusion rule
-            #   (i.e. `globals:_excludes.is_protected`) instead.
-    ):
-        if _exclusion_handler.is_protected(dn, dp, 'dir'):
-            lk.logt('[D1409]', 'skip making dir', dp)
-            continue
-        subdir_i, subdir_o = dp, dp.replace(dir_i, dir_o, 1)
-        if not exists(subdir_o): mkdir(subdir_o)
-        out.append((subdir_i, subdir_o))
-    return out
+    if not exists(dir_o):
+        mkdir(dir_o)
 
 
 def _handle_asset(file_i, file_o):
@@ -185,56 +197,9 @@ def _handle_compile(file_i, file_o):
     assert file_i.endswith('.py')
     if exists(file_o) and _handle_file_exists(file_o) == 'done':
         return
-    if _exclusion_handler.filter_yielding(file_i):
-        yield file_i, file_o  # MARK: 20210913113657
+    yield file_i, file_o  # MARK: 20210913113657
 
 
-# -----------------------------------------------------------------------------
-
-class AttachmentsExclusions:
-    
-    def __init__(self):
-        self.protected_dirnames = ('__pycache__', '.git', '.idea', '.svn')
-        self.protected_filenames = ('.gitkeep', '.gitignore')
-        self.excluded_paths = set()
-        
-    @staticmethod
-    def filter_yielding(file: str):
-        """
-        This filter moniters and checks whether a file is yieldable.
-        
-        - The `param:file` comes from `TAttachments:keys`.
-        - This method use global exclusions which is provided by `gconf
-          .attachments_exclusions`.
-            - `gconf.attachments_exclusions` is initialized at `~.main_flow
-              .step1.init_key_params`.
-        - The filter points are functions in this module and has a `yield`
-          statement (note not `yield from` statement). See functions: `_handle
-          _compile` (MARK@20210913113657) and `_handle_root_assets_and_compile`
-          (MARK@20210913113649).
-        
-        Returns:
-            True: pass through
-            False: forbit yielding
-        """
-        if (file + '/').startswith(gconf.attachments_exclusions):
-            lk.logt('[D5034]', 'AttchmentsExclusions monitor has intercepted '
-                               'this yieldment', file, h='parent')
-            return False
-        else:
-            return True
-    
-    def is_protected(self, name: str, path: str, ftype):
-        if ftype == 'file':
-            _protected_list = self.protected_filenames
-        else:
-            _protected_list = self.protected_dirnames
-        
-        if name in _protected_list or \
-                path.startswith(tuple(self.excluded_paths)):
-            self.excluded_paths.add(path + '/')
-            return True
-        return False
-
-
-_exclusion_handler = AttachmentsExclusions()
+__all__ = [
+    'copy_attachments',
+]

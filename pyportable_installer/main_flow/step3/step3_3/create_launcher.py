@@ -14,7 +14,7 @@ from ....path_model import *
 from ....typehint import TBuildConf
 
 thread_of_bat_2_exe = None
-_is_depsland_mode = False
+_is_depsland_mode = False  # TODO: downgrade it to local variable
 
 
 def create_launcher(build: TBuildConf):
@@ -167,7 +167,8 @@ def _create_launcher(
             code = template.format(
                 # see `~/template/pylauncher.txt > docs:placeholders`
                 PROJ_LIB_DIR=rel_paths['lib_dir'],
-                ADD_PYWIN32_SUPPORT=str(options.get('add_pywin32_support', False)),
+                ADD_PYWIN32_SUPPORT=str(
+                    options.get('add_pywin32_support', False)),
                 MODULE_PATHS=str(_ext_paths),
                 # DEFAULT_CONF='default.pkl',
             )
