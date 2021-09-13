@@ -147,6 +147,7 @@ def _handle_assets(dir_i, dir_o):
     for dp, dn in find_dirs(dir_i):
         subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
         mkdir(subdir_o)
+        # # if not exists(subdir_o): mkdir(subdir_o)
         _handle_assets(subdir_i, subdir_o)
 
 
@@ -160,7 +161,7 @@ def _handle_assets_and_compile(dir_i, dir_o):
     yield from _handle_root_assets_and_compile(dir_i, dir_o)
     for dp, dn in find_dirs(dir_i):
         subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
-        mkdir(subdir_o)
+        if not exists(subdir_o): mkdir(subdir_o)
         yield from _handle_assets_and_compile(subdir_i, subdir_o)
 
 
