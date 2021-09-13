@@ -139,6 +139,7 @@ class TCompiler(TypedDict):
 
 class TExperimentalFeatures(TypedDict):
     debug_mode: bool
+    reserve_bat_file: bool
     add_tkinter: bool
     support_pywin32: bool
     tree_shaking: dict

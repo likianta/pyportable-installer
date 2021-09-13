@@ -66,6 +66,8 @@ def create_venv(mode: TVenvMode, options):
                 copytree(options['path'] + '/lib/site-packages',
                          dst_model.venv + '/lib/site-packages')
             else:
+                dst_model.venv = options['path']
+                #   FIXME: black magic is not recommended!
                 lk.logt('[W0644]', 'The source venv is not copied, you may '
                                    'copy it later after progress finished',
                         options['path'])
