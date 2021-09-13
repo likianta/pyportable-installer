@@ -19,6 +19,7 @@
         "readme": "",
         "attachments": {},
         "attachments_exist_scheme": "override",
+        "exclusions": [],
         "module_paths": [],
         "venv": {
             "enable_venv": true,
@@ -63,7 +64,11 @@
                 "pyportable_crypto": {
                     "key": "_trial",
                     "c_compiler": "msvc",
-                    "python_path": "_auto_detect"
+                    "python_path": "_auto_detect",
+                    "note": [
+                        "if key is '_trial', it doesn't need to define 'c_compiler' and 'python_path'.",
+                        "trial mode is only for development and test purpose."
+                    ]
                 },
                 "zipapp": {
                     "password": ""
@@ -76,5 +81,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0b0"
+    "pyportable_installer_version": "4.0.0b2"
 }

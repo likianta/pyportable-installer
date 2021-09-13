@@ -25,7 +25,7 @@ def main(conf: TConf):
     pyfiles.extend(_copy_sources())
     pyfiles.extend(copy_attachments(
         conf['build']['attachments'],
-        conf['build']['attachments_exist_scheme']
+        exists_scheme=conf['build']['attachments_exist_scheme']
     ))
     return pyfiles
 

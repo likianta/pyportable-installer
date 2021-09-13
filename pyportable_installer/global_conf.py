@@ -9,6 +9,8 @@ class GlobalConf:
     full_python = ''
     embed_python = ''
     
+    attachments_exclusions = ()
+    
     @property
     def embed_python_dir(self):
         return dirname(self.embed_python)

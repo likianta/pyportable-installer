@@ -69,6 +69,11 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         else:
             temp[k] = {'marks': tuple(v), 'path': ''}
     conf['build']['attachments'] = temp
+
+    # noinspection PyTypedDict
+    conf['build']['attachments_exclusions'] = tuple(
+        map(path_fmt, conf['build']['attachments_exclusions'])
+    )
     
     # --------------------------------------------------------------------------
     

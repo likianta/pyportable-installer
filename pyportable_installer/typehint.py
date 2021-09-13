@@ -154,6 +154,7 @@ class TBuildConf(TypedDict):
     readme: TPath
     module_paths: list[TPath]
     attachments: TAttachments
+    attachments_exclusions: tuple[TPath]
     attachments_exist_scheme: Literal['error', 'override', 'skip']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']

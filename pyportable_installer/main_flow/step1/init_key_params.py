@@ -15,6 +15,9 @@ def init_key_params(conf: TConf, **kwargs):
     # pyproj_dir
     gconf.pyproj_dir = kwargs['pyproj_dir']
     
+    gconf.attachments_exclusions = conf['build']['attachments_exclusions']
+    assert type(gconf.attachments_exclusions) is tuple
+    
     # --------------------------------------------------------------------------
     
     pyversion = conf['build']['venv']['python_version']

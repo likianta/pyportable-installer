@@ -9,6 +9,7 @@ from lk_logger import lk
 from lk_utils import find_files
 from lk_utils import findall_dirs
 
+from ....global_conf import gconf
 from ....path_model import src_2_dst
 from ....typehint import *
 
@@ -34,7 +35,9 @@ def _handle_file_exists(file_o):
 
 
 def copy_attachments(
-        attachments: TAttachments, exists_scheme='error'
+        attachments: TAttachments,
+        exclusions: tuple[TPath] = None,
+        exists_scheme='error'
 ) -> Iterator[tuple[TPath, TPath]]:
     """ Specific for handling attachmets in format of `~.typehint.TAttachments`.
     
@@ -50,10 +53,26 @@ def copy_attachments(
             asset,compile
             assets,compile
             root_assets,compile
+            
+    Args:
+        attachments
+        exclusions:
+            - note this param's type must be `tuple[str]`.
+            - the default value is `gconf.attachments_exclusions`, it is
+              initialized at `~.main_flow.step1.init_key_params`.
+        exists_scheme: see `TBuildConf.attachments_exist_scheme`
+        
+    Notice:
+        This function is a generator, if you just want to call and exhaust it,
+        use this:
+            _ = list(copy_attachments(my_attachments))
     
     Yields:
         tuple[src_pyfile, dst_pyfile]
     """
+    if exclusions is None:
+        exclusions = gconf.attachments_exclusions
+    
     global _excludes, _file_exists_scheme
     _file_exists_scheme = exists_scheme
     
@@ -64,6 +83,9 @@ def copy_attachments(
         #   `~.step1.indexing_paths.indexing_paths > attachments related code`
         #   we've handled them.
         marks = v['marks']  # e.g. ('assets', 'compile')
+        
+        if path_i.startswith(exclusions):
+            continue
         
         is_yield_pyfile = 'compile' in marks  # type: bool
         #   True: yield pyfile; False: just copy pyfile
