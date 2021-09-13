@@ -56,7 +56,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     # here we must make sure `path_fmt.dir_o` to be defined.
     path_fmt.dir_o = conf['build']['dist_dir']
     
-    temp = {}  # type: TAttachments
+    temp0 = {}  # type: TAttachments
     for k, v in conf['build']['attachments'].items():
         # lk.logt('[D0510]', k, v)
         k = path_fmt(k)
@@ -65,15 +65,22 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         if v[-1].startswith('dist:'):
             assert len(v) > 1, (conf['build']['attachments'], k, v)
             path = path_fmt(v[-1].format(name=basename(k)))
-            temp[k] = {'marks': tuple(v[:-1]), 'path': path}
+            temp0[k] = {'marks': tuple(v[:-1]), 'path': path}
         else:
-            temp[k] = {'marks': tuple(v), 'path': ''}
-    conf['build']['attachments'] = temp
+            temp0[k] = {'marks': tuple(v), 'path': ''}
+    conf['build']['attachments'] = temp0
+    del temp0
 
+    temp1 = []
+    for p in conf['build']['attachments_exclusions']:
+        assert not p.startswith('dist:'), (
+            'Attachments exclusions don\'t support `dist:` syntax!', p
+        )
+        p = path_fmt(p) + '/'
+        temp1.append(p)
     # noinspection PyTypedDict
-    conf['build']['attachments_exclusions'] = tuple(
-        map(path_fmt, conf['build']['attachments_exclusions'])
-    )
+    conf['build']['attachments_exclusions'] = tuple(temp1)
+    del temp1
     
     # --------------------------------------------------------------------------
     

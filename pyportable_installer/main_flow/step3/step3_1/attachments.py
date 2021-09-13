@@ -84,7 +84,7 @@ def copy_attachments(
         #   we've handled them.
         marks = v['marks']  # e.g. ('assets', 'compile')
         
-        if path_i.startswith(exclusions):
+        if (path_i + '/').startswith(exclusions):
             continue
         
         is_yield_pyfile = 'compile' in marks  # type: bool
