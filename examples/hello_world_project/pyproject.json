@@ -1,13 +1,13 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.4.4",
+    "app_version": "0.4.7",
     "description": "Say hello to the given name.",
     "authors": ["Likianta <likianta@foxmail.com>"],
     "build": {
         "proj_dir": "./hello_world",
         "dist_dir": "../../dist/{app_name_lower}_{app_version}",
         "launcher_name": "{app_name}",
-        "icon": "",
+        "icon": "E:\\temp\\translation\\x48.ico",
         "target": [
             {
                 "file": "hello_world/hello.py",
@@ -18,8 +18,10 @@
         ],
         "readme": "",
         "attachments": {},
+        "attachments_exclusions": [],
         "attachments_exist_scheme": "override",
         "module_paths": [],
+        "module_paths_scheme": "translate",
         "venv": {
             "enable_venv": false,
             "python_version": "3.8",
@@ -74,6 +76,9 @@
                     "password": ""
                 }
             }
+        },
+        "experimental_features": {
+            "add_pywin32_support": false
         },
         "enable_console": true
     },
