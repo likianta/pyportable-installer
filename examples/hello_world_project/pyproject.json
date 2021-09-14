@@ -7,7 +7,7 @@
         "proj_dir": "./hello_world",
         "dist_dir": "../../dist/{app_name_lower}_{app_version}",
         "launcher_name": "{app_name}",
-        "icon": "E:\\temp\\translation\\x48.ico",
+        "icon": "",
         "target": [
             {
                 "file": "hello_world/hello.py",
