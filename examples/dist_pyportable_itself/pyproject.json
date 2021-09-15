@@ -1,6 +1,6 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0b0-dist.1",
+  "app_version": "4.0.0b2-dist.3",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
@@ -26,17 +26,19 @@
       "../../sidework": "assets,compile,dist:{name}",
       "../../temp": "only_folder"
     },
+    "attachments_exclusions": [],
     "attachments_exist_scheme": "override",
     "module_paths": [],
+    "module_paths_scheme": "translate",
     "venv": {
-      "enable_venv": false,
+      "enable_venv": true,
       "python_version": "3.9",
-      "mode": "embed_python",
+      "mode": "depsland",
       "options": {
         "depsland": {
           "venv_name": "{app_name_lower}_venv",
-          "venv_id": "",
-          "requirements": [],
+          "venv_id": "20210915155039",
+          "requirements": "../../requirements.txt",
           "offline": false,
           "local": ""
         },
@@ -86,8 +88,11 @@
         }
       }
     },
+    "experimental_features": {
+      "add_pywin32_support": false
+    },
     "enable_console": true
   },
   "note": "",
-  "pyportable_installer_version": "4.0.0b0"
+  "pyportable_installer_version": "4.0.0b2"
 }

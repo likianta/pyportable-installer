@@ -74,6 +74,8 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
 
 try:
     main()
-except Exception as e:
-    print('Error', e)
+except Exception:
+    import traceback
+    print(traceback.format_exc())
+finally:
     input('Press enter or close the window ...')
