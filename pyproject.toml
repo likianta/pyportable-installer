@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.0.0b2"
+version = "4.0.0b3"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"
@@ -15,7 +15,7 @@ python = "^3.9"
 cython = ""
 embed-python-manager = ">=0.2.4"
 lk-logger = ">=4.0.2"
-lk-utils = ">=2.0.0b0"
+lk-utils = ">=2.0.0b1"
 pyarmor = ""
 pyportable-crypto = ">=0.1.2"
 

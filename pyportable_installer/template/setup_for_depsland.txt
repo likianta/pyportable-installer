@@ -19,9 +19,13 @@ Workflow:
 """
 import os
 import sys
+import shutil
+import traceback
 
-from os.path import abspath, dirname, exists, normpath
-from shutil import move
+from os.path import abspath
+from os.path import dirname
+from os.path import exists
+from os.path import normpath
 
 os.chdir(dirname(__file__))
 
@@ -32,21 +36,18 @@ try:
     from depsland import launch
     from depsland.setup import bat_2_exe
     from lk_utils import loads, dumps, find_files
-except ImportError as e:
-    raise e
+except ImportError:
+    print(traceback.format_exc())
+finally:
+    input('[Setup Failed] Press enter or close the window ...')
+    sys.exit()
 
 
 def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
-    if offline:
-        assert exists(local)
-        from depsland import default_pip
-        from depsland.path_struct import src_struct
-        default_pip.change_pip_options(offline=True)
-        for fp, fn in find_files(local, fmt='zip'):
-            i = fp
-            o = f'{{src_struct.downloads}}/{{fn}}'
-            if not exists(o):
-                move(i, o)
+    if offline and exists(local):
+        from depsland_additional_tools import indexing_local_packages
+        indexing_local_packages.main(local)
+        # shutil.rmtree(local)
 
     # create depsland venv
     venv_dir = launch(
@@ -70,13 +71,13 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     # move setup file to build dir
     if exists('./setup.bat'):
         os.remove('./setup.bat')
-    move('../setup.bat', './setup.bat')
+    shutil.move('../setup.bat', './setup.bat')
 
 
 try:
     main()
 except Exception:
-    import traceback
     print(traceback.format_exc())
+    input('[Setup Failed] Press enter or close the window ...')
 finally:
-    input('Press enter or close the window ...')
+    input('[Setup Succeed] Press enter or close the window ...')

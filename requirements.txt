@@ -1,6 +1,7 @@
+# pip download -r requirements.txt -d examples/dist_pyportable_itself/requirements_offline
 cython
 embed-python-manager >= 0.2.4
 lk-logger >= 4.0.2
-lk-utils >= 2.0.0b0
+lk-utils >= 2.0.0b1
 pyarmor
 pyportable-crypto >= 0.1.2

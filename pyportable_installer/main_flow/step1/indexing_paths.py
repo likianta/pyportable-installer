@@ -121,19 +121,19 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         else:
             return req
     
-    if mode == 'source_venv':
-        options['path'] = path_fmt(options['path'])
-    elif mode == 'pip':
+    if mode == 'depsland':
+        options['venv_name'] = options['venv_name'].format(**interpolations)
+        if not options['venv_id']:
+            options['venv_id'] = str(uuid1()).replace('-', '')
         options['requirements'] = _load_requirements(options['requirements'])
         options['local'] = path_fmt(options['local'])
     elif mode == 'embed_python':
         options['path'] = path_fmt(options['path'])
-    elif mode == 'depsland':
+    elif mode == 'pip':
         options['requirements'] = _load_requirements(options['requirements'])
-        options['venv_name'] = options['venv_name'].format(**interpolations)
-        if not options['venv_id']:
-            options['venv_id'] = str(uuid1()).replace('-', '')
         options['local'] = path_fmt(options['local'])
+    elif mode == 'source_venv':
+        options['path'] = path_fmt(options['path'])
     else:
         raise ValueError(mode)
     

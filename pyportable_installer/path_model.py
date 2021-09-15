@@ -24,7 +24,10 @@ if _STAND_ALONE_MODE is False:
 
 
 def src_2_dst(src_path, src_dir='', dst_dir=''):
-    if not src_path: return ''
+    if not src_path:
+        return ''
+    if src_path.startswith('dist:'):
+        return src_path.replace('dist:', dst_model.dst_root)
     
     if not src_dir: src_dir = src_model.src_root
     if not dst_dir: dst_dir = dst_model.src_root

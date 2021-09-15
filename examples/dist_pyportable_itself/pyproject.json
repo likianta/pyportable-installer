@@ -1,6 +1,6 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0b2-dist.4",
+  "app_version": "4.0.0b3-dist.1",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
@@ -9,7 +9,7 @@
     "proj_dir": "../../pyportable_installer",
     "dist_dir": "../../dist/{app_name_lower}_{app_version}",
     "launcher_name": "{app_name}",
-    "icon": "",
+    "icon": "launcher.ico",
     "target": [
       {
         "file": "../../shortcut/build.py",
@@ -61,15 +61,15 @@
       "options": {
         "cython": {
           "c_compiler": "msvc",
-          "python_path": "auto_detect"
+          "python_path": "_auto_detect"
         },
         "mypyc": {
           "c_compiler": "msvc",
-          "python_path": "auto_detect"
+          "python_path": "_auto_detect"
         },
         "nuitka": {
           "c_compiler": "msvc",
-          "python_path": "auto_detect"
+          "python_path": "_auto_detect"
         },
         "pyarmor": {
           "liscense": "trial",
@@ -81,7 +81,7 @@
         "pyportable_crypto": {
           "key": "_trial",
           "c_compiler": "msvc",
-          "python_path": "auto_detect"
+          "python_path": "_auto_detect"
         },
         "zipapp": {
           "password": ""
@@ -94,5 +94,5 @@
     "enable_console": true
   },
   "note": "",
-  "pyportable_installer_version": "4.0.0b2"
+  "pyportable_installer_version": "4.0.0b3"
 }
