@@ -58,18 +58,19 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     # generate launcher
     launcher = loads('{LAUNCHER}.bat')
     launcher = launcher.format(PYTHON=normpath(f'{{venv_dir}}/python.exe'))
-    dumps(launcher, '{LAUNCHER}.bat')
+    dumps(launcher, '{LAUNCHER}.tmp.bat')
 
     if exists('launcher.ico'):
         icon = abspath('launcher.ico')
     else:
         icon = ''
-    bat_2_exe(abspath('{LAUNCHER}.bat'), abspath('../{LAUNCHER}.exe'),
+    bat_2_exe(abspath('{LAUNCHER}.tmp.bat'), abspath('../{LAUNCHER}.exe'),
               icon, '{INVISIBLE}')
 
-    # remove setup file
+    # move setup file to build dir
+    if exists('./setup.bat'):
+        os.remove('./setup.bat')
     move('../setup.bat', './setup.bat')
-    # os.remove('../setup.bat')
 
 
 try:
