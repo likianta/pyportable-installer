@@ -1,7 +1,6 @@
 import re
 from os import makedirs
 from os import mkdir
-# from shutil import copytree
 
 from lk_logger import lk
 from lk_utils import dumps
@@ -26,7 +25,7 @@ def create_venv(mode: TVenvMode, options):
             _ = list(copy_attachments({
                 options['path']: {
                     'marks': ('assets',),
-                    'path': dst_model.venv
+                    'path' : dst_model.venv
                 }
             }))
             # # copytree(options['path'], dst_model.venv)
@@ -72,7 +71,7 @@ def create_venv(mode: TVenvMode, options):
                 _ = list(copy_attachments({
                     options['path'] + '/lib/site-packages': {
                         'marks': ('assets',),
-                        'path': dst_model.venv + '/lib/site-packages'
+                        'path' : dst_model.venv + '/lib/site-packages'
                     }
                 }))
                 # # copytree(options['path'] + '/lib/site-packages',

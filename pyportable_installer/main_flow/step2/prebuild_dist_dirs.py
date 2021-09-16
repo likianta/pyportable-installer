@@ -61,10 +61,16 @@ def _precheck(conf: TConf):
         'another (non-existent) folder to distribute.'
     )
     
-    assert all(map(exists, conf['build']['attachments'])), (
-        'Please make sure all required paths in `conf["build"]["attachments"]` '
-        'are existed.'
-    )
+    paths_not_exist = []
+    for src_path in conf['build']['attachments']:
+        if not exists(src_path):
+            paths_not_exist.append(src_path)
+    if paths_not_exist:
+        lk.logp(paths_not_exist)
+        raise FileNotFoundError(
+            'Please make sure all required paths in `conf["build"]'
+            '["attachments"]` are existed.'
+        )
     
     # if conf['build']['venv']['enable_venv']:
     #     from .embed_python import EmbedPythonManager

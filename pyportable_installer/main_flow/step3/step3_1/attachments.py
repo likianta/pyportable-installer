@@ -77,7 +77,9 @@ def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]
     Notice:
         This function is a generator, if you just want to call and exhaust it,
         use this:
-            _ = list(copy_attachments(my_attachments))
+            _ = list(copy_attachments(...))
+        See usages in `pyportable_installer.main_flow.step3.step3_3.create_venv
+        .create_venv`.
     
     Yields:
         tuple[src_pyfile, dst_pyfile]
