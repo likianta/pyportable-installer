@@ -29,19 +29,36 @@ from os.path import normpath
 
 os.chdir(dirname(__file__))
 
-assert os.getenv('DEPSLAND')
-sys.path.insert(0, os.getenv('DEPSLAND'))
 
-try:
-    from depsland import launch
-    from depsland.setup import bat_2_exe
-    from lk_utils import loads, dumps, find_files
-except ImportError:
-    print(traceback.format_exc())
-finally:
-    input('[Setup Failed] Press enter or close the window ...')
+def _safe_exit(msg, succeed: bool):
+    if msg:
+        lk.log(msg, h='parent')
+    if succeed:
+        input('[Setup Succeed] Press enter or close the window to leave... ')
+    else:
+        input('[Setup Failed] Press enter or close the window to leave... ')
     sys.exit()
 
+
+try:
+    assert os.getenv('DEPSLAND')
+    sys.path.insert(0, os.getenv('DEPSLAND'))
+
+    from depsland import launch
+    from depsland.setup import bat_2_exe
+
+    from lk_logger import lk
+    from lk_utils import loads, dumps
+
+except AssertionError:
+    _safe_exit('DEPSLAND not found in environment variables, you may reinstall '
+               'depsland application', False)
+
+except ImportError:
+    _safe_exit('Cannot import depsland', False)
+
+
+# ------------------------------------------------------------------------------
 
 def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     if offline and exists(local):
@@ -77,7 +94,6 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
 try:
     main()
 except Exception:
-    print(traceback.format_exc())
-    input('[Setup Failed] Press enter or close the window ...')
-finally:
-    input('[Setup Succeed] Press enter or close the window ...')
+    _safe_exit(traceback.format_exc(), False)
+else:
+    _safe_exit('', True)
