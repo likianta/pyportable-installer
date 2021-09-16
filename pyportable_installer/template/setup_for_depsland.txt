@@ -3,6 +3,7 @@ Placeholders:
     VENV_NAME       tell depsland what venv folder name to create.
     REQUIREMENTS    list[str]. list of requirements with specifiers.
     VENV_ID         venv id.
+    PYVERSION       python version. e.g. 'python39', 'python39-32', etc.
     LAUNCHER        main launcher name.
     OFFLINE         bool[False]. set pip offline mode.
     LOCAL_DIR       str. if offline enabled, the local should be a valid path
@@ -71,6 +72,7 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
         "{VENV_NAME}",
         {REQUIREMENTS},
         venv_id="{VENV_ID}"
+        pyversion="{PYVERSION}"
     )
 
     # generate launcher

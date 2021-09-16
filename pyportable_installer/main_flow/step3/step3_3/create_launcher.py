@@ -54,7 +54,9 @@ def create_launcher(build: TBuildConf):
                     build['launcher_name'], build['icon'],
                     options['venv_name'], options['venv_id'],
                     options['requirements'], build['enable_console'],
-                    offline=options['offline'], local=options['local']
+                    offline=options['offline'], local=options['local'],
+                    pyversion='python' + build[
+                        'venv']['python_version'].replace('.', '')
                 )
         else:
             name = get_filename(t['file'], suffix=False)
@@ -255,6 +257,7 @@ def _create_depsland_setup(launcher_name, icon,
             LAUNCHER=launcher_name,
             VENV_NAME=venv_name,
             VENV_ID=venv_id,
+            PYVERSION=kwargs.get('pyversion', 'python39'),
             REQUIREMENTS=requirements,
             OFFLINE=kwargs.get('offline', False),
             # # LOCAL_DIR=kwargs.get('local', ''),

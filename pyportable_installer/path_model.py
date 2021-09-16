@@ -38,7 +38,7 @@ def src_2_dst(src_path, src_dir='', dst_dir=''):
 
 
 def relpath(path, start):
-    if path is None:
+    if not path:
         return ''
     return normpath(_relpath(path, start))
 
