@@ -9,13 +9,14 @@ ASSETS_ENTRY = 'AUTO_DETECT'  # str['AUTO_DETECT', 'STANDALONE', 'PACKAGE']
 
 if ASSETS_ENTRY == 'AUTO_DETECT':
     from os.path import abspath
-    from os.path import dirname
-    _name = dirname(abspath(f'{__file__}/../..'))
+    from os.path import basename
+    _name = basename(abspath(f'{__file__}/../..'))
     if _name == 'site-packages':
         ASSETS_ENTRY = 'PACKAGE'
     elif _name.startswith(('pyportable_installer', 'pyportable-installer')):
         ASSETS_ENTRY = 'STANDALONE'
     else:
         raise EnvironmentError('Auto detect failed to locate pyportable-'
-                               'installer assets entry point', _name)
+                               'installer assets entry point because of '
+                               'unknown parent dirname', _name)
 assert ASSETS_ENTRY in ('STANDALONE', 'PACKAGE')

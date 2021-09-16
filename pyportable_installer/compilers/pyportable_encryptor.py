@@ -54,18 +54,11 @@ class PyportableEncryptor(BaseCompiler):
     
     def _generate_runtime_lib(self, trial_mode: bool):
         # 1.
-        import Cryptodome
-        shutil.copytree(
-            os.path.dirname(Cryptodome.__file__),
-            f'{dst_model.lib}/Cryptodome'
-        )
-        
-        # 2.
         src_dir = prj_model.pyportable_crypto
         tmp_dir = prj_model.temp
         dst_dir = dst_model.lib + '/pyportable_runtime'
         
-        # 3.
+        # 2.
         if trial_mode:
             shutil.copytree(
                 prj_model.pyportable_crypto_trial + '/pyportable_crypto',
@@ -78,19 +71,19 @@ class PyportableEncryptor(BaseCompiler):
         else:
             os.mkdir(dst_dir)
         
-        # 4. create '__init__.py' for `pyportable_runtime`
+        # 3. create '__init__.py' for `pyportable_runtime`
         dumps('from .inject import inject', f'{dst_dir}/__init__.py')
         
-        # 5. generate temporary 'inject.py' in tmp_dir
+        # 4. generate temporary 'inject.py' in tmp_dir
         code = loads(f'{src_dir}/inject.py')
         code = code.replace('{KEY}', self.__key)
         dumps(code, tmp_file := f'{tmp_dir}/inject.py')
         
-        # 6. cythonize from tmp_dir/~.py to dst_dir/~.pyd
+        # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
         compiler = CythonCompiler(gconf.full_python)
         compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
         
-        # 7. cleanup tmp_dir
+        # 6. cleanup tmp_dir
         compiler.cleanup()
         os.remove(tmp_file)
     

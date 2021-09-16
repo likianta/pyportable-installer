@@ -14,6 +14,13 @@ from lk_utils.read_and_write import ropen
 from pyportable_installer.compilers import CythonCompiler
 from pyportable_installer.path_model import prj_model
 
+EDITED_LINES = {
+    # key: version
+    # value: tuple[inject_file's_lineno, encrypt_file's_lineno]
+    '0.1.2': (64, 17),
+    '0.2.0': (65, 16),
+}
+
 
 def _check_version():
     """
@@ -37,15 +44,17 @@ def _check_version():
         raise Exception('pyportable-crypto version is too low! please install '
                         'a newer version (pip install pyportable-crypto)')
     
-    if version not in (req := ('0.1.2',)):
+    authorized_versions = tuple(EDITED_LINES.keys())
+    if version not in authorized_versions:
         raise Exception(f'current pyportable-crypto version ({version}) is not '
-                        f'matched with our requirement ({req}).')
+                        f'matched with our requirement ({authorized_versions}).')
     
     return version
 
 
 def mainloop(key='', auto_move_to_accessory=False):
     pyportable_crypto_version = _check_version()
+    lk.logt('[I1050]', pyportable_crypto_version)
     
     # https://blog.csdn.net/weixin_35667833/article/details/113979070
     if not key: key = token_hex(16)
@@ -53,12 +62,12 @@ def mainloop(key='', auto_move_to_accessory=False):
     assert (_len := len(key.encode('utf-8'))) == 32, _len
     
     dirs = []
-    while python_dir := input('System python dir: '):
+    while python_dir := input('System python dir (empty to escape loop): '):
         python = f'{python_dir}\\python.exe'
         assert os.path.exists(python)
         pyversion = get_dirname(python.replace('\\', '/')).lower()
         
-        lk.logd()
+        lk.logdx()
         dir_ = _main(key, python, pyversion, pyportable_crypto_version,
                      auto_move_to_accessory)
         dirs.append(dir_)
@@ -89,18 +98,24 @@ def _main(key, python, pyversion, pyportable_crypto_version,
     
     with ropen(file_a1) as f:
         lines = f.readlines()
-        # just simply modify the 65th line
-        lines[64] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 8, key)
+        # just simply modify the specific line
+        lineno = EDITED_LINES[pyportable_crypto_version][0]
+        assert lines[lineno].lstrip().startswith('_key = ')
+        lines[lineno] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 8, key)
         dumps(''.join(lines), file_a2)
     
     with ropen(file_b1) as f:
         lines = f.readlines()
-        # just simply modify the 18th line
-        lines[17] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 4, key)
+        # just simply modify the specific line
+        lineno = EDITED_LINES[pyportable_crypto_version][1]
+        assert lines[lineno].lstrip().startswith('_key = ')
+        lines[lineno] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 4, key)
         dumps(''.join(lines), file_b2)
     
     compiler = CythonCompiler(python)
+    lk.loga('compiling "inject.pyd" (this may take several minutes)')
     compiler.compile_one(file_a2, file_a3)
+    lk.loga('compiling "encrypt.pyd" (this may take several seconds)')
     compiler.compile_one(file_b2, file_b3)
     
     # generate __init__.py
