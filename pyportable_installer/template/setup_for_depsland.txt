@@ -35,9 +35,9 @@ def _safe_exit(msg, succeed: bool):
     if msg:
         lk.log(msg, h='parent')
     if succeed:
-        input('[Setup Succeed] Press enter or close the window to leave... ')
+        input('[Setup Succeed] Press enter or close the window to leave...')
     else:
-        input('[Setup Failed] Press enter or close the window to leave... ')
+        input('[Setup Failed] Press enter or close the window to leave...')
     sys.exit()
 
 
@@ -63,9 +63,12 @@ except ImportError:
 
 def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     if offline and exists(local):
+        lk.loga('indexing local packages', local)
+        from depsland.pypi import local_pypi
         from depsland_additional_tools import indexing_local_packages
         indexing_local_packages.main(local)
         # shutil.rmtree(local)
+        local_pypi.reload_indexed_data()
 
     # create depsland venv
     venv_dir = launch(

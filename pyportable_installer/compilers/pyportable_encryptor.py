@@ -114,9 +114,9 @@ class PyportableEncryptor(BaseCompiler):
     
     def compile_one(self, src_file, dst_file):
         if os.path.basename(src_file) == '__init__.py':
-            lk.logt('[D0359]', 'PyportableEncryptor doesn\'t compile '
-                               '\'__init__.py\' (leave it uncompiled, just '
-                               'copy to the dist)', src_file)
+            # lk.logt('[D0359]', 'PyportableEncryptor doesn\'t compile '
+            #                    '\'__init__.py\' (leave it uncompiled, just '
+            #                    'copy to the dist)', src_file)
             shutil.copyfile(src_file, dst_file)
             return dst_file
         
