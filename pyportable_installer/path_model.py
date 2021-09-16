@@ -5,22 +5,9 @@ from os.path import relpath as _relpath
 from lk_logger import lk
 from lk_utils.filesniff import normpath
 
-# stand alone or self contained mode:
-#   True: stand alone. it means the project dir is parent dir of
-#       `pyportable_installer`.
-#       used for packaging this project as an application to pc users.
-#   False: self contained. it means the project dir is same with
-#       `pyportable_installer`.
-#       used for packaging this package as a whl file to upload to pypi.
-_STAND_ALONE_MODE = True
+from ._env import ASSETS_ENTRY  # str['STANDALONE', 'PACKAGE']
 
-if _STAND_ALONE_MODE is False:
-    if exists(f'{__file__}/../../examples/dist_pyportable_itself'):
-        lk.logt('[W1155]', 'It seems pyportable-installer is in standalone '
-                           'environment, but your _STAND_ALONE_MODE is off.')
-        if input('Do you want to continue? (Y/n): ') != 'Y':
-            import sys
-            sys.exit()
+lk.logt('[D2952]', ASSETS_ENTRY)
 
 
 def src_2_dst(src_path, src_dir='', dst_dir=''):
@@ -45,7 +32,11 @@ def relpath(path, start):
 
 class PyPortablePathModel:
     cur_root = normpath(dirname(__file__))
-    prj_root = dirname(cur_root) if _STAND_ALONE_MODE else f'{cur_root}/assets'
+    
+    if ASSETS_ENTRY == 'STANDALONE':
+        prj_root = dirname(cur_root)
+    else:
+        prj_root = f'{cur_root}/assets'
     
     # prj_root/*
     dist = f'{prj_root}/dist'
@@ -84,7 +75,7 @@ class PyPortablePathModel:
         from os import mkdir
         from os.path import exists
         
-        if _STAND_ALONE_MODE:
+        if ASSETS_ENTRY == 'STANDALONE':
             from sys import path
             path.append(self.lib)
             for d in (self.temp, self.dist):
@@ -95,7 +86,7 @@ class PyPortablePathModel:
             mkdir(self.dist)
             mkdir(self.lib)
             mkdir(self.temp)
-            
+        
         if not exists(self.pyportable_crypto):
             try:
                 import pyportable_crypto
@@ -109,7 +100,7 @@ class PyPortablePathModel:
             except ImportError:
                 raise ImportError('Package not found: pyportable_crypto',
                                   '(tip: `pip install pyportable_crypto`)')
-                
+    
     @property
     def pyportable_crypto_trial(self):
         """
