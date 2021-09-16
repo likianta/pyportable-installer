@@ -257,7 +257,8 @@ def _create_depsland_setup(launcher_name, icon,
             VENV_ID=venv_id,
             REQUIREMENTS=requirements,
             OFFLINE=kwargs.get('offline', False),
-            LOCAL_DIR=kwargs.get('local', ''),
+            # # LOCAL_DIR=kwargs.get('local', ''),
+            LOCAL_DIR=relpath(kwargs.get('local', None), dst_model.build),
             INVISIBLE='' if enable_console else '/invisible'
         )
     
