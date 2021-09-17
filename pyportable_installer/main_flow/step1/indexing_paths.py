@@ -145,11 +145,11 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     name = conf['build']['compiler']['name']
     options = conf['build']['compiler']['options'][name]
     if name == 'pyportable_crypto':
-        if options['key'].endswith('pyportable_runtime') and (
-            exists(d := path_fmt(options['key']))
-        ):
+        if options['key'].startswith('path:'):
+            assert options['key'].endswith('pyportable_runtime')
+            options['key'] = 'path:' + (d := path_fmt(options['key'][5:]))
+            assert exists(d)
             lk.logt('[I0946]', '(experimental feature)',
                     'use local precompiled pyportable_runtime package', d)
-            options['key'] = d
     
     return conf

@@ -39,7 +39,8 @@ def init_key_params(conf: TConf, **kwargs):
     if name in ('cython', 'mypyc', 'nuitka'):
         is_full_python_required = True
     elif name == 'pyportable_crypto':
-        if conf['build']['compiler']['options'][name]['key'] != '_trial':
+        key = conf['build']['compiler']['options'][name]['key']
+        if key != '_trial' and not key.startswith('path:'):
             is_full_python_required = True
     
     is_embed_python_required = False

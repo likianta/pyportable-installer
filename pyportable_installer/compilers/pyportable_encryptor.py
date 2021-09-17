@@ -42,10 +42,10 @@ class PyportableEncryptor(BaseCompiler):
         # self._cython_compiler = CythonCompiler(
         #     gconf.python_interpreter, gconf.python_version
         # )
-        self._template = dedent('''\
+        self._template = dedent('''
             from pyportable_runtime import inject
-            globals().update(inject(__file__, globals(), locals(), {ciphertext}))
-        ''')  # `pyportable_crypto.inject._validate_source_file`
+            globals().update(inject(globals(), locals(), {ciphertext}))
+        ''').strip()  # `pyportable_crypto.inject._validate_source_file`
         self.__key = key
         
         # generate runtime lib
@@ -70,12 +70,11 @@ class PyportableEncryptor(BaseCompiler):
                 f'{dst_dir}/inject.pyd'
             )
             return
-        elif self.__key.endswith('pyportable_runtime') \
-                and os.path.exists(self.__key):
+        elif self.__key.startswith('path:'):
             #   this is an experimental feature. see source from
             #   `pyportable_installer.main_flow.step1.indexing_paths
             #   .indexing_paths > the end of lines in the function`
-            shutil.copytree(self.__key, dst_dir, dirs_exist_ok=True)
+            shutil.copytree(self.__key[5:], dst_dir, dirs_exist_ok=True)
             return
 
         # 4. generate temporary 'inject.py' in tmp_dir
@@ -91,13 +90,16 @@ class PyportableEncryptor(BaseCompiler):
         compiler.cleanup()
         os.remove(tmp_file)
     
-    @staticmethod
-    def _load_pyportable_crypto(trial_mode: bool):
+    def _load_pyportable_crypto(self, trial_mode: bool):
         if trial_mode:
             import sys
             # TODO: to be explained
-            sys.path.insert(0, prj_model.accessory +
-                            '/pyportable_crypto_trial_python39')
+            if self.__key.startswith('path:'):
+                # FIXME
+                sys.path.insert(0, os.path.dirname(self.__key[5:]))
+            else:
+                sys.path.insert(0, prj_model.accessory +
+                                '/pyportable_crypto_trial_python39')
             # # sys.path.insert(0, prj_model.pyportable_crypto_trial)
         import pyportable_crypto
         lk.logt('[D3149]',
