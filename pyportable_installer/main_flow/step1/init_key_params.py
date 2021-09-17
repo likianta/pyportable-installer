@@ -52,6 +52,11 @@ def init_key_params(conf: TConf, **kwargs):
     ):
         is_embed_python_required = True
     
+    if enable_venv and mode == 'pyportable_crypto':
+        key = conf['build']['compiler']['options'][name]['key']
+        if key.startswith('path:') and pyversion != 'python39':
+            is_embed_python_required = True
+    
     if name in ('pyarmor', 'pyc') or \
             (enable_venv and mode in ('pip', 'source_venv')):
         is_embed_python_required = True

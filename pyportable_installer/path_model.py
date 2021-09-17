@@ -1,6 +1,8 @@
+import os
 from os.path import dirname
 from os.path import exists
 from os.path import relpath as _relpath
+from uuid import uuid1
 
 from lk_logger import lk
 from lk_utils.filesniff import normpath
@@ -100,6 +102,12 @@ class PyPortablePathModel:
             except ImportError:
                 raise ImportError('Package not found: pyportable_crypto',
                                   '(tip: `pip install pyportable_crypto`)')
+    
+    def create_temp_dir(self):
+        _temp_dir = f'{self.temp}/{uuid1()}'
+        lk.loga('make temporary dir', _temp_dir)
+        os.mkdir(_temp_dir)
+        return _temp_dir
     
     @property
     def pyportable_crypto_trial(self):
