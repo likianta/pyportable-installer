@@ -1,3 +1,9 @@
+"""
+Notes:
+    If new version of pyportable-crypto installed, remember to delete
+    "~/lib/pyportable_crypto" to make sure `pyportable_installer.path_model
+    .PyPortablePathModel.build_dirs` generate new one.
+"""
 import os
 import shutil
 from os.path import basename
@@ -8,18 +14,14 @@ from uuid import uuid1
 import pyportable_crypto
 from lk_logger import lk
 from lk_utils import dumps
+from lk_utils import find_dirs
 from lk_utils.filesniff import get_dirname
 from lk_utils.read_and_write import ropen
 
 from pyportable_installer.compilers import CythonCompiler
 from pyportable_installer.path_model import prj_model
 
-EDITED_LINES = {
-    # key: version
-    # value: tuple[inject_file's_lineno, encrypt_file's_lineno]
-    '0.1.2': (64, 17),
-    '0.2.0': (65, 16),
-}
+cython_compiler = ...  # type: CythonCompiler
 
 
 def _check_version():
@@ -44,7 +46,7 @@ def _check_version():
         raise Exception('pyportable-crypto version is too low! please install '
                         'a newer version (pip install pyportable-crypto)')
     
-    authorized_versions = tuple(EDITED_LINES.keys())
+    authorized_versions = tuple(REGISTERED_HANDLERS.keys())
     if version not in authorized_versions:
         raise Exception(f'current pyportable-crypto version ({version}) is not '
                         f'matched with our requirement ({authorized_versions}).')
@@ -53,8 +55,9 @@ def _check_version():
 
 
 def mainloop(key='', auto_move_to_accessory=False):
-    pyportable_crypto_version = _check_version()
-    lk.logt('[I1050]', pyportable_crypto_version)
+    crypto_version = _check_version()
+    lk.logt('[I1050]', crypto_version)
+    # input('press enter to go on: ')
     
     # https://blog.csdn.net/weixin_35667833/article/details/113979070
     if not key: key = token_hex(16)
@@ -62,66 +65,181 @@ def mainloop(key='', auto_move_to_accessory=False):
     assert (_len := len(key.encode('utf-8'))) == 32, _len
     
     dirs = []
-    while python_dir := input('System python dir (empty to escape loop): '):
+    while python_dir := input('system python dir (empty to escape loop): '):
         python = f'{python_dir}\\python.exe'
         assert os.path.exists(python)
-        pyversion = get_dirname(python.replace('\\', '/')).lower()
+        python_version = get_dirname(python.replace('\\', '/')).lower()
         
         lk.logdx()
-        dir_ = _main(key, python, pyversion, pyportable_crypto_version,
+        dir_ = _main(key, python, python_version, crypto_version,
                      auto_move_to_accessory)
         dirs.append(dir_)
     
-    lk.logp(dirs, title='See result dirs')
+    # cleanup
+    for d in find_dirs(prj_model.temp):
+        shutil.rmtree(d)
+    
+    lk.logp(dirs, title='see result dirs')
     return key
 
 
-def _main(key, python, pyversion, pyportable_crypto_version,
-          auto_move_to_accessory):
-    crypto_src_dir = os.path.dirname(pyportable_crypto.__file__)
-    temp_dir = f'{prj_model.temp}/{uuid1()}'
-    crypto_dst_parent_dir = f'{temp_dir}/pyportable_crypto_trial_{pyversion}'
+def _main(key, python, python_version, crypto_version, auto_move_to_accessory):
+    # src_dir: crypto source dir
+    # tmp_dir: temporary dir
+    # dst_dir: crypto (pyd) destination dir
+    src_dir = os.path.dirname(pyportable_crypto.__file__)
+    tmp_dir = f'{prj_model.temp}/{uuid1()}'
+    dst_dir_parent = f'{tmp_dir}/pyportable_crypto_trial_{python_version}'
     #   make sure the dirname is same with `prj_model._pyportable_crypto_trial`
-    crypto_dst_dir = f'{crypto_dst_parent_dir}/pyportable_crypto'
+    dst_dir = f'{dst_dir_parent}/pyportable_crypto'
     #   the dirname must be the same packge name with `pyportable_crypto`.
-    os.mkdir(temp_dir)
-    os.mkdir(crypto_dst_parent_dir)
-    os.mkdir(crypto_dst_dir)
     
-    file_a1 = f'{crypto_src_dir}/inject.py'
-    file_a2 = f'{temp_dir}/inject.py'
-    file_a3 = f'{crypto_dst_dir}/inject.pyd'
+    os.mkdir(tmp_dir)
+    os.mkdir(dst_dir_parent)
+    os.mkdir(dst_dir)
     
-    file_b1 = f'{crypto_src_dir}/encrypt.py'
-    file_b2 = f'{temp_dir}/encrypt.py'
-    file_b3 = f'{crypto_dst_dir}/encrypt.pyd'
+    global cython_compiler
+    cython_compiler = CythonCompiler(python)
     
-    with ropen(file_a1) as f:
+    handle = REGISTERED_HANDLERS[crypto_version]
+    handle(src_dir, tmp_dir, dst_dir, key=key,
+           python_version=python_version, crypto_version=crypto_version)
+    
+    lk.loga('''
+        see result at:
+            parent dir: {}
+            target dir: {}
+        you can copy parent dir and put it under:
+            accessory dir: {}
+    '''.format(dst_dir_parent, dst_dir, prj_model.accessory))
+    
+    if auto_move_to_accessory:
+        dir_i = dst_dir_parent
+        dir_o = prj_model.accessory + '/' + basename(dst_dir_parent)
+        if os.path.exists(dir_o):
+            shutil.rmtree(dir_o)
+        shutil.move(dir_i, dir_o)
+        
+        out = dir_o
+    else:
+        out = dst_dir_parent
+    return out
+
+
+# ------------------------------------------------------------------------------
+
+def _handle_v0_1_2(dir_i, dir_m, dir_o, **kwargs):
+    for filename, lineno, indent in (
+            ('inject.py', 64, 8),
+            ('encrypt.py', 17, 4),
+    ):
+        file_i = f'{dir_i}/{filename}'
+        file_m = f'{dir_m}/{filename}'
+        file_o = f'{dir_o}/{filename}'
+        
+        __modify_specific_source_lines_a(
+            file_i, file_m, lineno, ' ' * indent, kwargs['key']
+        )
+        
+        lk.loga(f'compiling "{filename}" '
+                f'(this may take several seconds)')
+        __cythonize(file_m, file_o)
+    
+    __generate__init__(
+        kwargs['python_version'], kwargs['crypto_version'], dir_o
+    )
+
+
+def _handle_v0_2_0(dir_i, dir_m, dir_o, **kwargs):
+    for filename, lineno, indent in (
+            ('inject.py', 65, 8),
+            ('encrypt.py', 16, 4),
+    ):
+        file_i = f'{dir_i}/{filename}'
+        file_m = f'{dir_m}/{filename}'
+        file_o = f'{dir_o}/{filename}'
+        
+        __modify_specific_source_lines_a(
+            file_i, file_m, lineno, ' ' * indent, kwargs['key']
+        )
+        
+        lk.loga(f'compiling "{filename}" '
+                f'(this may take several seconds ~ minutes)')
+        __cythonize(file_m, file_o)
+    
+    __generate__init__(
+        kwargs['python_version'], kwargs['crypto_version'], dir_o
+    )
+
+
+def _handle_v0_2_1(dir_i, dir_m, dir_o, **kwargs):
+    for filename, lineno, indent in (
+            ('inject.py', 774, 4),
+    ):
+        file_i = f'{dir_i}/{filename}'
+        file_m = f'{dir_m}/{filename}'
+        file_o = f'{dir_o}/{filename}'
+        
+        __modify_specific_source_lines_b(
+            file_i, file_m, lineno, ' ' * indent, kwargs['key']
+        )
+        
+        lk.loga(f'compiling "{filename}" '
+                f'(this may take several minutes)')
+        __cythonize(file_m, file_o)
+    
+    __generate__init__(
+        kwargs['python_version'], kwargs['crypto_version'],
+        dir_o, imports=(
+            'from .inject import inject',
+            'from .inject import encrypt_data',
+        )
+    )
+
+
+REGISTERED_HANDLERS = {
+    '0.1.2': _handle_v0_1_2,
+    '0.2.0': _handle_v0_2_0,
+    '0.2.1': _handle_v0_2_1,
+}
+
+
+# ------------------------------------------------------------------------------
+
+def __modify_specific_source_lines_a(file_i, file_o, lineno, prefix, key):
+    with ropen(file_i) as f:
         lines = f.readlines()
         # just simply modify the specific line
-        lineno = EDITED_LINES[pyportable_crypto_version][0]
         assert lines[lineno].lstrip().startswith('_key = ')
-        lines[lineno] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 8, key)
-        dumps(''.join(lines), file_a2)
-    
-    with ropen(file_b1) as f:
+        lines[lineno] = \
+            '{}_key = "{}".encode("utf-8")\n'.format(prefix, key)
+        dumps(''.join(lines), file_o)
+    return file_o
+
+
+def __modify_specific_source_lines_b(file_i, file_o, lineno, prefix, key):
+    with ropen(file_i) as f:
         lines = f.readlines()
         # just simply modify the specific line
-        lineno = EDITED_LINES[pyportable_crypto_version][1]
-        assert lines[lineno].lstrip().startswith('_key = ')
-        lines[lineno] = '{}_key = "{}".encode("utf-8")\n'.format(' ' * 4, key)
-        dumps(''.join(lines), file_b2)
-    
-    compiler = CythonCompiler(python)
-    lk.loga('compiling "inject.pyd" (this may take several minutes)')
-    compiler.compile_one(file_a2, file_a3)
-    lk.loga('compiling "encrypt.pyd" (this may take several seconds)')
-    compiler.compile_one(file_b2, file_b3)
-    
-    # generate __init__.py
+        assert lines[lineno].lstrip().startswith('key = ')
+        lines[lineno] = \
+            '{}key = "{}"\n'.format(prefix, key)
+        dumps(''.join(lines), file_o)
+    return file_o
+
+
+def __cythonize(file_i, file_o):
+    global cython_compiler
+    cython_compiler.compile_one(file_i, file_o)
+
+
+def __generate__init__(python_version, crypto_version, dst_dir, imports=(
+        'from .encrypt import encrypt_data, encrypt_file',
+        'from .inject import inject',
+)):
     code = dedent('''\
         import sys
-        
+
         current_pyversion = "python{{}}{{}}".format(
             sys.version_info.major, sys.version_info.minor
         )
@@ -133,20 +251,20 @@ def _main(key, python, pyversion, pyportable_crypto_version,
                     target_pyversion, current_pyversion, sys.executable
                 )
             )
-    
-        from .encrypt import encrypt_data, encrypt_file
-        from .inject import inject
-        
+
         __version__ = "{1}-trial"
-    ''').format(pyversion, pyportable_crypto_version)
-    dumps(code, f'{crypto_dst_dir}/__init__.py')
-    dumps(pyversion, f'{crypto_dst_dir}/__pyversion__.txt')
+
+        {2}
+    ''').format(python_version, crypto_version, '\n'.join(imports))
+    
+    dumps(code, f'{dst_dir}/__init__.py')
+    dumps(python_version, f'{dst_dir}/__pyversion__.txt')
     
     ''' Note: Do Non Use `sys.path.append(xxx.zip)`
-    
+
     Do not generate zip file, and do not import from a zip file, because python
     zipimport doesn't work if we add it to `sys.path`.
-    
+
     For example:
         import sys
         zip_file = 'xxx.zip'
@@ -155,42 +273,22 @@ def _main(key, python, pyversion, pyportable_crypto_version,
         #       |- __init__.py  # ::
         #       |       from . import abc
         #       |- abc.pyd      # note that this is a pyd file.
-        
+
         # Add zip file to `sys.path`
         sys.path.insert(0, zip_file)
         # The zipimport can introduce `package_x.__init__`, but cannot
         # recognize `abc` module (ImportError).
-        
+
         import package_x
         print(package_x.__file__)
         # -> '~/xxx.zip/package_x/__init__.py'
-        
+
         from package_x import abc
         # -> ImportError: cannot import name 'abc' from 'package_x'!
-        
+
         # If we don't import zip file, i.e. assumed "xxx" is a folder path, it
         # works well then.
     '''
-    
-    lk.loga('''
-        see result at:
-            parent dir: {}
-            target dir: {}
-        you can copy parent dir and put it under:
-            accessory dir: {}
-    '''.format(crypto_dst_parent_dir, crypto_dst_dir, prj_model.accessory))
-    
-    if auto_move_to_accessory:
-        dir_i = crypto_dst_parent_dir
-        dir_o = prj_model.accessory + '/' + basename(crypto_dst_parent_dir)
-        if os.path.exists(dir_o):
-            shutil.rmtree(dir_o)
-        shutil.move(dir_i, dir_o)
-        
-        out = dir_o
-    else:
-        out = crypto_dst_parent_dir
-    return out
 
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@ if current_pyversion != target_pyversion:
         )
     )
 
-from .encrypt import encrypt_data, encrypt_file
-from .inject import inject
+__version__ = "0.2.1-trial"
 
-__version__ = "0.2.0-trial"
+from .inject import inject
+from .inject import encrypt_data
 
