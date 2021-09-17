@@ -137,13 +137,13 @@ class PyportableEncryptor(BaseCompiler):
                 )
                 setattr(
                     self, 'compile_all',
-                    lambda _, *args, **kwargs: delegator.compile_all(
+                    lambda *args, **kwargs: delegator.compile_all(
                         *args, **kwargs
                     )
                 )
                 setattr(
                     self, 'compile_one',
-                    lambda _, *args, **kwargs: delegator.compile_one(
+                    lambda *args, **kwargs: delegator.compile_one(
                         *args, **kwargs
                     )
                 )
@@ -186,6 +186,7 @@ class PyportableRuntimeDelegator:
             import shutil
             from textwrap import dedent
             
+            from lk_utils import dumps
             from lk_utils import loads
             from pyportable_runtime import encrypt_data
             
@@ -196,9 +197,11 @@ class PyportableRuntimeDelegator:
                     self._encrypt_data = encrypt_data
                     self._template = dedent('''
                         from pyportable_runtime import inject
-                        globals().update(inject(globals(), locals(),
-                                         {{ciphertext}}))
+                        globals().update(inject(globals(), locals(), {{ciphertext}}))
                     ''').strip()
+                    # ^ warning: do not modify the template content (e.g. add
+                    #   line breaks, adjust whitespaces, etc.), it will violate
+                    #   `pyportable_runtime.inject.inject._validate_source_file`
                     self.__key = 'NO_NEED_TO_PASS_A_REAL_KEY'
     
                 def compile_all(self, pyfiles):
@@ -211,7 +214,7 @@ class PyportableRuntimeDelegator:
                         return dst_file
                     
                     data = loads(src_file)  # type: str
-                    data += '\n' + '__PYMOD_HOOK__.update(globals())'
+                    data += '\\n' + '__PYMOD_HOOK__.update(globals())'
                     data = self._encrypt_data(data, self.__key)  # type: bytes
                     code = self._template.format(ciphertext=data)  # type: str
                     dumps(code, dst_file)

@@ -74,8 +74,8 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     venv_dir = launch(
         "{VENV_NAME}",
         {REQUIREMENTS},
-        venv_id="{VENV_ID}"
-        pyversion="{PYVERSION}"
+        venv_id="{VENV_ID}",
+        pyversion="{PYVERSION}",
     )
 
     # generate launcher
