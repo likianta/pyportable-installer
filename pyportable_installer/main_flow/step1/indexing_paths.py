@@ -1,5 +1,8 @@
 from os.path import basename
+from os.path import exists
 from uuid import uuid1
+
+from lk_logger import lk
 
 from .path_formatter import PathFormatter
 from ...path_model import prj_model
@@ -77,10 +80,8 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     )
     
     # --------------------------------------------------------------------------
+    # build:module_paths
     
-    # OPTM: in current designed pattern, `conf['build']['module_paths']`
-    #   accepts paths both from `src_root` and from `dst_root`. but we need to
-    #   unify them to be all paths based on `dst_root`.
     module_paths = conf['build']['module_paths']
     for i, p in enumerate(module_paths):
         if p.startswith('dist:'):
@@ -101,6 +102,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     # # )
     
     # --------------------------------------------------------------------------
+    # build:venv
     
     mode = conf['build']['venv']['mode']
     options = conf['build']['venv']['options'][mode]
@@ -136,5 +138,18 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         options['path'] = path_fmt(options['path'])
     else:
         raise ValueError(mode)
+
+    # --------------------------------------------------------------------------
+    # build:compiler
+    
+    name = conf['build']['compiler']['name']
+    options = conf['build']['compiler']['options'][name]
+    if name == 'pyportable_crypto':
+        if options['key'].endswith('pyportable_runtime') and (
+            exists(d := path_fmt(options['key']))
+        ):
+            lk.logt('[I0946]', '(experimental feature)',
+                    'use local precompiled pyportable_runtime package', d)
+            options['key'] = d
     
     return conf

@@ -6,6 +6,7 @@ Notes:
 """
 import os
 import shutil
+from hashlib import sha256
 from os.path import basename
 from secrets import token_hex  # secrets is introduced since Python 3.6
 from textwrap import dedent
@@ -54,15 +55,19 @@ def _check_version():
     return version
 
 
-def mainloop(key='', auto_move_to_accessory=False):
+def mainloop(key_='', auto_move_to_accessory=False):
     crypto_version = _check_version()
     lk.logt('[I1050]', crypto_version)
     # input('press enter to go on: ')
     
     # https://blog.csdn.net/weixin_35667833/article/details/113979070
-    if not key: key = token_hex(16)
-    lk.loga(key)
-    assert (_len := len(key.encode('utf-8'))) == 32, _len
+    if not key_:
+        key_ = token_hex(16)  # type: str
+        key = key_.encode('utf-8')  # type: bytes
+    else:
+        key = sha256(key_.encode('utf-8')).digest()  # type: bytes
+    assert len(key) == 32
+    lk.logt('[I1655]', key_)
     
     dirs = []
     while python_dir := input('system python dir (empty to escape loop): '):
@@ -76,11 +81,12 @@ def mainloop(key='', auto_move_to_accessory=False):
         dirs.append(dir_)
     
     # cleanup
-    for d in find_dirs(prj_model.temp):
-        shutil.rmtree(d)
+    if auto_move_to_accessory:
+        for d in find_dirs(prj_model.temp):
+            shutil.rmtree(d)
     
     lk.logp(dirs, title='see result dirs')
-    return key
+    return key_
 
 
 def _main(key, python, python_version, crypto_version, auto_move_to_accessory):
@@ -174,7 +180,7 @@ def _handle_v0_2_0(dir_i, dir_m, dir_o, **kwargs):
 
 def _handle_v0_2_1(dir_i, dir_m, dir_o, **kwargs):
     for filename, lineno, indent in (
-            ('inject.py', 774, 4),
+            ('inject.py', 777, 4),
     ):
         file_i = f'{dir_i}/{filename}'
         file_m = f'{dir_m}/{filename}'
@@ -229,6 +235,8 @@ def __modify_specific_source_lines_b(file_i, file_o, lineno, prefix, key):
 
 
 def __cythonize(file_i, file_o):
+    if file_o.endswith('.py'):
+        file_o += 'd'
     global cython_compiler
     cython_compiler.compile_one(file_i, file_o)
 
@@ -292,4 +300,5 @@ def __generate__init__(python_version, crypto_version, dst_dir, imports=(
 
 
 if __name__ == '__main__':
-    mainloop(auto_move_to_accessory=True)
+    # mainloop(auto_move_to_accessory=True)
+    mainloop(key_='we1c0me_to_depsland', auto_move_to_accessory=False)

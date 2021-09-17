@@ -58,22 +58,26 @@ class PyportableEncryptor(BaseCompiler):
         tmp_dir = prj_model.temp
         dst_dir = dst_model.lib + '/pyportable_runtime'
         
-        # 2.
-        if trial_mode:
-            shutil.copytree(
-                prj_model.pyportable_crypto_trial + '/pyportable_crypto',
-                dst_dir
-            )
-            #   notice: there's a sole subfolder in `prj_model.pyportable_crypto
-            #   _trial`, that's we need to copy, then rename it to 'pyportable
-            #   _runtime'.
-            return
-        else:
-            os.mkdir(dst_dir)
-        
-        # 3. create '__init__.py' for `pyportable_runtime`
+        # 2. create '__init__.py' for `pyportable_runtime`
+        os.mkdir(dst_dir)
         dumps('from .inject import inject', f'{dst_dir}/__init__.py')
-        
+
+        # 3.
+        if trial_mode:
+            shutil.copyfile(
+                prj_model.pyportable_crypto_trial +
+                '/pyportable_crypto/inject.pyd',
+                f'{dst_dir}/inject.pyd'
+            )
+            return
+        elif self.__key.endswith('pyportable_runtime') \
+                and os.path.exists(self.__key):
+            #   this is an experimental feature. see source from
+            #   `pyportable_installer.main_flow.step1.indexing_paths
+            #   .indexing_paths > the end of lines in the function`
+            shutil.copytree(self.__key, dst_dir, dirs_exist_ok=True)
+            return
+
         # 4. generate temporary 'inject.py' in tmp_dir
         code = loads(f'{src_dir}/inject.py')
         code = code.replace('{KEY}', self.__key)
@@ -94,10 +98,13 @@ class PyportableEncryptor(BaseCompiler):
             # TODO: to be explained
             sys.path.insert(0, prj_model.accessory +
                             '/pyportable_crypto_trial_python39')
-            # sys.path.insert(0, prj_model.pyportable_crypto_trial)
-        from pyportable_crypto import encrypt
-        lk.logt("[D1631]", encrypt.__file__)
-        return encrypt.encrypt_data
+            # # sys.path.insert(0, prj_model.pyportable_crypto_trial)
+        import pyportable_crypto
+        lk.logt('[D3149]',
+                pyportable_crypto.__version__,
+                pyportable_crypto.__file__)
+        from pyportable_crypto import encrypt_data
+        return encrypt_data
     
     def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
