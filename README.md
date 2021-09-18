@@ -4,8 +4,9 @@
 > 
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
-> | 第三方库 | 适合开发者在 Python 工程中引入 | 3.7MB | `pip3.9 install pyportable-installer>=4.0.0b2` |
-> | 独立免安装版 | 用户下载后解压即可使用, 无需 Python 开发环境 | ??? | [点我下载](TODO) |
+> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip3.9 install pyportable-installer>=4.0.0b4` |
+> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | 17MB | [点我下载](https://likianta.lanzoui.com/i6lRau6bw9i) |
+> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 48MB | [点我下载](https://likianta.lanzoui.com/izhuWu6bwnc) |
 
 --------------------------------------------------------------------------------
 
@@ -102,7 +103,7 @@
 通过 pip 安装:
 
 ```
-pip install pyportable-installer>=4.0.0b2
+pip install pyportable-installer>=4.0.0b4
 ```
 
 > 注意事项:
@@ -227,7 +228,7 @@ hello_world_project
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0b2"
+    "pyportable_installer_version": "4.0.0b4"
 }
 ```
 
@@ -317,7 +318,7 @@ hello_world
 
 ## pywin32, win32, win32clipboard 等相关问题
 
-解决方法 1 (适用于 v4.0.0b2+): 在配置文件中的实验性功能中启用 "add_pywin32_support".
+解决方法 1 (适用于 v4.0.0b4+): 在配置文件中的实验性功能中启用 "add_pywin32_support".
 
 解决方法 2: 请参考此文: [Pywin32 库相关问题产生原因及解决方法](./docs/pywin32-problems-and-solutions.zh.md).
 

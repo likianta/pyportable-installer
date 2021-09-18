@@ -3,10 +3,10 @@ import os
 from pyportable_installer import full_build
 
 
-def main(full_offline=False):
+def main(full_version=False):
     _precheck()
     
-    if full_offline:
+    if full_version:
         conf = full_build('pyproject.json', {
             'build': {
                 'attachments': {
@@ -27,7 +27,7 @@ def main(full_offline=False):
     else:
         conf = full_build('pyproject.json')  # dist size: ~10MB
         
-    if full_offline:
+    if full_version:
         os.rename(conf['build']['dist_dir'],
                   conf['build']['dist_dir'] + '-win64-full')
     else:
@@ -47,5 +47,5 @@ class CheckFailed(Exception):
 
 
 if __name__ == '__main__':
-    main(full_offline=False)
-    # main(full_offline=True)
+    main(full_version=False)
+    main(full_version=True)

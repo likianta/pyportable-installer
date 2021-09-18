@@ -1,6 +1,6 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0b3-dist.12",
+  "app_version": "4.0.0b3-dist.14",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
@@ -93,6 +93,8 @@
     },
     "enable_console": true
   },
-  "note": "",
+  "note": [
+    "check './requirements_offline' latest"
+  ],
   "pyportable_installer_version": "4.0.0b3"
 }
