@@ -125,7 +125,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     
     if mode == 'depsland':
         options['venv_name'] = options['venv_name'].format(**interpolations)
-        if not options['venv_id']:
+        if options['venv_id'] in ('', '_random'):
             options['venv_id'] = str(uuid1()).replace('-', '')
         options['requirements'] = _load_requirements(options['requirements'])
         options['local'] = path_fmt(options['local'])

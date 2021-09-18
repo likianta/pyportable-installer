@@ -35,7 +35,8 @@ def _safe_exit(msg, succeed: bool):
     if msg:
         lk.log(msg, h='parent')
     if succeed:
-        input('[Setup Succeed] Press enter or close the window to leave...')
+        print('[Setup Succeed] Press enter or close the window to leave...')
+        # # input('[Setup Succeed] Press enter or close the window to leave...')
     else:
         input('[Setup Failed] Press enter or close the window to leave...')
     sys.exit()
@@ -83,12 +84,14 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     launcher = launcher.format(PYTHON=normpath(f'{{venv_dir}}/python.exe'))
     dumps(launcher, '{LAUNCHER}.tmp.bat')
 
-    if exists('launcher.ico'):
-        icon = abspath('launcher.ico')
-    else:
-        icon = ''
-    bat_2_exe(abspath('{LAUNCHER}.tmp.bat'), abspath('../{LAUNCHER}.exe'),
-              icon, '{INVISIBLE}')
+    if exists('../{LAUNCHER}.exe'):
+        os.remove('../{LAUNCHER}.exe')
+    bat_2_exe(
+        abspath('{LAUNCHER}.tmp.bat'),
+        abspath('../{LAUNCHER}.exe'),
+        abspath('launcher.ico') if exists('launcher.ico') else '',
+        '{INVISIBLE}'
+    )
 
     # move setup file to build dir
     if exists('./setup.bat'):
@@ -101,4 +104,7 @@ try:
 except Exception:
     _safe_exit(traceback.format_exc(), False)
 else:
+    from lk_utils import run_cmd_args
+    from lk_utils.subproc import run_new_thread
+    run_new_thread(run_cmd_args, abspath('../{LAUNCHER}.exe'))
     _safe_exit('', True)
