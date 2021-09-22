@@ -84,11 +84,11 @@ class PyPortablePathModel:
     def build_dirs(self):
         from os import mkdir
         from os.path import exists
-        from shutil import rmtree
         
         if ASSETS_ENTRY == 'STANDALONE':
             assert exists(self.dist)
             assert exists(self.lib)
+            assert exists(self.temp_lib)
             assert exists(self.temp)
         
         else:
@@ -96,11 +96,13 @@ class PyPortablePathModel:
                 mkdir(self.prj_root)
                 mkdir(self.dist)
                 mkdir(self.lib)
+                mkdir(self.temp_lib)
                 mkdir(self.temp)
         
         if not exists(self.temp_lib):
             mkdir(self.temp_lib)
         elif os.listdir(self.temp_lib):
+            from shutil import rmtree
             rmtree(self.temp_lib)
             mkdir(self.temp_lib)
     

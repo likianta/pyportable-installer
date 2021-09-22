@@ -30,3 +30,4 @@ def get_compiler(name: TCompilerName, **kwargs):
 def main(compiler_name: TCompilerName, pyfiles: TPyFilesToCompile, options):
     my_compiler = get_compiler(compiler_name, **options)
     my_compiler.compile_all(pyfiles)
+    # del my_compiler

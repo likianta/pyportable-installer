@@ -1,13 +1,13 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0b5-dist.11",
+  "app_version": "4.0.0b5-dist.28",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
   ],
   "build": {
     "proj_dir": "../../pyportable_installer",
-    "dist_dir": "../../dist/{app_name_lower}_{app_version}",
+    "dist_dir": "../../dist/pyportable-installer-{app_version}",
     "launcher_name": "{app_name}",
     "icon": "launcher.ico",
     "target": [

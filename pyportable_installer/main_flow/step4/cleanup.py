@@ -1,6 +1,7 @@
 import os
 import shutil
 
+from lk_logger import lk
 from lk_utils import find_dirs
 from lk_utils import find_files
 from lk_utils.read_and_write import dumps
@@ -15,27 +16,30 @@ def main(pyproj_file, additional_conf):
 
 
 def _cleanup_intermediate_files():
+    lk.logt('[I5325]', 'clean up intermediate files')
+    
     # wait for bat-2-exe thread joins then delete bat file.
     from ..step3.step3_3.create_launcher import thread_pool
     for bat_file, thread in thread_pool.items():
         thread.join()
-        os.remove(bat_file)
+        if os.path.exists(bat_file):
+            os.remove(bat_file)
+    thread_pool.clear()
     
-    # FIXME: cannot remove tree because of `PermissionError: [WinError 5]
-    #   Access is denied`. to use a backup method, we will remove the tree in
-    #   next time startup. (see `pyportable_installer.path_model
-    #   .PyPortablePathModel.build_dirs`)
-    if os.listdir(prj_model.temp_lib):
-        try:
-            shutil.rmtree(prj_model.temp_lib)
-        except PermissionError:
-            pass
+    # if os.listdir(prj_model.temp_lib):
+    #     for d in find_dirs(prj_model.temp_lib):
+    #         os.unlink(d)
+    #     # # shutil.rmtree(prj_model.temp_lib)
+    #     # # os.mkdir(prj_model.temp_lib)
+    #     # FIXME: cannot use `shutil.rmtree` because of `PermissionError:
+    #     #   [WinError 5] Access is denied` on '~/temp_lib/~/inject.pyd'.
 
     for d in find_dirs(prj_model.temp):
-        try:
-            shutil.rmtree(d)
-        except PermissionError:
-            continue
+        shutil.rmtree(d)
+        # try:
+        #     shutil.rmtree(d)
+        # except PermissionError:
+        #     continue
     
     for f in find_files(prj_model.temp):
         if f.endswith('.gitkeep'):

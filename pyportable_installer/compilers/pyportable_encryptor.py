@@ -65,6 +65,10 @@ class PyportableEncryptor(BaseCompiler):
         self._generate_runtime_lib()
         self._encrypt_data = self._load_encryption_func()
     
+    # def __del__(self):
+    #     del self._encrypt_data
+    #     del self
+    
     def _generate_runtime_lib(self):
         # 1.
         src_dir = prj_model.pyportable_crypto
@@ -115,20 +119,42 @@ class PyportableEncryptor(BaseCompiler):
         
         # noinspection PyUnresolvedReferences
         def _load_python39_encryption(dir_i):
-            dir_o = prj_model.temp_lib + '/pyportable_crypto'
+            from secrets import token_hex
+            token = 'x' + token_hex(15)
+            dir_x = f'{prj_model.lib}/{token}'
+            dir_o = f'{dir_x}/pyportable_crypto'
+            #   notice: `dir_x` cannot be deleted by `pyportable_installer.main
+            #   _flow.step4.cleanup._cleanup_intermediate_files`, it will raise
+            #   a PermissionError ("Access is denied on '~/temp_lib/~/inject
+            #   .pyd' ..."). so we postpone deletion to the next time startup,
+            #   let `pyportable_installer.path_model.PyPortablePathModel.build
+            #   _dirs` handle it.
+            
+            os.mkdir(dir_x)
             shutil.copytree(dir_i, dir_o)
-            #   note: we will clean up `prj_model.temp_lib` when process done.
-            #   see `pyportable_installer.main_flow.step4.cleanup._cleanup
-            #   _intermediate_files`.
-            #   moreover, there's an insurance method in `pyportable_installer
-            #   .path_model.PyPortablePathModel.build_dirs`.
             
-            sys.path.insert(0, prj_model.lib)
-            from temp_lib import pyportable_crypto as _crypto
-            lk.logt('[D5314]', _crypto.__version__, _crypto.__file__)
-            
-            from temp_lib.pyportable_crypto import encrypt_data
-            return encrypt_data
+            # inspired by lk-lambdex
+            __PYHOOK__ = {}
+            exec(
+                dedent('''
+                    from sys import path
+                    path.append('{lib_dir}')
+                    from {token} import pyportable_crypto
+                    __PYHOOK__['mod'] = pyportable_crypto
+                ''').format(
+                    lib_dir=prj_model.lib,
+                    token=token,
+                ),
+                {'__PYHOOK__': __PYHOOK__}
+            )
+            pyportable_crypto = __PYHOOK__['mod']
+            # del __PYHOOK__
+
+            # lk.logt('[D2009]', dir_i)
+            lk.logt('[D4704]',
+                    pyportable_crypto.__version__,
+                    pyportable_crypto.__file__)
+            return pyportable_crypto.encrypt_data
         
         def _load_precompiled_encryption():
             lk.logt('[W2908]', '(experimental feature)',

@@ -1,3 +1,4 @@
+import sys
 from textwrap import dedent
 
 from pyportable_installer import *
@@ -6,14 +7,14 @@ from pyportable_installer import *
 def main():
     print(dedent('''\
         Command template:
-            <mode> <pyproject_file>
+            [mode] <pyproject_file>
             
         For example:
             0 D:\\my_project\\hello_world\\pyproject.json
             
         Params:
             mode:
-                0   full build
+                0   full build (default)
                 1   min build
                 2   debug build
             pyproject_file:
@@ -23,7 +24,15 @@ def main():
                 is calculated based on its directory.
     '''))
     
-    cmd = input('Your command here: ')
+    while True:
+        cmd = input('Your command here: ')
+        if cmd == '':
+            continue
+        elif cmd == 'x':
+            sys.exit()
+        else:
+            break
+    
     if cmd.startswith(('0 ', '1 ', '2 ')):
         mode, file = cmd.split(' ', 1)
     else:
