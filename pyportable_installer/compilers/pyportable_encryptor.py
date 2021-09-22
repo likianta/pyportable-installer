@@ -104,51 +104,71 @@ class PyportableEncryptor(BaseCompiler):
         compiler.cleanup()
         os.remove(tmp_file)
     
-    # noinspection PyUnresolvedReferences
     def _load_encryption_func(self):
-        # TODO: to be explained
-        if self.mode == 'trial':
-            sys.path.insert(0, prj_model.accessory +
-                            '/pyportable_crypto_trial_python39')
+        def _load_regular_encryption():
             import pyportable_crypto
-            lk.logt('[D3149]',
+            lk.logt('[D4703]',
                     pyportable_crypto.__version__,
                     pyportable_crypto.__file__)
             from pyportable_crypto import encrypt_data
             return encrypt_data
         
-        elif self.mode == 'delegation':
-            pyversion = loads(f'{self.__runtime_dir}/__pyversion__.txt').strip()
+        # noinspection PyUnresolvedReferences
+        def _load_python39_encryption(dir_i):
+            dir_o = prj_model.temp_lib + '/pyportable_crypto'
+            shutil.copytree(dir_i, dir_o)
+            #   note: we will clean up `prj_model.temp_lib` when process done.
+            #   see `pyportable_installer.main_flow.step4.cleanup._cleanup
+            #   _intermediate_files`.
+            #   moreover, there's an insurance method in `pyportable_installer
+            #   .path_model.PyPortablePathModel.build_dirs`.
             
+            sys.path.insert(0, prj_model.lib)
+            from temp_lib import pyportable_crypto as _crypto
+            lk.logt('[D5314]', _crypto.__version__, _crypto.__file__)
+            
+            from temp_lib.pyportable_crypto import encrypt_data
+            return encrypt_data
+        
+        def _load_precompiled_encryption():
+            lk.logt('[W2908]', '(experimental feature)',
+                    'using PyportableRuntimeDelegator to process external '
+                    'precompiled pyportable_runtime')
+            delegator = PyportableRuntimeDelegator(
+                gconf.embed_python, self.__runtime_dir
+            )
+            setattr(
+                self, 'compile_all',
+                lambda *args, **kwargs: delegator.compile_all(*args, **kwargs)
+            )
+            setattr(
+                self, 'compile_one',
+                lambda *args, **kwargs: delegator.compile_one(*args, **kwargs)
+            )
+            return None
+        
+        # ----------------------------------------------------------------------
+        
+        if self.mode == 'regular':
+            return _load_regular_encryption()
+        
+        elif self.mode == 'trial':
+            # notice: here we must use `~/pyportable_crypto_trial_python39`, do
+            # not use `prj_model.pyportable_crypto_trial` (TODO: to be explained)
+            return _load_python39_encryption(
+                dir_i=prj_model.accessory +
+                      '/pyportable_crypto_trial_python39/pyportable_crypto'
+            )
+        
+        else:  # self.mode == 'delegation'
+            pyversion = loads(f'{self.__runtime_dir}/__pyversion__.txt').strip()
             if pyversion == 'python39':
-                sys.path.insert(0, os.path.dirname(self.__runtime_dir))
-                import pyportable_runtime
-                lk.logt('[D3150]',
-                        pyportable_runtime.__version__,
-                        pyportable_runtime.__file__)
-                from pyportable_runtime import encrypt_data
-                return encrypt_data
+                return _load_python39_encryption(
+                    dir_i=self.__runtime_dir
+                )
             
             else:
-                lk.logt('[W2908]', '(experimental feature)',
-                        'using PyportableRuntimeDelegator to process external '
-                        'precompiled pyportable_runtime')
-                delegator = PyportableRuntimeDelegator(
-                    gconf.embed_python, self.__runtime_dir
-                )
-                setattr(
-                    self, 'compile_all',
-                    lambda *args, **kwargs: delegator.compile_all(
-                        *args, **kwargs
-                    )
-                )
-                setattr(
-                    self, 'compile_one',
-                    lambda *args, **kwargs: delegator.compile_one(
-                        *args, **kwargs
-                    )
-                )
-                return None
+                return _load_precompiled_encryption()
     
     def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
@@ -180,7 +200,7 @@ class PyportableRuntimeDelegator:
         self._pyportable_runtime_dir = pyportable_runtime_dir
         self._template = dedent("""
             import sys
-            sys.path.append('{pyportable_runtime_parent_dir}')
+            sys.path.insert(0, '{pyportable_runtime_parent_dir}')
             sys.path.append('{lk_utils_dir}')
             
             import os

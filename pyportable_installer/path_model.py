@@ -1,7 +1,5 @@
 import os
-from os.path import dirname
-from os.path import exists
-from os.path import relpath as _relpath
+import os.path as xpath
 from uuid import uuid1
 
 from lk_logger import lk
@@ -29,14 +27,14 @@ def src_2_dst(src_path, src_dir='', dst_dir=''):
 def relpath(path, start):
     if not path:
         return ''
-    return normpath(_relpath(path, start))
+    return normpath(xpath.relpath(path, start))
 
 
 class PyPortablePathModel:
-    cur_root = normpath(dirname(__file__))
+    cur_root = normpath(xpath.dirname(__file__))
     
     if ASSETS_ENTRY == 'STANDALONE':
-        prj_root = dirname(cur_root)
+        prj_root = xpath.dirname(cur_root)
     else:
         prj_root = f'{cur_root}/assets'
     
@@ -59,7 +57,7 @@ class PyPortablePathModel:
     pyproject = f'{template}/pyproject.json'
     python_ico = f'{template}/python.ico'
     pytransform = f'{template}/pytransform.txt'
-
+    
     # cur_root/template/depsland/*
     _depsland = f'{template}/depsland'
     depsland_launcher_part_a = f'{_depsland}/launcher_part_a.bat'
@@ -76,7 +74,7 @@ class PyPortablePathModel:
         f'{accessory}/pyportable_crypto_trial_{{pyversion}}'
     try:
         import pyportable_crypto as _crypto
-        pyportable_crypto = dirname(_crypto.__file__)
+        pyportable_crypto = xpath.dirname(_crypto.__file__)
     except ImportError:
         raise ImportError('Package not found: pyportable_crypto',
                           '(tip: `pip install pyportable_crypto`)')
@@ -86,20 +84,26 @@ class PyPortablePathModel:
     def build_dirs(self):
         from os import mkdir
         from os.path import exists
+        from shutil import rmtree
         
         if ASSETS_ENTRY == 'STANDALONE':
-            from sys import path
-            path.append(self.lib)
-            for d in (self.temp, self.dist):
-                if not exists(d):
-                    mkdir(d)
-        elif not exists(self.prj_root):
-            mkdir(self.prj_root)
-            mkdir(self.dist)
-            mkdir(self.lib)
-            mkdir(self.temp_lib)
-            mkdir(self.temp)
+            assert exists(self.dist)
+            assert exists(self.lib)
+            assert exists(self.temp)
         
+        else:
+            if not exists(self.prj_root):
+                mkdir(self.prj_root)
+                mkdir(self.dist)
+                mkdir(self.lib)
+                mkdir(self.temp)
+        
+        if not exists(self.temp_lib):
+            mkdir(self.temp_lib)
+        elif os.listdir(self.temp_lib):
+            rmtree(self.temp_lib)
+            mkdir(self.temp_lib)
+    
     def create_temp_dir(self):
         _temp_dir = f'{self.temp}/{uuid1()}'
         lk.loga('make temporary dir', _temp_dir)
@@ -130,7 +134,7 @@ class PyPortablePathModel:
             dir_ = self._pyportable_crypto_trial.format(
                 pyversion=gconf.python_version
             )
-            assert exists(dir_)
+            assert xpath.exists(dir_)
             return dir_
         else:
             raise Exception('`~.global_conf.gconf.python_version` is not set. '
