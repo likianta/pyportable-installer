@@ -59,8 +59,13 @@ class PyPortablePathModel:
     pyproject = f'{template}/pyproject.json'
     python_ico = f'{template}/python.ico'
     pytransform = f'{template}/pytransform.txt'
-    setup_for_depsland = f'{template}/setup_for_depsland.txt'
-    setup_for_depsland_bat = f'{template}/setup_for_depsland.bat'
+
+    # cur_root/template/depsland/*
+    _depsland = f'{template}/depsland'
+    depsland_launcher_part_a = f'{_depsland}/launcher_part_a.bat'
+    depsland_launcher_part_b = f'{_depsland}/launcher_part_b.bat'
+    depsland_setup_part_a = f'{_depsland}/setup_part_a.bat'
+    depsland_setup_part_b = f'{_depsland}/setup_part_b.txt'
     
     # other
     accessory = f'{cur_root}/compilers/accessory'
@@ -180,16 +185,18 @@ class DistributedPathModel:
         # dst_root/*
         self.build = f'{self.dst_root}/build'
         self.lib = f'{self.dst_root}/lib'
-        self.setup_bat = f'{self.dst_root}/setup.bat'
         self.src = f'{self.dst_root}/src'
         self.venv = f'{self.dst_root}/venv'
         
         # dst_root/*/*
         self.manifest = f'{self.build}/manifest.json'
         self.python = f'{self.venv}/python.exe'
-        self.setup_py = f'{self.build}/setup.py'
         
-        # kwargs
+        # other: depsland
+        self.depsland_setup_part_a = f'{self.dst_root}/setup.bat'
+        self.depsland_setup_part_b = f'{self.build}/setup.py'
+        
+        # other: kwargs
         launcher_name = kwargs['launcher_name']
         self.launcher_bat = f'{self.dst_root}/{launcher_name}.bat'
         self.launcher_exe = f'{self.dst_root}/{launcher_name}.exe'

@@ -8,7 +8,6 @@ Placeholders:
     OFFLINE         bool[False]. set pip offline mode.
     LOCAL_DIR       str. if offline enabled, the local should be a valid path
                     which contains '*.whl' files.
-    INVISIBLE       show console or not.
 See `pyportable_installer.main_flow.step3.step3_3.create_launcher
     ._create_depsland_setup`
 
@@ -21,22 +20,19 @@ Workflow:
 import os
 import sys
 import shutil
-import traceback
 
-from os.path import abspath
-from os.path import dirname
-from os.path import exists
-from os.path import normpath
+from os import path as xpath
+from traceback import format_exc
 
-os.chdir(dirname(__file__))
+os.chdir(xpath.dirname(__file__))
 
 
 def _safe_exit(msg, succeed: bool):
     if msg:
         lk.log(msg, h='parent')
     if succeed:
-        print('[Setup Succeed] Press enter or close the window to leave...')
-        # # input('[Setup Succeed] Press enter or close the window to leave...')
+        # # print('[Setup Succeed] Press enter or close the window to leave...')
+        input('[Setup Succeed] Press enter or close the window to leave...')
     else:
         input('[Setup Failed] Press enter or close the window to leave...')
     sys.exit()
@@ -47,10 +43,9 @@ try:
     sys.path.insert(0, os.getenv('DEPSLAND'))
 
     from depsland import launch
-    from depsland.setup import bat_2_exe
 
+    import lk_utils
     from lk_logger import lk
-    from lk_utils import loads, dumps
 
 except AssertionError:
     _safe_exit('DEPSLAND not found in environment variables, you may reinstall '
@@ -63,7 +58,7 @@ except ImportError:
 # ------------------------------------------------------------------------------
 
 def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
-    if offline and exists(local):
+    if offline and xpath.exists(local):
         lk.loga('indexing local packages', local)
         from depsland.pypi import local_pypi
         from depsland_additional_tools import indexing_local_packages
@@ -80,21 +75,18 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
     )
 
     # generate launcher
-    launcher = loads('{LAUNCHER}.bat')
-    launcher = launcher.format(PYTHON=normpath(f'{{venv_dir}}/python.exe'))
-    dumps(launcher, '{LAUNCHER}.tmp.bat')
-
-    if exists('../{LAUNCHER}.exe'):
-        os.remove('../{LAUNCHER}.exe')
-    bat_2_exe(
-        abspath('{LAUNCHER}.tmp.bat'),
-        abspath('../{LAUNCHER}.exe'),
-        abspath('launcher.ico') if exists('launcher.ico') else '',
-        '{INVISIBLE}'
-    )
+    # see `pyportable_installer.main_flow.step3.step3_3.create_launcher`
+    for fp, fn in lk_utils.find_files('./_bat_launchers_template', fmt='zip'):
+        fp_i, fp_o = fp, f'./_bat_launchers/{{fn}}'
+        code = lk_utils.loads(fp_i)
+        code = code.format(PYTHON=xpath.normpath(f'{{venv_dir}}/python.exe'))
+        lk_utils.dumps(code, fp_o)
+    for fp, fn in lk_utils.find_files('./_exe_launchers', fmt='zip'):
+        fp_i, fp_o = fp, f'../{{fn}}'
+        shutil.move(fp_i, fp_o)
 
     # move setup file to build dir
-    if exists('./setup.bat'):
+    if xpath.exists('./setup.bat'):
         os.remove('./setup.bat')
     shutil.move('../setup.bat', './setup.bat')
 
@@ -102,9 +94,9 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
 try:
     main()
 except Exception:
-    _safe_exit(traceback.format_exc(), False)
+    _safe_exit(format_exc(), False)
 else:
-    from lk_utils import run_cmd_args
-    from lk_utils.subproc import run_new_thread
-    run_new_thread(run_cmd_args, abspath('../{LAUNCHER}.exe'))
+    # from lk_utils.subproc import run_cmd_args
+    # from lk_utils.subproc import run_new_thread
+    # run_new_thread(run_cmd_args, xpath.abspath('../{LAUNCHER}.exe'))
     _safe_exit('', True)

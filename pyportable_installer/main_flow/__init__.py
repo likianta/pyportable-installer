@@ -7,7 +7,7 @@ Main Flow:
         Step 3.2: compile pyfiles from source and generate compiled (obfuscated)
             results to dist.
         Step 3.3: create venv and launcher.
-        Step 3.4: do aftermath (cleanup intermediate files).
+    Step 4: do aftermath (cleanup intermediate files).
 """
 from .step1 import main as step1
 from .step2 import main as step2

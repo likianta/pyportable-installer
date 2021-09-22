@@ -48,4 +48,4 @@ class CheckFailed(Exception):
 
 if __name__ == '__main__':
     main(full_version=False)
-    main(full_version=True)
+    # main(full_version=True)

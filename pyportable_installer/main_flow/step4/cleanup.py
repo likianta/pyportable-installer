@@ -1,5 +1,4 @@
 import os
-from os.path import exists
 
 from lk_utils.read_and_write import dumps
 
@@ -12,13 +11,11 @@ def main(pyproj_file, additional_conf):
 
 
 def _cleanup_scaffold_files():
-    from ..step3.step3_3.create_launcher import thread_of_bat_2_exe
-    # wait for thread_of_bat_2_exe of 'generating exe from bat file' complete
-    if thread_of_bat_2_exe is not None:
-        thread_of_bat_2_exe.join()
-        # remove bat file
-        if exists(f := dst_model.launcher_bat):
-            os.remove(f)
+    from ..step3.step3_3.create_launcher import thread_pool
+    # wait for bat-2-exe thread joins then delete bat file.
+    for bat_file, thread in thread_pool.items():
+        thread.join()
+        os.remove(bat_file)
 
 
 def _generate_manifest(pyproj_file, file_o, additional_conf):

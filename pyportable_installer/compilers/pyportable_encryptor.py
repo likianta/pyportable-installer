@@ -92,7 +92,8 @@ class PyportableEncryptor(BaseCompiler):
         
         # 4. generate temporary 'inject.py' in tmp_dir
         code = loads(f'{src_dir}/inject.py')
-        code = code.replace('{KEY}', self.__key)
+        code = code.replace('{KEY}', self.__key)  # FIXME
+        #   tested on pyportable-crypto v0.1.0, 0.1.1, 0.2.0, 0.2.1
         dumps(code, tmp_file := f'{tmp_dir}/inject.py')
         
         # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd

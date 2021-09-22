@@ -300,5 +300,5 @@ def __generate__init__(python_version, crypto_version, dst_dir, imports=(
 
 
 if __name__ == '__main__':
-    # mainloop(auto_move_to_accessory=True)
-    mainloop(key_='we1c0me_to_depsland', auto_move_to_accessory=False)
+    mainloop(auto_move_to_accessory=True)
+    # mainloop(key_='we1c0me_to_depsland', auto_move_to_accessory=False)
