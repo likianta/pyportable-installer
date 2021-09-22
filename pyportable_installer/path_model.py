@@ -46,8 +46,7 @@ class PyPortablePathModel:
     temp = f'{prj_root}/temp'
     
     # prj_root/lib/*
-    pyportable_crypto = f'{lib}/pyportable_crypto'
-    # pyportable_runtime = f'{lib}/pyportable_runtime'
+    temp_lib = f'{lib}/temp_lib'
     
     # cur_root/*
     checkup = f'{cur_root}/checkup'
@@ -70,6 +69,12 @@ class PyPortablePathModel:
         f'{accessory}/cythonize_required_packages_for_python3.zip'
     _pyportable_crypto_trial = \
         f'{accessory}/pyportable_crypto_trial_{{pyversion}}'
+    try:
+        import pyportable_crypto as _crypto
+        pyportable_crypto = dirname(_crypto.__file__)
+    except ImportError:
+        raise ImportError('Package not found: pyportable_crypto',
+                          '(tip: `pip install pyportable_crypto`)')
     
     # --------------------------------------------------------------------------
     
@@ -87,22 +92,9 @@ class PyPortablePathModel:
             mkdir(self.prj_root)
             mkdir(self.dist)
             mkdir(self.lib)
+            mkdir(self.temp_lib)
             mkdir(self.temp)
         
-        if not exists(self.pyportable_crypto):
-            try:
-                import pyportable_crypto
-                from shutil import copytree
-                lk.logt("[I1506]", 'copying `pyportable_crypto` package from '
-                                   '"~/site-packages/pyportable_crypto" to '
-                                   '"~/pyportable_installer/lib/pyportable'
-                                   '_crypto"')
-                copytree(dirname(pyportable_crypto.__file__),
-                         self.pyportable_crypto)
-            except ImportError:
-                raise ImportError('Package not found: pyportable_crypto',
-                                  '(tip: `pip install pyportable_crypto`)')
-    
     def create_temp_dir(self):
         _temp_dir = f'{self.temp}/{uuid1()}'
         lk.loga('make temporary dir', _temp_dir)
