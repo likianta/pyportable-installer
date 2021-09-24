@@ -83,7 +83,8 @@ def main(offline={OFFLINE}, local=r'{LOCAL_DIR}'):
         lk_utils.dumps(code, fp_o)
     for fp, fn in lk_utils.find_files('./_exe_launchers', fmt='zip'):
         fp_i, fp_o = fp, f'../{{fn}}'
-        shutil.move(fp_i, fp_o)
+        if xpath.exists(fp_o): os.remove(fp_o)
+        shutil.copyfile(fp_i, fp_o)
 
     # move setup file to build dir
     if xpath.exists('./setup.bat'):

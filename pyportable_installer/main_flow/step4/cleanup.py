@@ -26,14 +26,6 @@ def _cleanup_intermediate_files():
             os.remove(bat_file)
     thread_pool.clear()
     
-    # if os.listdir(prj_model.temp_lib):
-    #     for d in find_dirs(prj_model.temp_lib):
-    #         os.unlink(d)
-    #     # # shutil.rmtree(prj_model.temp_lib)
-    #     # # os.mkdir(prj_model.temp_lib)
-    #     # FIXME: cannot use `shutil.rmtree` because of `PermissionError:
-    #     #   [WinError 5] Access is denied` on '~/temp_lib/~/inject.pyd'.
-
     for d in find_dirs(prj_model.temp):
         shutil.rmtree(d)
         # try:
