@@ -121,7 +121,7 @@ class PyportableEncryptor(BaseCompiler):
         def _load_python39_encryption(dir_i):
             from secrets import token_hex
             token = 'x' + token_hex(15)
-            dir_x = f'{prj_model.lib}/{token}'
+            dir_x = f'{prj_model.temp_lib}/{token}'
             dir_o = f'{dir_x}/pyportable_crypto'
             #   notice: `dir_x` cannot be deleted by `pyportable_installer.main
             #   _flow.step4.cleanup._cleanup_intermediate_files`, it will raise
@@ -138,11 +138,11 @@ class PyportableEncryptor(BaseCompiler):
             exec(
                 dedent('''
                     from sys import path
-                    path.append('{lib_dir}')
+                    path.append(r'{lib_dir}')
                     from {token} import pyportable_crypto
                     __PYHOOK__['mod'] = pyportable_crypto
                 ''').format(
-                    lib_dir=prj_model.lib,
+                    lib_dir=prj_model.temp_lib,
                     token=token,
                 ),
                 {'__PYHOOK__': __PYHOOK__}
@@ -192,7 +192,6 @@ class PyportableEncryptor(BaseCompiler):
                 return _load_python39_encryption(
                     dir_i=self.__runtime_dir
                 )
-            
             else:
                 return _load_precompiled_encryption()
     

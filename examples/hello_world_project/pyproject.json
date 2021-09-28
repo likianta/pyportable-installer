@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.4.7",
+    "app_version": "0.4.9",
     "description": "Say hello to the given name.",
     "authors": ["Likianta <likianta@foxmail.com>"],
     "build": {
@@ -24,7 +24,7 @@
         "module_paths_scheme": "translate",
         "venv": {
             "enable_venv": false,
-            "python_version": "3.8",
+            "python_version": "3.9",
             "mode": "source_venv",
             "options": {
                 "depsland": {
@@ -83,5 +83,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0b0"
+    "pyportable_installer_version": "4.0.0b5"
 }

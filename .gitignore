@@ -4,6 +4,7 @@
 /examples/dist_pyportable_itself/requirements_offline/[^.]*
 /history/
 /lib/[^.]*
+/lib/temp_lib/[^.]*
 /pyportable_installer/template/pyarmor/
 /temp/[^.]*
 /tests/
