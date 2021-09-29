@@ -5,8 +5,8 @@
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
 > | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip3.9 install pyportable-installer>=4.0.0b4` |
-> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | 17MB | [点我下载](https://likianta.lanzoui.com/i6lRau6bw9i) |
-> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 48MB | [点我下载](https://likianta.lanzoui.com/izhuWu6bwnc) |
+> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | 23MB | [点我下载](https://likianta.lanzoui.com/iWrUgun7pdi) |
+> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | [点我下载](https://likianta.lanzoui.com/ikYzpun7p6b) |
 
 --------------------------------------------------------------------------------
 

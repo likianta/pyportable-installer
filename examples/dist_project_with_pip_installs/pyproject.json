@@ -72,6 +72,6 @@
         },
         "enable_console": true
     },
-    "note": "",
+    "note": "warning: this file is obsolete and cannot work (2021-09-29).",
     "pyportable_installer_version": "4.0.0a1"
 }

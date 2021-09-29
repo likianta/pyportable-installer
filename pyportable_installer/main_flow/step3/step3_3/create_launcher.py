@@ -13,6 +13,7 @@ from lk_utils.filesniff import get_filename
 from lk_utils.subproc import run_new_thread
 
 from .bat_2_exe import bat_2_exe
+from ....global_conf import gconf
 from ....path_model import *
 from ....typehint import TBuildConf
 
@@ -334,8 +335,7 @@ def _generate_bat(is_main_entry, enable_venv):
             )
         else:
             code = template.format(
-                PYTHON='python',  # use system python which is defined in
-                #   global environment variable (PATH).
+                PYTHON=gconf.full_python,
                 PYLAUNCHER=_rel_paths['launch_file'],
                 PYCONF='%*' if is_main_entry else _rel_paths['conf_file']
             )
