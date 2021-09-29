@@ -15,16 +15,21 @@
    分别为以下 5 个文件 (夹):
 
    ```
-   SystemPython39                  EmbedPython39 
-   (C:\ProgramFiles\Python39)      (~/pyportable_installer/embed_python/
-   |                                windows/3.9/python-3.9.5-embed-amd64)
-   |= tcl  # 1 ------------------> |= tcl
-   |= Lib                          |
-      |= tkinter  # 2 -----------> |= tkinter
-   |= DLLs                         | 
-      |- _tkinter.pyd  # 3 ------> |- _tkinter.pyd
-      |- tcl86t.dll  # 4 --------> |- tcl86t.dll
-      |- tk86t.dll  # 5 ---------> |- tk86t.dll
+   C:\ProgramFiles\Python39  # System Python Location
+   |= tcl         --------------------------+
+   |= Lib                                   |
+      |= tkinter  --------------------------|---+
+   |= DLLs                                  |   |
+      |- _tkinter.pyd ----------------------|---|---+
+      |- tcl86t.dll   ----------------------|---|---|---+
+      |- tk86t.dll    ----------------------|---|---|---|---+
+                                            |   |   |   |   |
+   ~\pyportable_installer\embed_python      |   |   |   |   |
+   |= tcl          <------------------------+   |   |   |   |
+   |= tkinter      <----------------------------+   |   |   |
+   |- _tkinter.pyd <--------------------------------+   |   |
+   |- tcl86t.dll   <------------------------------------+   |
+   |- tk86t.dll    <----------------------------------------+
    ```
 
    (注: 这些文件 (夹) 的总体积在 15MB 左右.)
