@@ -2,7 +2,7 @@
 # note: don't forget to update '~/examples/dist_pyportable_itself/requirements_offline' manually.
 cython
 embed-python-manager >= 0.2.5
-lk-logger >= 4.0.3
+lk-logger
 lk-utils >= 2.0.0b1
 pyarmor
 pyportable-crypto >= 0.2.1
