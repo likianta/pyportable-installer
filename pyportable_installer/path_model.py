@@ -90,7 +90,6 @@ class PyPortablePathModel:
             assert exists(self.lib)
             assert exists(self.temp_lib)
             assert exists(self.temp)
-        
         else:
             if not exists(self.prj_root):
                 mkdir(self.prj_root)
@@ -136,7 +135,21 @@ class PyPortablePathModel:
             dir_ = self._pyportable_crypto_trial.format(
                 pyversion=gconf.python_version
             )
-            assert xpath.exists(dir_)
+            assert xpath.exists(dir_), '''
+                Currently your requested python_version ({0}) is not on the
+                support trial-list ({1}).
+                Please try the following options to resolve your problem:
+                    a) Prompt your requested python_version to "3.8" or "3.9";
+                    b) Use a custom pyportable_crypto key instead of trial key;
+                       Note: you need to install Microsoft Visual Studio C++
+                             Build Tools (2019) on your system.
+                    c) Contact pyportable_installer project owner to extend
+                       trial keys for target python_version ({0}).
+            '''.format(
+                gconf.python_version,
+                xpath.dirname(self._pyportable_crypto_trial)
+                + '/pyportable_crypto_trial_*'
+            )
             return dir_
         else:
             raise Exception('`~.global_conf.gconf.python_version` is not set. '

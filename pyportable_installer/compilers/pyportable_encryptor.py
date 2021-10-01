@@ -77,7 +77,27 @@ class PyportableEncryptor(BaseCompiler):
         
         # 2. create '__init__.py' for `pyportable_runtime`
         os.mkdir(dst_dir)
-        dumps('from .inject import inject', f'{dst_dir}/__init__.py')
+        # # code = 'from .inject import inject'
+        code = dedent('''
+            import sys
+            
+            current_pyversion = "python{{}}{{}}".format(
+                sys.version_info.major, sys.version_info.minor
+            )
+            target_pyversion = "{0}"
+            if current_pyversion != target_pyversion:
+                raise Exception(
+                    "Python interpreter version doesn't matched!",
+                    "Required: {{}}, got {{}} ({{}})".format(
+                        target_pyversion, current_pyversion, sys.executable
+                    )
+                )
+            
+            from .inject import inject
+        ''').format(gconf.python_version).strip()
+        #   note: the pyversion check is copied from `sidework.generate
+        #   _pyportable_crypto_trial_version.__generate__init__.<vars:code>`
+        dumps(code, f'{dst_dir}/__init__.py')
         
         # 3.
         if self.mode == 'trial':
