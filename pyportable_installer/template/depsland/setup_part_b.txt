@@ -40,8 +40,8 @@ def _safe_exit(msg, succeed: bool):
 
 try:
     def _get_depsland_dir():
-        if os.getenv('DEPSLAND'):
-            return os.getenv('DEPSLAND')
+        # if os.getenv('DEPSLAND'):
+        #     return os.getenv('DEPSLAND')
 
         d = os.getenv('ProgramData') + '/' + 'Depsland'
         assert xpath.exists(d)
