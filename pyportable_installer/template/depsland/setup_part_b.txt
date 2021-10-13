@@ -47,7 +47,7 @@ try:
         assert xpath.exists(d)
         sys.path.insert(0, d)
 
-        from depsland_manifest import depsland_dir
+        from depsland_entrance import depsland_dir
         return depsland_dir
 
     sys.path.insert(0, _get_depsland_dir())
