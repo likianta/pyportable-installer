@@ -11,7 +11,7 @@ class GlobalConf:
     current_pyversion = "python{}{}".format(
         version_info.major, version_info.minor
     )
-    target_pyversion = ''
+    target_pyversion = ''  # format: 'python**', e.g. 'python38', 'python38-32'
     
     full_python = ''
     embed_python = ''

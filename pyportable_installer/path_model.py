@@ -72,22 +72,10 @@ class PyPortablePathModel:
     cythonize_required_packages_for_python3 = \
         f'{accessory}/cythonize_required_packages_for_python3.zip'
     
-    pyportable_crypto_trial = \
-        f'{accessory}/pyportable_crypto_trial_{gconf.current_pyversion}'
-    assert xpath.exists(pyportable_crypto_trial), '''
-        Currently your requested python_version ({0}) is not on the support
-        trial-list ({1}).
-        Please try the following options to resolve your problem:
-            a) Prompt your requested python_version to "3.8" or "3.9";
-            b) Use a custom pyportable_crypto key instead of trial key;
-               Note: you need to install Microsoft Visual Studio C++ Build
-                     Tools (2019) on your system.
-            c) Contact pyportable_installer project owner to extend trial keys
-               for requested python_version ({0}).
-    '''.format(
-        gconf.target_pyversion,
-        xpath.dirname(pyportable_crypto_trial) + '/pyportable_crypto_trial_*'
-    )
+    pyportable_crypto_trial = '/'.join((
+        accessory, f'pyportable_crypto_trial_{gconf.current_pyversion}',
+        'pyportable_crypto'
+    ))
     
     try:
         import pyportable_crypto as _crypto
