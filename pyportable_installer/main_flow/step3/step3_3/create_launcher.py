@@ -15,6 +15,7 @@ from lk_utils.subproc import run_new_thread
 from .bat_2_exe import bat_2_exe
 from ....global_conf import gconf
 from ....path_model import *
+from ....typehint import Dict
 from ....typehint import TBuildConf
 
 thread_pool = {}  # {bat_file: thread, ...}
@@ -134,8 +135,6 @@ def create_launcher(build: TBuildConf):
             file_part_b_i = file
             file_part_b_o = '{}/{}.bat'.format(
                 depsland_bat_launchers_dir, kwargs_part_a['name']
-                #   PS: kwargs_part_a['name'] == \
-                #       xpath.basename(file).removesuffix('.bat')
             )
             shutil.move(file_part_b_i, file_part_b_o)
 
@@ -158,7 +157,7 @@ def _create_launcher(
         enable_console: bool[True]
         enable_venv:
         generate_exe: bool[True]
-        module_paths: list[str]
+        module_paths: List[str]
         module_paths_scheme: Literal['translate', 'leave as-is']
         venv_python: str
     """
@@ -231,7 +230,7 @@ class LauncherNamesDeduplicator:
     """ Make sure there's no duplicate name generated. """
     
     def __init__(self, *top_names):
-        self._names_counter = {}  # type: dict[str, int]
+        self._names_counter = {}  # type: Dict[str, int]
         self._names_counter.update({n: 0 for n in top_names})
     
     def optimize_name(self, name, function=''):

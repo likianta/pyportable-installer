@@ -1,4 +1,5 @@
 from os.path import dirname
+from sys import version_info
 
 
 class GlobalConf:
@@ -7,7 +8,11 @@ class GlobalConf:
     pyproj_file = ''
     pyproj_dir = ''
     
-    python_version = ''  # target python version
+    current_pyversion = "python{}{}".format(
+        version_info.major, version_info.minor
+    )
+    target_pyversion = ''
+    
     full_python = ''
     embed_python = ''
     

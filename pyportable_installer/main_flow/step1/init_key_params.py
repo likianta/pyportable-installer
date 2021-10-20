@@ -31,7 +31,7 @@ def init_key_params(conf: TConf, **kwargs):
     pyversion = conf['build']['venv']['python_version']
     assert pyversion, '`conf["build"]["venv"]["python_version"]` not defined'
     pyversion = 'python' + pyversion.replace('.', '')
-    gconf.python_version = pyversion
+    gconf.target_pyversion = pyversion
     
     # --------------------------------------------------------------------------
     
@@ -131,14 +131,13 @@ def _get_full_python(pyversion):
             The full python dir. For example: 'C:/Program Files/Python38'
         """
         if pyversion.startswith('python3'):
-            # if int(pyversion.removeprefix('python')) >= 33
             try:
                 ret = run_cmd_shell(
                     'py -{} -c "import sys;print(sys.executable)"'.format(
-                        '3' + '.' + pyversion.removeprefix('python3')
+                        '3' + '.' + pyversion.replace('python3', '')
                     )
                 )
-                return normpath(ret).removesuffix('/python.exe')
+                return normpath(ret).replace('/python.exe', '')
             except:
                 pass
         

@@ -33,8 +33,7 @@ def _create_readme(file_i: TPath, file_o: TPath):
             # TODO: import a markdown_2_html converter.
             #   https://github.com/likianta/markdown_images_to_base64
             from markdown_images_to_base64 import md_2_html_base64
-            file_o = file_o.removesuffix('.md') + '.html'
-            #  ~.removesuffix: introduced in Python 3.9.
+            file_o = file_o.replace('.md', '.html')
             md_2_html_base64(file_i, file_o)
         except ImportError:
             copyfile(file_i, file_o)

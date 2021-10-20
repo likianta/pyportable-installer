@@ -12,7 +12,7 @@ curr_dir = dirname(__file__)
 chdir(curr_dir)
 path.append(curr_dir + '/' + r'{cythonize_packages}')
 
-from setuptools import setup
-from Cython.Build import cythonize
+from setuptools import setup  # noqa
+from Cython.Build import cythonize  # noqa
 
 setup(ext_modules=cythonize('{filename}', language_level='3'))

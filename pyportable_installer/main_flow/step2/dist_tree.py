@@ -11,7 +11,7 @@ from lk_utils.filesniff import normpath
 class DistTree:
     
     def __init__(self):
-        self.paths = []  # type: list[str]
+        self.paths = []  # type: List[str]
         #   note all elements in `self.paths` are directories. see
         #   implementation in `method:self.add_src_dirs`.
     

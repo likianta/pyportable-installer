@@ -12,6 +12,8 @@ from ....global_conf import gconf
 from ....path_model import src_2_dst
 from ....typehint import *
 
+__all__ = ['copy_attachments']
+
 
 def find_files(dir_i):
     for fp, fn in filter(
@@ -55,7 +57,7 @@ def _handle_file_exists(file_o, scheme=''):
         raise Exception('Unknown scheme', scheme)
 
 
-def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]:
+def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]:
     """ Specific for handling attachmets in format of `~.typehint.TAttachments`.
     
     Attachments Marks (`~.typehint.TAttachments._TAttachmentsValue.marks`):
@@ -82,7 +84,7 @@ def copy_attachments(attachments: TAttachments) -> Iterator[tuple[TPath, TPath]]
         .create_venv`.
     
     Yields:
-        tuple[src_pyfile, dst_pyfile]
+        Tuple[src_pyfile, dst_pyfile]
     """
     for k, v in attachments.items():
         path_i = k
@@ -201,8 +203,3 @@ def _handle_compile(file_i, file_o):
     if exists(file_o) and _handle_file_exists(file_o) == 'done':
         return
     yield file_i, file_o  # MARK: 20210913113657
-
-
-__all__ = [
-    'copy_attachments',
-]

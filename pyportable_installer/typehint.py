@@ -10,7 +10,7 @@ TPyVersion = str
 #   see `embed_python/manager.py::EmbedPythonManager.options.keys`
 
 # `template/pyproject.json::build:venv:options:depsland,pip:requirements`
-TRequirements = Union[list[str], TPath]
+TRequirements = Union[List[str], TPath]
 
 THowVenvCreated = Literal['copy', 'symbolink', 'empty_folder']  # default 'copy'
 
@@ -110,7 +110,7 @@ class _TAttachmentsValue(TypedDict):
     path: TPath
 
 
-TAttachments = dict[TPath, _TAttachmentsValue]
+TAttachments = Dict[TPath, _TAttachmentsValue]
 
 
 class _TCompilerOptions(TypedDict):
@@ -152,12 +152,12 @@ class TBuildConf(TypedDict):
     dist_dir: TPath
     launcher_name: str
     icon: TPath
-    target: list[TTarget]
+    target: List[TTarget]
     readme: TPath
     attachments: TAttachments
-    attachments_exclusions: tuple[TPath]
+    attachments_exclusions: Tuple[TPath]
     attachments_exist_scheme: Literal['error', 'override', 'skip']
-    module_paths: list[TPath]
+    module_paths: List[TPath]
     module_paths_scheme: Literal['translate', 'leave as-is']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
@@ -170,10 +170,10 @@ class TConf(TypedDict):
     app_name: str
     app_version: str
     description: str
-    authors: list[str]
+    authors: List[str]
     build: TBuildConf
     note: str
     pyportable_installer_version: str
 
 
-TPyFilesToCompile = list[tuple[TPath, TPath]]
+TPyFilesToCompile = List[Tuple[TPath, TPath]]

@@ -64,7 +64,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         # lk.logt('[D0510]', k, v)
         k = path_fmt(k)
         # noinspection PyUnresolvedReferences
-        v = v.split(',')  # type: list[str]
+        v = v.split(',')  # type: List[str]
         if v[-1].startswith('dist:'):
             assert len(v) > 1, (conf['build']['attachments'], k, v)
             path = path_fmt(v[-1].format(name=basename(k)))
@@ -107,7 +107,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     mode = conf['build']['venv']['mode']
     options = conf['build']['venv']['options'][mode]
     
-    def _load_requirements(req: Union[str, list[str]]):
+    def _load_requirements(req: Union[str, List[str]]):
         if isinstance(req, str):
             if req:
                 # FIXME: path_fmt must be 'abspath'
