@@ -94,7 +94,7 @@ class PyportableEncryptor(BaseCompiler):
                 )
             
             from .inject import inject
-        ''').format(gconf.python_version).strip()
+        ''').format(gconf.target_pyversion).strip()
         #   note: the pyversion check is copied from `sidework.generate
         #   _pyportable_crypto_trial_version.__generate__init__.<vars:code>`
         dumps(code, f'{dst_dir}/__init__.py')
@@ -138,9 +138,11 @@ class PyportableEncryptor(BaseCompiler):
             return encrypt_data
         
         # noinspection PyUnresolvedReferences
-        def _load_python39_encryption(dir_i):
+        def _load_prepared_encryption(dir_i):
+            """ Load a prepared encryption module from `dir_i`. """
             from secrets import token_hex
             token = 'x' + token_hex(15)
+            
             dir_x = f'{prj_model.temp_lib}/{token}'
             dir_o = f'{dir_x}/pyportable_crypto'
             #   notice: `dir_x` cannot be deleted by `pyportable_installer.main
@@ -153,7 +155,7 @@ class PyportableEncryptor(BaseCompiler):
             os.mkdir(dir_x)
             shutil.copytree(dir_i, dir_o)
             
-            # inspired by lk-lambdex
+            # inspired by `lk-lambdex` project
             __PYHOOK__ = {}
             exec(
                 dedent('''
@@ -199,19 +201,14 @@ class PyportableEncryptor(BaseCompiler):
             return _load_regular_encryption()
         
         elif self.mode == 'trial':
-            # notice: here we must use `~/pyportable_crypto_trial_python39`, do
-            # not use `prj_model.pyportable_crypto_trial` (TODO: to be explained)
-            return _load_python39_encryption(
-                dir_i=prj_model.accessory +
-                      '/pyportable_crypto_trial_python39/pyportable_crypto'
+            return _load_prepared_encryption(
+                dir_i=prj_model.pyportable_crypto_trial + '/pyportable_crypto'
             )
         
         else:  # self.mode == 'delegation'
             pyversion = loads(f'{self.__runtime_dir}/__pyversion__.txt').strip()
-            if pyversion == 'python39':
-                return _load_python39_encryption(
-                    dir_i=self.__runtime_dir
-                )
+            if pyversion == gconf.current_pyversion:
+                return _load_prepared_encryption(dir_i=self.__runtime_dir)
             else:
                 return _load_precompiled_encryption()
     
@@ -269,7 +266,7 @@ class PyportableRuntimeDelegator:
                     #   line breaks, adjust whitespaces, etc.), it will violate
                     #   `pyportable_runtime.inject.inject._validate_source_file`
                     self.__key = 'NO_NEED_TO_PASS_A_REAL_KEY'
-    
+                
                 def compile_all(self, pyfiles):
                     for i, o in pyfiles:
                         self.compile_one(i, o)
@@ -286,7 +283,7 @@ class PyportableRuntimeDelegator:
                     dumps(code, dst_file)
                     return dst_file
             
-                    
+            
             encryptor = PyportableEncryptorMini()
             encryptor.compile_all({pyfiles})
         """)
