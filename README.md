@@ -4,9 +4,9 @@
 > 
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
-> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip3.9 install pyportable-installer>=4.0.0b4` |
-> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | 23MB | [点我下载](https://likianta.lanzoui.com/iWrUgun7pdi) |
-> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | [点我下载](https://likianta.lanzoui.com/ikYzpun7p6b) |
+> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip install pyportable-installer>=4.0.0` |
+> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | TODO | [点我下载 (TODO)]() |
+> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | TODO | [点我下载 (TODO)]() |
 >
 > ![](./build/demo-20210929-111301.gif)
 
@@ -105,14 +105,14 @@
 通过 pip 安装:
 
 ```
-pip install pyportable-installer>=4.0.0b4
+pip install pyportable-installer>=4.0.0
 ```
 
 > 注意事项:
 > 
 > 1. pyportable-installer 最新发布版本仍处于 beta 阶段, 正式版预计于 2021 年 11 月之前发布
 > 2. 上代版本 (3.3.3 及以前) 已不推荐使用
-> 3. pyportable-installer 需要 Python 3.9 及以上的解释器运行. 使用 Python 3.8 及以下的 pip 安装会失败
+> 3. pyportable-installer 需要 Python 3.8 及以上的解释器运行
 
 下面以一个 "Hello World" 项目为例, 介绍具体的打包工作:
 

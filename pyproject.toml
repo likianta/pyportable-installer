@@ -1,6 +1,8 @@
+# Follow the guide of 'docs/devnote/pypi-publish-guide.md'.
+
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.0.0b6"
+version = "4.0.0"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"
