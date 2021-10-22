@@ -1,6 +1,6 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0b5-dist.29",
+  "app_version": "4.0.0-build.1",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
@@ -97,5 +97,5 @@
   "note": [
     "check './requirements_offline' latest"
   ],
-  "pyportable_installer_version": "4.0.0b5"
+  "pyportable_installer_version": "4.0.0"
 }
