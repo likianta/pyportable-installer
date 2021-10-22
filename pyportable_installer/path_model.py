@@ -5,7 +5,6 @@ from uuid import uuid1
 from lk_logger import lk
 from lk_utils.filesniff import normpath
 
-from .global_conf import gconf
 from ._env import ASSETS_ENTRY  # str['STANDALONE', 'PACKAGE']
 
 lk.logt('[D2952]', ASSETS_ENTRY)
@@ -72,49 +71,62 @@ class PyPortablePathModel:
     cythonize_required_packages_for_python3 = \
         f'{accessory}/cythonize_required_packages_for_python3.zip'
     
-    pyportable_crypto_trial = '/'.join((
-        accessory, f'pyportable_crypto_trial_{gconf.current_pyversion}',
-        'pyportable_crypto'
-    ))
-    
-    try:
-        import pyportable_crypto as _crypto
-        pyportable_crypto = xpath.dirname(_crypto.__file__)
-    except ImportError:
-        raise ImportError('Package not found: pyportable_crypto',
-                          '(tip: `pip install pyportable_crypto`)')
-    
     # --------------------------------------------------------------------------
     
     def build_dirs(self):
-        from os import mkdir
-        from os.path import exists
-        
         if ASSETS_ENTRY == 'STANDALONE':
-            assert exists(self.dist)
-            assert exists(self.lib)
-            assert exists(self.temp_lib)
-            assert exists(self.temp)
+            assert xpath.exists(self.dist)
+            assert xpath.exists(self.lib)
+            assert xpath.exists(self.temp_lib)
+            assert xpath.exists(self.temp)
         else:
-            if not exists(self.prj_root):
-                mkdir(self.prj_root)
-                mkdir(self.dist)
-                mkdir(self.lib)
-                mkdir(self.temp_lib)
-                mkdir(self.temp)
+            if not xpath.exists(self.prj_root):
+                os.mkdir(self.prj_root)
+                os.mkdir(self.dist)
+                os.mkdir(self.lib)
+                os.mkdir(self.temp_lib)
+                os.mkdir(self.temp)
         
-        if not exists(self.temp_lib):
-            mkdir(self.temp_lib)
+        if not xpath.exists(self.temp_lib):
+            os.mkdir(self.temp_lib)
         elif os.listdir(self.temp_lib):
             from shutil import rmtree
             rmtree(self.temp_lib)
-            mkdir(self.temp_lib)
+            os.mkdir(self.temp_lib)
     
     def create_temp_dir(self):
         _temp_dir = f'{self.temp}/{uuid1()}'
         lk.loga('make temporary dir', _temp_dir)
         os.mkdir(_temp_dir)
         return _temp_dir
+    
+    def get_pyportable_crypto_trial_package(
+            self, pyversion, assert_exists=True
+    ):
+        out = '/'.join((
+            self.accessory,
+            f'pyportable_crypto_trial_{pyversion}',
+            'pyportable_crypto'
+        ))
+        if assert_exists:
+            assert xpath.exists(out), '''
+                Currently your requested [python_version][1] is not on the
+                [supported trial-list][2].
+                Please try the following options to resolve your problem:
+                    a) Prompt your requested python_version to "3.8" or "3.9";
+                    b) Use a custom pyportable_crypto key instead of trial key;
+                       Note: you need to install Microsoft Visual Studio C++
+                             Build Tools (2019) on your system.
+                    c) Contact pyportable_installer project owner to extend
+                       trial keys for requested [python_version][1].
+                
+                [1]: {0}
+                [2]: {1}
+            '''.format(
+                pyversion,
+                f'{self.accessory}/pyportable_crypto_trial_*'
+            )
+        return out
 
 
 class SourcePathModel:

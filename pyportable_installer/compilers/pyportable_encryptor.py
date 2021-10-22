@@ -41,16 +41,10 @@ class PyportableEncryptor(BaseCompiler):
             key = token_hex(32)
         lk.logt('[D2858]', key)
         
-        if mode == 'trial':
-            lk.logt(
-                '[I3130]', 'note: the PyportableEncryptor is running under '
-                           'trial mode, the `key` attribute is invalid.'
-            )
-        elif mode == 'delegation':
-            lk.logt(
-                '[I3131]', 'note: the PyportableEncryptor is running under '
-                           'delegation mode, the `key` attribute is invalid.'
-            )
+        if mode in ('trial', 'delegation'):
+            lk.logt('[I2834]',
+                    'note: PyportableEncryptor is running under "{}" mode, the '
+                    '`key` attribute is invalid.'.format(mode))
         
         # assignments
         self.mode = mode
@@ -66,62 +60,94 @@ class PyportableEncryptor(BaseCompiler):
         self._encrypt_data = self._load_encryption_func()
     
     def _generate_runtime_lib(self):
-        # 1.
-        src_dir = prj_model.pyportable_crypto
-        tmp_dir = prj_model.temp
-        dst_dir = dst_model.lib + '/pyportable_runtime'
-        
-        # 2. create '__init__.py' for `pyportable_runtime`
-        os.mkdir(dst_dir)
-        # # code = 'from .inject import inject'
-        code = dedent('''
-            import sys
-            
-            current_pyversion = "python{{}}{{}}".format(
-                sys.version_info.major, sys.version_info.minor
-            )
-            target_pyversion = "{0}"
-            if current_pyversion != target_pyversion:
-                raise Exception(
-                    "Python interpreter version doesn't matched!",
-                    "Required: {{}}, got {{}} ({{}})".format(
-                        target_pyversion, current_pyversion, sys.executable
+        def _gen_init_dot_py():
+            # # code = 'from .inject import inject'
+            code = dedent('''
+                try:
+                    import sys
+                    
+                    current_pyversion = "python{{}}{{}}".format(
+                        sys.version_info.major, sys.version_info.minor
                     )
-                )
-            
-            from .inject import inject
-        ''').format(gconf.target_pyversion).strip()
-        #   note: the pyversion check is copied from `sidework.generate
-        #   _pyportable_crypto_trial_version.__generate__init__.<vars:code>`
-        dumps(code, f'{dst_dir}/__init__.py')
+                    
+                    target_pyversion = "{0}"
+                    
+                    if current_pyversion != target_pyversion:
+                        raise Exception(
+                            "Python interpreter version doesn't matched!",
+                            "Required: {{}}, got {{}} ({{}})".format(
+                                target_pyversion,
+                                current_pyversion,
+                                sys.executable
+                            )
+                        )
+                except Exception as e:
+                    raise e
+                else:
+                    del sys
+                
+                from .inject import inject
+            ''').format(gconf.target_pyversion).strip()
+            #   note: this code template is copied from `sidework.generate
+            #   _pyportable_crypto_trial_version.__generate__init__.<vars:code>`
+            dumps(code, f'{dst_dir}/__init__.py')
         
-        # 3.
-        if self.mode == 'trial':
+        def _gen_regular_lib():
+            try:
+                import pyportable_crypto as _crypto
+                pyportable_crypto_dir = os.path.dirname(_crypto.__file__)
+            except ImportError:
+                raise ImportError('Package not found: pyportable_crypto',
+                                  '(tip: `pip install pyportable_crypto`)')
+            else:
+                del _crypto
+    
+            src_dir = pyportable_crypto_dir
+            tmp_dir = prj_model.temp
+            
+            # 4. generate temporary 'inject.py' in tmp_dir
+            code = loads(f'{src_dir}/inject.py')
+            code = code.replace('{KEY}', self.__key)  # FIXME
+            #   tested on pyportable-crypto v0.1.0, 0.1.1, 0.2.0, 0.2.1
+            dumps(code, tmp_file := f'{tmp_dir}/inject.py')
+            
+            # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
+            compiler = CythonCompiler(gconf.full_python)
+            compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
+            
+            # 6. cleanup tmp_dir
+            compiler.cleanup()
+            os.remove(tmp_file)
+        
+        def _gen_trial_lib():
             shutil.copyfile(
-                prj_model.pyportable_crypto_trial + '/inject.pyd',
+                prj_model.get_pyportable_crypto_trial_package(
+                    gconf.target_pyversion) + '/inject.pyd',
                 f'{dst_dir}/inject.pyd'
             )
-            return
-        elif self.mode == 'delegation':
+        
+        def _gen_prebaked_lib():
             #   this is an experimental feature. see source from
             #   `pyportable_installer.main_flow.step1.indexing_paths
             #   .indexing_paths > the end of lines in the function`
             shutil.copytree(self.__runtime_dir, dst_dir, dirs_exist_ok=True)
-            return
         
-        # 4. generate temporary 'inject.py' in tmp_dir
-        code = loads(f'{src_dir}/inject.py')
-        code = code.replace('{KEY}', self.__key)  # FIXME
-        #   tested on pyportable-crypto v0.1.0, 0.1.1, 0.2.0, 0.2.1
-        dumps(code, tmp_file := f'{tmp_dir}/inject.py')
+        # ----------------------------------------------------------------------
         
-        # 5. cythonize from tmp_dir/~.py to dst_dir/~.pyd
-        compiler = CythonCompiler(gconf.full_python)
-        compiler.compile_one(tmp_file, f'{dst_dir}/inject.pyd')
+        # 1. create destination dir
+        dst_dir = dst_model.lib + '/pyportable_runtime'
+        os.mkdir(dst_dir)
         
-        # 6. cleanup tmp_dir
-        compiler.cleanup()
-        os.remove(tmp_file)
+        # 2. create '__init__.py' in `pyportable_runtime`
+        _gen_init_dot_py()
+        
+        # 3. generate runtime lib
+        if self.mode == 'trial':
+            _gen_trial_lib()
+        elif self.mode == 'delegation':
+            _gen_prebaked_lib()
+        else:
+            _gen_regular_lib()
     
     def _load_encryption_func(self):
         def _load_regular_encryption():
@@ -166,14 +192,14 @@ class PyportableEncryptor(BaseCompiler):
             )
             pyportable_crypto = __PYHOOK__['mod']
             # del __PYHOOK__
-
+            
             # lk.logt('[D2009]', dir_i)
             lk.logt('[D4704]',
                     pyportable_crypto.__version__,
                     pyportable_crypto.__file__)
             return pyportable_crypto.encrypt_data
         
-        def _load_precompiled_encryption():
+        def _load_delegated_encryption():
             lk.logt('[W2908]', '(experimental feature)',
                     'using PyportableRuntimeDelegator to process external '
                     'precompiled pyportable_runtime')
@@ -196,25 +222,13 @@ class PyportableEncryptor(BaseCompiler):
             return _load_regular_encryption()
         
         elif self.mode == 'trial':
-            assert os.path.exists(prj_model.pyportable_crypto_trial), '''
-                Currently your requested [python_version][1] is not on the
-                [supported trial-list][2].
-                Please try the following options to resolve your problem:
-                    a) Prompt your requested python_version to "3.8" or "3.9";
-                    b) Use a custom pyportable_crypto key instead of trial key;
-                       Note: you need to install Microsoft Visual Studio C++
-                             Build Tools (2019) on your system.
-                    c) Contact pyportable_installer project owner to extend
-                       trial keys for requested [python_version][1].
-                
-                [1]: {0}
-                [2]: {1}
-            '''.format(
-                gconf.current_pyversion,
-                f'{prj_model.accessory}/pyportable_crypto_trial_*'
-            )
+            # TODO: to be explained
+            #   note that here we pass `gconf.current_pyversion` instead of
+            #   `gconf.target_pyversion` to simplify procedures.
             return _load_prepared_encryption(
-                dir_i=prj_model.pyportable_crypto_trial
+                dir_i=prj_model.get_pyportable_crypto_trial_package(
+                    gconf.current_pyversion
+                )
             )
         
         else:  # self.mode == 'delegation'
@@ -222,7 +236,7 @@ class PyportableEncryptor(BaseCompiler):
             if pyversion == gconf.current_pyversion:
                 return _load_prepared_encryption(dir_i=self.__runtime_dir)
             else:
-                return _load_precompiled_encryption()
+                return _load_delegated_encryption()
     
     def compile_all(self, pyfiles):
         with lk.counting(len(pyfiles)):
