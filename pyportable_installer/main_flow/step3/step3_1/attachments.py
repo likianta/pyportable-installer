@@ -1,7 +1,5 @@
-from os import mkdir
-from os import remove
-from os.path import exists
-from os.path import isfile
+import os
+from os import path as xpath
 from shutil import copyfile
 
 from lk_logger import lk
@@ -49,12 +47,15 @@ def _handle_file_exists(file_o, scheme=''):
     if scheme == 'error':
         raise FileExistsError(file_o)
     elif scheme == 'override':
-        remove(file_o)
+        os.remove(file_o)
         return 'go_on'
     elif scheme == 'skip':
         return 'done'
     else:
         raise Exception('Unknown scheme', scheme)
+
+
+_created_dirs = set()
 
 
 def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]:
@@ -86,6 +87,8 @@ def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]
     Yields:
         Tuple[src_pyfile, dst_pyfile]
     """
+    global _created_dirs
+    
     for k, v in attachments.items():
         path_i = k
         path_o = v['path'] or src_2_dst(path_i)
@@ -98,11 +101,14 @@ def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]
         #   True: yield pyfile; False: just copy pyfile
         
         # 1. `path_i` is file
-        if 'asset' in marks or isfile(path_i):
+        if 'asset' in marks or xpath.isfile(path_i):
             if attachments_exclusions_handler.monitor_transferring(
                     '', path_i, 'file') is False:
-                lk.logt('[D4756]', 'the file is in conclusion list', path_i)
+                lk.logt('[D4756]', 'the file is in exclusion list', path_i)
             else:
+                if (d := xpath.dirname(path_o)) not in _created_dirs:
+                    os.makedirs(d, exist_ok=True)
+                    _created_dirs.add(d)
                 if is_yield_pyfile:
                     yield from _handle_compile(path_i, path_o)
                 else:
@@ -112,13 +118,16 @@ def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]
         # 2. `path_i` is dir
         dir_i = path_i
         dir_o = path_o
+        if dir_o not in _created_dirs:
+            os.makedirs(dir_o, exist_ok=True)
+            _created_dirs.add(dir_o)
         
         if attachments_exclusions_handler.monitor_transferring(
                 '', dir_i, 'dir') is False:
-            lk.logt('[D4757]', 'the file is in conclusion list', dir_i)
+            lk.logt('[D4757]', 'the directory is in exclusion list', dir_i)
             continue
-        if not exists(dir_o):
-            mkdir(dir_o)
+        if not xpath.exists(dir_o):
+            os.mkdir(dir_o)
         
         if 'root_assets' in marks:
             if is_yield_pyfile:
@@ -150,8 +159,8 @@ def _handle_assets(dir_i, dir_o):
     _handle_root_assets(dir_i, dir_o)
     for dp, dn in find_dirs(dir_i):
         subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
-        mkdir(subdir_o)
-        # # if not exists(subdir_o): mkdir(subdir_o)
+        os.mkdir(subdir_o)
+        # # if not xpath.exists(subdir_o): mkdir(subdir_o)
         _handle_assets(subdir_i, subdir_o)
 
 
@@ -165,7 +174,7 @@ def _handle_assets_and_compile(dir_i, dir_o):
     yield from _handle_root_assets_and_compile(dir_i, dir_o)
     for dp, dn in find_dirs(dir_i):
         subdir_i, subdir_o = dp, f'{dir_o}/{dn}'
-        if not exists(subdir_o): mkdir(subdir_o)
+        if not xpath.exists(subdir_o): os.mkdir(subdir_o)
         yield from _handle_assets_and_compile(subdir_i, subdir_o)
 
 
@@ -173,7 +182,7 @@ def _handle_root_assets_and_compile(dir_i, dir_o):
     for fp, fn in find_files(dir_i):
         file_i, file_o = fp, f'{dir_o}/{fn}'
         if fn.endswith('.py'):  # TODO: ~.endswith(('.py', '.pyw', ...))
-            if exists(file_o) and _handle_file_exists(file_o) == 'done':
+            if xpath.exists(file_o) and _handle_file_exists(file_o) == 'done':
                 continue
             yield file_i, file_o  # MARK: 20210913113649
         else:
@@ -189,8 +198,8 @@ def _handle_only_folders(dir_i, dir_o):
 
 # noinspection PyUnusedLocal
 def _handle_only_folder(dir_i, dir_o):
-    if not exists(dir_o):
-        mkdir(dir_o)
+    if not xpath.exists(dir_o):
+        os.mkdir(dir_o)
 
 
 def _handle_asset(file_i, file_o):
@@ -200,6 +209,6 @@ def _handle_asset(file_i, file_o):
 # noinspection PyUnusedLocal
 def _handle_compile(file_i, file_o):
     assert file_i.endswith('.py')
-    if exists(file_o) and _handle_file_exists(file_o) == 'done':
+    if xpath.exists(file_o) and _handle_file_exists(file_o) == 'done':
         return
     yield file_i, file_o  # MARK: 20210913113657

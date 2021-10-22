@@ -20,7 +20,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
             - Callable: receives one argument as path_i, returns path_o. the
                 typical pattern is: `lambda path_i: path_o`.
     """
-    interpolations = {
+    placeholders = {
         'app_name'      : conf['app_name'],
         'app_name_lower': conf['app_name'].lower().replace(' ', '_'),
         'app_version'   : conf['app_version'],
@@ -31,11 +31,11 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     )
     
     conf['build']['dist_dir'] = path_fmt(
-        conf['build']['dist_dir'].format(**interpolations)
+        conf['build']['dist_dir'].format(**placeholders)
     )
     
     conf['build']['launcher_name'] = (
-        conf['build']['launcher_name'].format(**interpolations)
+        conf['build']['launcher_name'].format(**placeholders)
     )
     
     conf['build']['icon'] = path_fmt(
@@ -55,8 +55,8 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     # --------------------------------------------------------------------------
     
     # note: `conf['build']['attachments']` and `conf['build']['module_paths']`
-    # may include keyword `dist:xxx`, it requires `path_fmt.dir_o` provided. so
-    # here we must make sure `path_fmt.dir_o` to be defined.
+    # may include keyword `dist:xxx`, it requires `path_fmt.dir_o`. so here we
+    # must make sure `path_fmt.dir_o` has been defined.
     path_fmt.dir_o = conf['build']['dist_dir']
     
     temp0 = {}  # type: TAttachments
@@ -66,7 +66,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         # noinspection PyUnresolvedReferences
         v = v.split(',')  # type: List[str]
         if v[-1].startswith('dist:'):
-            assert len(v) > 1, (conf['build']['attachments'], k, v)
+            assert len(v) > 1, ((k, v), conf['build']['attachments'])
             path = path_fmt(v[-1].format(name=basename(k)))
             temp0[k] = {'marks': tuple(v[:-1]), 'path': path}
         else:
@@ -124,7 +124,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
             return req
     
     if mode == 'depsland':
-        options['venv_name'] = options['venv_name'].format(**interpolations)
+        options['venv_name'] = options['venv_name'].format(**placeholders)
         if options['venv_id'] in ('', '_random'):
             options['venv_id'] = str(uuid1()).replace('-', '')
         options['requirements'] = _load_requirements(options['requirements'])
