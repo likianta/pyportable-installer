@@ -5,10 +5,10 @@ from lk_logger import lk
 from pyportable_installer import full_build
 
 
-def main(full_version=False):
-    _precheck(full_version)
+def main(full_pack=False):
+    _precheck(full_pack)
     
-    if full_version:
+    if full_pack:
         conf = full_build('pyproject.json', {
             'build': {
                 'attachments': {
@@ -29,7 +29,19 @@ def main(full_version=False):
     else:
         conf = full_build('pyproject.json')  # dist size: ~10MB
         
-    if full_version:
+    if not full_pack:
+        # generate notice file indicates to downloading depsland.
+        from lk_utils import dumps
+        from textwrap import dedent
+        dumps(dedent('''
+            Before you run "setup.bat", please make sure you have installed
+            "depsland" software in your computer.
+
+            Depsland download page:
+                https://github.com/likianta/depsland/releases/tag/v0.3.1
+        ''').strip(), conf['build']['dist_dir'] + '/notice.txt')
+    
+    if full_pack:
         os.rename(conf['build']['dist_dir'],
                   conf['build']['dist_dir'] + '-win64-full')
     else:
@@ -37,8 +49,8 @@ def main(full_version=False):
                   conf['build']['dist_dir'] + '-win64-standard')
 
 
-def _precheck(full_version):
-    if full_version:
+def _precheck(full_pack):
+    if full_pack:
         assert len(os.listdir('./requirements_offline')) > 1, '''
             The offline packages are not downloaded, please run the following
             commands:
@@ -54,5 +66,5 @@ def _precheck(full_version):
 
 
 if __name__ == '__main__':
-    main(full_version=False)
-    main(full_version=True)
+    main(full_pack=False)
+    main(full_pack=True)

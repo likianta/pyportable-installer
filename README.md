@@ -5,8 +5,8 @@
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
 > | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip install pyportable-installer>=4.0.0` |
-> | 独立免安装版 (标准版) | 用户下载后解压即可使用, 无需 Python 开发环境, 安装过程需要联网 | TODO | [点我下载 (TODO)]() |
-> | 独立免安装版 (完整版) | 用户下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | TODO | [点我下载 (TODO)]() |
+> | 独立免安装版 (标准版) | 用户电脑上需预先安装 [Depsland][1] 软件, 安装过程需要联网 | 4.5MB | 见本项目 Release 页面 |
+> | 独立免安装版 (完整版) | 该压缩包内置了 [Depsland][1]. 下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | 见本项目 Release 页面 |
 >
 > ![](./build/demo-20210929-111301.gif)
 
@@ -51,7 +51,7 @@
 
 6.  不破坏相对路径. 在打包后的 `src` 目录下, 所有文件夹仍然维持着原项目的目录结构. 程序在启动时会将工作目录切换到启动脚本所在的目录, 这意味着您在原项目中所使用的相对路径, 在打包后仍然保持一致
 
-7.  摆脱虚拟环境 (该特性仍处于实验阶段). 您可以在 配置文件/虚拟环境配置项 中启用 "[depsland](https://github.com/likianta/depsland)" 选项, 客户端在安装 depsland 软件后, 运行您发布的程序时会自动部署依赖, 这样真正做到打包体积控制, 加快分发并减轻用户下载负担
+7.  摆脱虚拟环境 (该特性仍处于实验阶段). 您可以在 配置文件/虚拟环境配置项 中启用 "[depsland][1]" 选项, 客户端在安装 depsland 软件后, 运行您发布的程序时会自动部署依赖, 这样真正做到打包体积控制, 加快分发并减轻用户下载负担
 
 8.  *无痛更新 (该特性将在后续版本提供). 双击软件目录下的 `checkup/update.pyd` 即可获取软件的最新版本*
 
@@ -379,7 +379,7 @@ png_2_ico.dialog()
 
 pyportable-installer 以插件的方式集成了多个编译器支持. 您可以在 `配置文件:compiler:name` 中选择合适的加密方案.
 
-完整的支持列表和各编译器差异可在手册 (TODO) 中查询. 开发者也可以定义自己的编译器来保障安全 (需要继承 `pyportable_installer.compilers.base_compiler.BaseCompiler`).
+完整的支持列表和各编译器差异可在手册 (*TODO*) 中查询. 开发者也可以定义自己的编译器来保障安全 (需要继承 `pyportable_installer.compilers.base_compiler.BaseCompiler`).
 
 这里简要介绍下推荐的编译器:
 
@@ -399,8 +399,11 @@ pyportable-crypto 使用随机步骤生成器产生一个密钥机, 再将密钥
 
 ## 虚拟环境各个配置方案的区别, 我该如何选择?
 
-TODO
+*TODO*
 
-**[depsland](https://github.com/likianta/depsland)**
+**[depsland][2]**
 
-TODO
+*TODO*
+
+[1]: https://github.com/likianta/depsland/releases
+[2]: https://github.com/likianta/depsland

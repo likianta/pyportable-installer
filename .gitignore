@@ -1,7 +1,7 @@
 # Project exclude paths
 /.idea/
 /dist/[^.]*
-/examples/dist_pyportable_itself/requirements_offline/[^.]*
+/examples/dist_pyportable_itself/requirements_offline/*.whl
 /history/
 /lib/[^.]*
 /lib/temp_lib/[^.]*

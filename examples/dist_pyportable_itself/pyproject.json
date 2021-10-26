@@ -1,6 +1,6 @@
 {
   "app_name": "PyPortable Installer",
-  "app_version": "4.0.0-build.1",
+  "app_version": "4.0.1",
   "description": "",
   "authors": [
     "Likianta <likianta@foxmail.com>"
@@ -33,7 +33,7 @@
     "module_paths_scheme": "translate",
     "venv": {
       "enable_venv": true,
-      "python_version": "3.9",
+      "python_version": "3.8",
       "mode": "depsland",
       "options": {
         "depsland": {
@@ -97,5 +97,5 @@
   "note": [
     "check './requirements_offline' latest"
   ],
-  "pyportable_installer_version": "4.0.0"
+  "pyportable_installer_version": "4.0.1"
 }
