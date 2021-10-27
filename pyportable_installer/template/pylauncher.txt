@@ -96,7 +96,7 @@ def launch(main_func, *args, **kwargs):
     except Exception:
         _show_error_info(traceback.format_exc())
     finally:
-        input('Press enter or close the window to leave...')
+        input('Press enter to leave...')
         sys.exit()
 
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     except Exception:
         _show_error_info(traceback.format_exc())
-        input('Press enter or close the window to leave...')
+        input('Press enter to leave...')
 
     # finally:
     #     if lk:
