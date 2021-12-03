@@ -56,9 +56,9 @@ def main(conf: TConf):
 
 
 def _precheck(conf: TConf):
-    assert not exists(conf['build']['dist_dir']), (
-        'The target distribution directory already exists, please appoint '
-        'another (non-existent) folder to distribute.'
+    assert not exists(d := conf['build']['dist_dir']), (
+        'The target distribution directory ({}) already exists, please appoint '
+        'another (non-existent) folder to distribute.'.format(d)
     )
     
     paths_not_exist = []

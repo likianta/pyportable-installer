@@ -21,9 +21,10 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
                 typical pattern is: `lambda path_i: path_o`.
     """
     placeholders = {
-        'app_name'      : conf['app_name'],
-        'app_name_lower': conf['app_name'].lower().replace(' ', '_'),
-        'app_version'   : conf['app_version'],
+        'app_name'       : conf['app_name'],
+        'app_name_lower' : conf['app_name'].lower().replace(' ', '_'),
+        'app_name_hyphen': conf['app_name'].lower().replace(' ', '-'),
+        'app_version'    : conf['app_version'],
     }
     
     conf['build']['proj_dir'] = path_fmt(
@@ -73,7 +74,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
             temp0[k] = {'marks': tuple(v), 'path': ''}
     conf['build']['attachments'] = temp0
     del temp0
-
+    
     # noinspection PyTypedDict
     conf['build']['attachments_exclusions'] = tuple(
         map(path_fmt, conf['build']['attachments_exclusions'])
@@ -138,7 +139,7 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         options['path'] = path_fmt(options['path'])
     else:
         raise ValueError(mode)
-
+    
     # --------------------------------------------------------------------------
     # build:compiler
     
