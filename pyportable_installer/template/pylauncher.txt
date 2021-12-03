@@ -41,7 +41,7 @@ if add_pywin32_support:
         #      -importerror-dll-load-failed-while-importing-win32api
         #      (see comment from @ocroquette)
         import pywin32_system32
-        _pywin32_dir = pywin32_system32.__path__._path[0]
+        _pywin32_dir = pywin32_system32.__path__._path[0]  # noqa
         # -> ~/lib/site-packages/pywin32_system32
         os.add_dll_directory(_pywin32_dir)
         #   FIXME: this function is introduced since python 3.8.
@@ -59,35 +59,32 @@ if add_pywin32_support:
 # ------------------------------------------------------------------------------
 
 def parse_target_conf(args):
-    if len(args) == 2 and args[1].endswith('.exe'):
-        args.pop(1)
+    assert len(args) >= 2, ('Invalid args format', args)
+    #   the first arg is python filename to launch, the second is preset
+    #   configuration file (i.e. which we want to parse in this function.)
 
-    if len(args) == 0:
-        raise Exception(args)
-    elif len(args) == 1:
-        conf = './.pylauncher_conf/main.pkl'
-        #   see `pyportable_installer.main_flow.step3.step3_3.create_launcher
-        #       ._create_launcher > vars:conf_name`
-    elif len(args) == 2:
-        conf = args[1]
-    else:
-        # TODO: see https://www.cnblogs.com/techflow/p/13631509.html
-        # from argparse import ArgumentParser
-        # parser = ArgumentParser()
-        # parser.add_argument('file')
-        # parser.add_argument('...')
-        raise NotImplemented('PyPortable-Installer doesn\'t support parsing '
-                             'custom `sys.argv` for now', args)
-    if conf.endswith('.json'):
+    def _remove_exe_file_from_args():
+        target_exe_dir = os.path.dirname(os.getcwd())
+        if (len(args) > 2
+                and args[2].endswith('.exe')
+                and os.path.dirname(args[2]) == target_exe_dir):
+            args.pop(2)
+
+    _remove_exe_file_from_args()
+
+    conf_file = args.pop(1)
+    assert conf_file.endswith(('.json', '.pkl')), (
+        'Unknown file type to load config!', conf_file
+    )
+
+    if conf_file.endswith('.json'):
         from json import load
-        with open(conf, 'r', encoding='utf-8') as f:
-            return load(f)
-    elif conf.endswith('.pkl'):
-        from pickle import load
-        with open(conf, 'rb') as f:
+        with open(conf_file, 'r', encoding='utf-8') as f:
             return load(f)
     else:
-        raise Exception('Unknown file type to load config!', conf)
+        from pickle import load
+        with open(conf_file, 'rb') as f:
+            return load(f)
 
 
 def launch(main_func, *args, **kwargs):
@@ -95,9 +92,8 @@ def launch(main_func, *args, **kwargs):
         main_func(*args, **kwargs)
     except Exception:
         _show_error_info(traceback.format_exc())
-    finally:
         input('Press enter to leave...')
-        sys.exit()
+    sys.exit()
 
 
 def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):

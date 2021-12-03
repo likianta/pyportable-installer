@@ -2,6 +2,7 @@
 # note: don't forget to update '~/examples/dist_pyportable_itself/requirements_offline' manually.
 cython
 embed-python-manager
+fire
 lk-logger
 lk-utils
 pyarmor

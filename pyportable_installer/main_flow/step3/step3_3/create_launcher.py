@@ -194,7 +194,7 @@ def _create_launcher(
     
     _generate_target_conf(target)
     _generate_pylauncher(module_paths, module_paths_scheme)
-    _generate_bat(is_main_entry, options.get('enable_venv', True))
+    _generate_bat(options.get('enable_venv', True))
     if options.get('generate_exe', True):
         _generate_exe(icon, options.get('enable_console', True))
         return _abs_paths['exe_file']
@@ -300,7 +300,7 @@ def _generate_pylauncher(module_paths, module_paths_scheme, **options):
         f.write(code)
 
 
-def _generate_bat(is_main_entry, enable_venv):
+def _generate_bat(enable_venv):
     with ropen(prj_model.launch_bat) as f:
         template = f.read()
         
@@ -313,7 +313,7 @@ def _generate_bat(is_main_entry, enable_venv):
                 #   :generate launcher`
                 PYLAUNCHER='../../' + _rel_paths['launch_file'],
                 #   TODO: to be explained (why we use '../../')
-                PYCONF='%*' if is_main_entry else _rel_paths['conf_file']
+                PYCONF=_rel_paths['conf_file']
             )
             #   '%*' supports passing multiple arguments to python. for
             #   example:
@@ -330,13 +330,13 @@ def _generate_bat(is_main_entry, enable_venv):
             code = template.format(
                 PYTHON=_rel_paths['venv_python'].replace('/', '\\'),
                 PYLAUNCHER=_rel_paths['launch_file'],
-                PYCONF='%*' if is_main_entry else _rel_paths['conf_file']
+                PYCONF=_rel_paths['conf_file']
             )
         else:
             code = template.format(
                 PYTHON=gconf.full_python,
                 PYLAUNCHER=_rel_paths['launch_file'],
-                PYCONF='%*' if is_main_entry else _rel_paths['conf_file']
+                PYCONF=_rel_paths['conf_file']
             )
     
     with wopen(_abs_paths['bat_file']) as f:
