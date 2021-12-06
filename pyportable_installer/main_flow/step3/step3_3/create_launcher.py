@@ -73,8 +73,8 @@ def create_launcher(build: TBuildConf):
     # --------------------------------------------------------------------------
     
     deduplicator = LauncherNamesDeduplicator(build['launcher_name'])
-    kwargs_part_a = {}
-    kwargs_part_b = {
+    kwargs_part_a = {}  # dynamic
+    kwargs_part_b = {  # static
         'add_pywin32_support': build[
             'experimental_features']['add_pywin32_support'],
         'enable_console'     : build['enable_console'],
@@ -162,7 +162,7 @@ def _create_launcher(
         venv_python: str
     """
     launcher_name = name
-    conf_name = 'main' if is_main_entry else token_hex(16)
+    conf_name = '__main__' if is_main_entry else token_hex(16)
     
     global _abs_paths, _rel_paths
     
@@ -194,7 +194,8 @@ def _create_launcher(
     
     _generate_target_conf(target)
     _generate_pylauncher(module_paths, module_paths_scheme)
-    _generate_bat(options.get('enable_venv', True))
+    # # _generate_bat(options.get('enable_venv', True))
+    _generate_shell(gconf.system, enable_venv=options.get('enable_venv', True))
     if options.get('generate_exe', True):
         _generate_exe(icon, options.get('enable_console', True))
         return _abs_paths['exe_file']
@@ -298,6 +299,19 @@ def _generate_pylauncher(module_paths, module_paths_scheme, **options):
     
     with wopen(_abs_paths['launch_file']) as f:
         f.write(code)
+        
+        
+def _generate_shell(system, **kwargs):
+    if system == 'windows':
+        _generate_bat(**kwargs)
+    elif system == 'linux':  # TEST
+        template = loads(prj_model.template + '/launch.sh')
+        code = template.format(PYTHON='python3', PYCONF=_rel_paths['conf_file'])
+        dumps(code, _abs_paths['launch_file'].replace('.exe', '.sh'))
+    elif system == 'macos':
+        raise NotImplemented()
+    else:
+        raise Exception()
 
 
 def _generate_bat(enable_venv):
@@ -315,17 +329,6 @@ def _generate_bat(enable_venv):
                 #   TODO: to be explained (why we use '../../')
                 PYCONF=_rel_paths['conf_file']
             )
-            #   '%*' supports passing multiple arguments to python. for
-            #   example:
-            #       example.bat:
-            #           python test.py %*
-            #       test.py
-            #           import sys
-            #           print(sys.argv)
-            #       cmd:
-            #           example.bat hello world 1 2 3
-            #       output in console:
-            #           ['test.py', 'hello', 'world', '1', '2', '3']
         elif enable_venv:
             code = template.format(
                 PYTHON=_rel_paths['venv_python'].replace('/', '\\'),

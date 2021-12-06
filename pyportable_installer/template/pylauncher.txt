@@ -58,7 +58,7 @@ if add_pywin32_support:
 
 # ------------------------------------------------------------------------------
 
-def parse_target_conf(args):
+def _parse_target_conf(args):
     assert len(args) >= 2, ('Invalid args format', args)
     #   the first arg is python filename to launch, the second is preset
     #   configuration file (i.e. which we want to parse in this function.)
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     #     lk = None
 
     try:
-        conf = parse_target_conf(sys.argv)
+        conf = _parse_target_conf(sys.argv)
         # from lk_logger import lk
         # lk.logp(conf)
 
