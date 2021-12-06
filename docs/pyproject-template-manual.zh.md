@@ -1,52 +1,87 @@
-# Pyproject Template
+# 项目配置手册
 
 本手册将帮助您完成创建 pyproject 项目配置文件.
 
-# 快速开始
+## 快速开始
 
-复制下面的模板, 保存为一个 'pyproject.json' 文件:
+复制 [pyproject.json](../pyportable_installer/template/pyproject.json) 模板文件到您的项目下, 并在此基础上修改.
 
-```json
+## 字段说明
+
+```json5
 {
+    // 应用名称
+    // - 名称建议使用正常的大小写格式
+    // - 中英文不限
+    // - 该名称将作为最终生成的应用的启动器名称, 相关见 `build.launcher_name` 字段
+    // - 请勿使用文件名所不允许的字符
+    // - 示例: "Hello World"
     "app_name": "",
+    
+    // 应用版本
+    // - 版本号遵循语义版本号规范, 请参考 https://semver.org/lang/zh-CN/
+    // - 版本号推荐的格式为 `<major>.<minor>.<patch>`
+    // - 初始版本号为 `0.1.0`
     "app_version": "0.1.0",
+    
+    // 应用描述
     "description": "",
-    "author": "",
+    
+    "authors": [],
     "build": {
         "proj_dir": "",
         "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "launcher_name": "{app_name}",
         "icon": "",
-        "target": {
-            "file": "",
-            "function": "main",
-            "args": [],
-            "kwargs": {}
-        },
-        "readme": "README.md",
+        "target": [
+            {
+                "file": "",
+                "function": "main",
+                "args": [],
+                "kwargs": {}
+            }
+        ],
+        "readme": "",
         "attachments": {},
+        "attachments_exclusions": [],
+        "attachments_exist_scheme": "override",
         "module_paths": [],
+        "module_paths_scheme": "translate",
+        "platform": "system_default",
         "venv": {
             "enable_venv": true,
-            "python_version": "",
+            "python_version": "3.10",
             "mode": "source_venv",
             "options": {
                 "depsland": {
-                    "requirements": []
+                    "venv_name": "{app_name_lower}_venv",
+                    "venv_id": "",
+                    "requirements": [],
+                    "offline": false,
+                    "local": ""
                 },
                 "source_venv": {
-                    "path": ""
+                    "path": "",
+                    "copy_venv": true
                 },
                 "pip": {
                     "requirements": [],
                     "pypi_url": "https://pypi.python.org/simple/",
-                    "local": "",
-                    "offline": false
+                    "offline": false,
+                    "local": ""
+                },
+                "embed_python": {
+                    "path": ""
                 }
             }
         },
         "compiler": {
-            "name": "pyarmor",
+            "name": "pyportable_crypto",
             "options": {
+                "cythonize": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
@@ -54,66 +89,96 @@
                 "pyc": {
                     "optimize_level": 0
                 },
-                "zipimp": {
+                "pyportable_crypto": {
+                    "license": "trial",
+                    "key": "",
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
+                "zipapp": {
                     "password": ""
                 }
             }
         },
+        "experimental_features": {
+            "add_pywin32_support": false
+        },
         "enable_console": true
     },
-    "note": ""
+    "note": "",
+    "pyportable_installer_version": "4.1.0"
 }
 ```
 
-*注: 该配置模板来自 `pyportable_installer/template/pyproject.json`*.
+--------------------------------------------------------------------------------
 
-# 字段说明
+<font color="red">下方内容将被尽数移除!</font>
 
-**索引**
+## 字段说明
 
-[TOC]
+<!-- 注: 本章节将采用局部索引. -->
 
-## 1. app_name
+<span id="A00"></span>
+
+**索引 A**
+
+1. [app_name](#A01)
+2. [app_version](#A02)
+3. [description](#A03)
+4. [authors](#A04)
+5. [build](#A05)
+6. [note](#A06)
+7. [pyportable_installer_version](#A07)
+
+<span id="A01"></span>
+
+### 1. app_name
 
 应用名称.
 
-1. 应用名称使用正常的大小写格式, 例如: "Hello World"
-2. 应用名称会被用于生成同名的 exe 文件, 例如: "Hello World.exe"
-    1. 请勿使用文件名非法字符 (如英文冒号, 问号等), 否则会导致 exe 生成失败
+- 应用名称建议使用正常的大小写格式, 例如: "Hello World".
 
-## 2. app_version
+<span id="A02"></span>
+
+### 2. app_version
 
 应用版本.
 
-1. 默认的初始版本号为 "0.1.0"
-2. 版本号格式为 `major.minor.patch`", 具体请参考 [SemVer: 语义化版本](https://semver.org/lang/zh-CN/) 规范
+- 默认的初始版本号为 "0.1.0".
+- 版本号格式为 `<major>.<minor>.<patch>`", 具体请参考 [SemVer 语义化版本规范](https://semver.org/lang/zh-CN/).
 
-## 3. description
+<span id="A03"></span>
+
+### 3. description
 
 应用描述.
 
-1. 该字段不参与打包过程, 仅作为附加信息保留
+- 该字段不参与打包过程, 仅作为附加信息保留.
 
-## 4. author
+<span id="A04"></span>
+
+### 4. authors
 
 作者信息.
 
-1. 作者信息的格式无强制规定, 推荐使用 `Name` 和 `Name <name@example.com>` 这两种格式
-2. 如果有多名作者, 推荐使用列表表示: `"author": ["Name1 <name1@example.com>", "Name2 <name2@example.com>", "Name3 <name3@example.com>", ...]`
-3. 该字段不参与打包过程, 仅作为附加信息保留
+- 作者信息的格式无强制规定, 推荐使用 `Name` 或 `Name <name@example.com>` 这两类格式
+- 如果有多名作者, 推荐使用列表表示: `"author": ["Name1 <name1@example.com>", "Name2 <name2@example.com>", "Name3 <name3@example.com>", ...]`
+- 该字段不参与打包过程, 仅作为附加信息保留
 
-## 5. build
+<span id="A05"></span>
+
+### 5. build
 
 以下为打包时的配置. 它们定义了 pyportable-installer 的具体打包行为.
 
-### 5.1. build.proj_dir
+#### 5.1. build.proj_dir
 
 项目目录. 传入项目主代码所在的文件夹路径.
 
 1. 路径填绝对路径或相对于本配置文件的路径
 2. 路径使用 '/' 分隔符, 路径末尾不要有 '/' 符号. 例如: 'D:/myproj/src'
 
-### 5.2. build.dist_dir
+#### 5.2. build.dist_dir
 
 打包目录.
 
@@ -127,7 +192,7 @@
     2. `{app_name_lower}`: 插入应用名, 并将应用名全小写, 空格替换为下划线表示
     3. `{app_version}`: 插入应用版本号
 
-### 5.3. build.icon
+#### 5.3. build.icon
 
 图标文件.
 
@@ -136,11 +201,11 @@
 3. 图标文件可以留空. 留空时, 将使用 "Python (蟒蛇)" 的应用图标作为默认图标
 4. 图标文件必须是 .ico 文件. 如果您只有 png, jpg 等格式的文件, 您可以通过在线网站或者 `pyportable_installer.bat_2_exe.png_2_ico` 模块来转换 (后者需要安装 pillow 第三方库)
 
-### 5.4. build.target
+#### 5.4. build.target
 
 以下为目标脚本 (入口脚本) 配置.
 
-#### 5.4.1. build.target.file
+##### 5.4.1. build.target.file
 
 目标文件. 该文件指的是您的项目在启动时的运行的入口脚本.
 
@@ -148,7 +213,7 @@
 2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/src/main.py'
 3. 该路径必须位于 `build.dist_dir` 所定义的目录下
 
-#### 5.4.2. build.target.function
+##### 5.4.2. build.target.function
 
 目标函数. 即目标脚本的入口函数.
 
@@ -177,7 +242,7 @@
 
     则启动函数留空, 或者填一个星号 '*'.
 
-#### 5.4.3. build.target.args
+##### 5.4.3. build.target.args
 
 目标函数的非关键字参数.
 
@@ -214,11 +279,11 @@ if __name__ == '__main__':
     main(listdir('.'))
 ```
 
-#### 5.4.4. build.target.kwargs
+##### 5.4.4. build.target.kwargs
 
 目标函数的关键字参数.
 
-### 5.5. build.readme
+#### 5.5. build.readme
 
 自述文档.
 
@@ -226,7 +291,7 @@ if __name__ == '__main__':
 2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/README.md'
 3. 该文件会被拷贝到打包目录的根目录下
 
-### build.attachments
+#### build.attachments
 
 附件资源.
 
@@ -249,49 +314,49 @@ if __name__ == '__main__':
     3. top_assets: 表示目录下的所有一级文件 (不包含文件夹)
     4. TODO
 
-### build.module_paths
+#### build.module_paths
 
-### build.venv
+#### build.venv
 
-### build.venv.enable_venv
+#### build.venv.enable_venv
 
-### build.venv.python_version
+#### build.venv.python_version
 
-### build.venv.mode
+#### build.venv.mode
 
-### build.venv.options
+#### build.venv.options
 
-#### build.venv.options.depsland
+##### build.venv.options.depsland
 
-##### build.venv.options.depsland.requirements
+###### build.venv.options.depsland.requirements
 
-#### build.venv.options.source_venv
+##### build.venv.options.source_venv
 
-##### build.venv.options.source_venv.path
+###### build.venv.options.source_venv.path
 
-#### build.venv.options.pip
+##### build.venv.options.pip
 
-##### build.venv.options.pip.requirements
+###### build.venv.options.pip.requirements
 
-##### build.venv.options.pip.pypi_url
+###### build.venv.options.pip.pypi_url
 
-##### build.venv.options.pip.local
+###### build.venv.options.pip.local
 
-##### build.venv.options.pip.offline
+###### build.venv.options.pip.offline
 
-### build.compiler
+#### build.compiler
 
-#### build.compiler.name
+##### build.compiler.name
 
-#### build.compiler.options
+##### build.compiler.options
 
-##### build.compiler.options.pyarmor
+###### build.compiler.options.pyarmor
 
-##### build.compiler.options.pyc
+###### build.compiler.options.pyc
 
-##### build.compiler.options.zipimp
+###### build.compiler.options.zipimp
 
-##### build.compiler.options.pyportable_crypto
+###### build.compiler.options.pyportable_crypto
 
 --------------------------------------------------------------------------------
 
@@ -387,7 +452,7 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
             如需使用多个预设值, 请自行保证每个预设值之间的功能不是矛盾的. 按照如
             下格式的组合通常来说不会有问题:
             
-            ```
+```
             assets|root_assets|only_folder|only_folders,compile,dist:lib|root
             ```            
          */
@@ -548,3 +613,16 @@ hello_world_project
     "note": ""
 }
 ```
+
+
+<span id="A06"></span>
+
+## 6. note
+
+*TODO*
+
+<span id="A07"></span>
+
+## 7. pyportable_installer_version
+
+*TODO*

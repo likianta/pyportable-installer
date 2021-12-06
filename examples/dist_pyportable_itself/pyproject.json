@@ -7,7 +7,7 @@
   ],
   "build": {
     "proj_dir": "../../pyportable_installer",
-    "dist_dir": "../../dist/pyportable-installer-{app_version}",
+    "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
     "launcher_name": "{app_name}",
     "icon": "launcher.ico",
     "target": [
