@@ -8,357 +8,294 @@
 
 ## 字段说明
 
+注:
+
+- `//` 开头的行是注释.
+- 标记有 `*` 号的字段为必填项.
+- 注释中如果提到路径, 则允许以下路径形式:
+  - 绝对路径
+  - 相对路径
+  - 路径分隔符支持正斜杠与反斜杠 (默认用正斜杠描述) (注意 json 中反斜杠要双写)
+  - "xxx" 和 "./xxx" 表示的是同一个相对路径 (默认使用前者描述)
+
 ```json5
 {
-    // 应用名称
+    // *应用名称
     // - 名称建议使用正常的大小写格式
     // - 中英文不限
-    // - 该名称将作为最终生成的应用的启动器名称, 相关见 `build.launcher_name` 字段
-    // - 请勿使用文件名所不允许的字符
+    // - 该名称将作为最终生成的启动器名称, 相关见 `build.launcher_name` 字段
     // - 示例: "Hello World"
+    // - 注意: 请勿使用文件名所不允许的字符
     "app_name": "",
     
-    // 应用版本
+    // *应用版本
     // - 版本号遵循语义版本号规范, 请参考 https://semver.org/lang/zh-CN/
     // - 版本号推荐的格式为 `<major>.<minor>.<patch>`
-    // - 初始版本号为 `0.1.0`
+    // - 初始版本号为 "0.1.0"
     "app_version": "0.1.0",
     
     // 应用描述
+    // - 该描述仅作为备注, 不影响项目打包过程
     "description": "",
     
+    // 作者
+    // - 作者以列表的形式表示
+    // - 列表中每一项的格式为 `<name> (<email>)`
+    // - 示例: "Likianta (likianta@foxmail.com)"
     "authors": [],
+    
+    // *构建选项
+    // - 这些选项将紧密参与项目打包过程
     "build": {
+        
+        // *目标打包平台
+        // *TODO*
+        "platform": "system_default",
+        
+        // *项目目录 (源代码目录)
+        // - 一般的, 我们会指定源代码所在的目录为项目目录
+        // - 目录使用绝对路径或相对于本文件的相对路径
+        // - 示例: "src", "code", "../hello_world", ...
+        // - 注意: 请尽量保持该目录的选取范围为最小可用 (即只包含源代码文件为最
+        //   佳). 如果选取范围过大, 可能导致打包包含大量不需要的文件
         "proj_dir": "",
+        
+        // *打包结果输出目录
+        // - 目录使用绝对路径或相对于本文件的相对路径
+        // - 目录支持模板语法, 例如, 可以使用 `{app_name}` 来表示应用名称
+        // - 完整的模板语法如下:
+        //   - `{app_name}`: 应用名称
+        //   - `{app_name_lower}`: 应用名称的全小写形式 (默认值)
+        //   - `{app_name_upper}`: 应用名称的全大写形式
+        //   - `{app_name_snake}`: 应用名称的全小写 & 下划线写法 (蛇形命名法)
+        //   - `{app_name_kebab}`: 应用名称的全小写 & 短横线写法 (烤串命名法)
+        //   - `{app_name_camel}`: 应用名称的小驼峰写法
+        //   - `{app_name_pascal}`: 应用名称的大驼峰写法
+        //   - `{app_version}`: 应用版本. 格式是 "0.0.0", 不是 "v0.0.0"
+        // - 此外, 我们正在实验一些新的模板语法, 下列语法在 4.2.0 开始得到部分支
+        //   持 (某些语法与旧语法冲突或一些其他原因不支持), 并在未来会根据用户使
+        //   用意见来考虑是否转正:
+        //   - `{app name}`: 应用名称的全小写形式 (~4.2.0 不支持)
+        //   - `{APP NAME}`: 应用名称的全大写形式 (~4.2.0 不支持)
+        //   - `{app_name}`: 应用名称的全小写 & 下划线写法 (蛇形命名法) (~4.2.0 
+        //                   不支持)
+        //   - `{app-name}`: 应用名称的全小写 & 短横线写法 (烤串命名法)
+        //   - `{appName}`: 应用名称的小驼峰写法
+        //   - `{AppName}`: 应用名称的大驼峰写法
+        // - 示例:
+        //   - "dist/{app_name_kebab}-{app_version}"
+        //   - "my_distributions/{app_name_kebab}-v{app_version}"
+        //   - "./dist/hello world {app_version} (build 1011)"
+        // - 注意:
+        //   - 目标输出目录的父目录必须事先存在, 但目标输出目录必须不存在. 例如, 
+        //     对于 "dist/hello_world_0.1.0", "dist" 目录必须已创建, 但 "hello
+        //     _world_0.1.0" 事先应不存在. 否则将中止打包
+        //   - 如果您的应用名称无法用模板语法表示, 请直接明文书写. 例如 "dist/
+        //     H3110 W0r1d 2021.1"
         "dist_dir": "dist/{app_name_lower}_{app_version}",
-        "launcher_name": "{app_name}",
-        "icon": "",
-        "target": [
-            {
+        
+        // *目标启动脚本
+        // - 目标脚本是一个字典, 字典的每一项指向一个可调用的脚本
+        // - 字典的键是要在打包根目录下生成的启动器的名称, 值是该启动器的配置
+        // - 该列表必须至少包含一项元素
+        //   - 第一项将作为主启动器入口
+        //   - 除第一项外, 其他项将作为更多可调用的入口脚本
+        // - 注意: 请确保启动器名称 (字典的键) 不会有重复, 如果遇到重名的情况, 
+        //   则会报错
+        "launchers": {
+        
+            // *启动器名称 (字典的键)
+            // - 该名称将直接决定最终生成的启动器名称
+            // - 主启动器默认使用 `{app_name}` 作为启动器的名称
+            // - 同样的, 你也可以使用 `build.dist_dir` 中列出的所有模板语法
+            // - 注意:
+            //   - 请勿使用文件名所不允许的字符
+            //   - 请勿使用路径分隔符
+            //   - 请勿添加文件名后缀
+            "{app_name}": {
+            
+                // *脚本文件
+                // - 文件使用绝对路径或相对于本文件的相对路径
+                // - 通常来说, 该文件必须位于 `build.proj_dir` 目录下 (但这不是
+                //   必须的)
+                // - 该文件是一个 python 脚本, 即一般地, 它是一个 "*.py" 文件
                 "file": "",
+                
+                // 图标文件
+                // - 文件使用绝对路径或相对于本文件的相对路径
+                // - 如果留空, 则会使用默认的 python 经典图标
+                // - 图标文件必须使用 ico 格式. 如果您只有 png, jpg 等格式的文
+                //   件, 您可以通过在线网站或者 pyportable_installer 自带的 
+                //   `pyportable_installer.bat_2_exe.png_2_ico` 模块转换 (后者需
+                //   要安装 pillow 第三方库)
+                "icon": "",
+                
+                // 函数名称
+                // - 如果留空, 则表示只导入这个模块 (会在导入时触发该模块写在顶
+                //   层的代码)
                 "function": "main",
+                
+                // 该函数的参数
                 "args": [],
+                
+                // 该函数的可选参数
                 "kwargs": {}
             }
-        ],
+        },
+        
+        // 自述文档 (软件使用手册)
+        // - 一个可选的帮助文件. 打包程序会将它放在打包结果的根目录下
+        // - 文件使用绝对路径或相对于本文件的相对路径
+        // - 推荐使用 txt, md, rst, html, pdf 等易于阅读的格式
         "readme": "",
+        
+        // 项目附件
+        // *TODO*
         "attachments": {},
+        
+        // 附件排除路径
+        // *TODO*
         "attachments_exclusions": [],
+        
+        // 附件冲突处理方式
+        // *TODO*
         "attachments_exist_scheme": "override",
+        
+        // 模块搜索路径
+        // *TODO*
         "module_paths": [],
+        
+        // 模块路径策略
+        // *TODO*
         "module_paths_scheme": "translate",
-        "platform": "system_default",
+        
+        // *虚拟环境选项
+        // *TODO*
         "venv": {
+            
+            // *是否启用虚拟环境
+            // *TODO*
             "enable_venv": true,
+            
+            // *python 解释器版本
+            // *TODO*
             "python_version": "3.10",
+            
+            // *虚拟环境生成模式
+            // *TODO*
             "mode": "source_venv",
+            
+            // 虚拟环境生成模式可选项
+            // *TODO*
             "options": {
+                
                 "depsland": {
+                
                     "venv_name": "{app_name_lower}_venv",
+                
                     "venv_id": "",
+                
                     "requirements": [],
+                
                     "offline": false,
+                
                     "local": ""
                 },
+                
                 "source_venv": {
+                
                     "path": "",
+                
                     "copy_venv": true
                 },
+                
                 "pip": {
+                
                     "requirements": [],
+                
                     "pypi_url": "https://pypi.python.org/simple/",
+                
                     "offline": false,
+                
                     "local": ""
                 },
+                
                 "embed_python": {
+                
                     "path": ""
                 }
             }
         },
+        
+        // *编译器选项
+        // *TODO*
         "compiler": {
+        
             "name": "pyportable_crypto",
+        
             "options": {
+        
                 "cythonize": {
+        
                     "c_compiler": "msvc",
+        
                     "python_path": "auto_detect"
                 },
+        
                 "pyarmor": {
+        
                     "liscense": "trial",
+        
                     "obfuscate_level": 0
                 },
+        
                 "pyc": {
+        
                     "optimize_level": 0
                 },
+        
                 "pyportable_crypto": {
+        
                     "license": "trial",
+        
                     "key": "",
+        
                     "c_compiler": "msvc",
+        
                     "python_path": "auto_detect"
                 },
+        
                 "zipapp": {
+        
                     "password": ""
                 }
             }
         },
+        
+        // 实验性选项
+        // *TODO*
         "experimental_features": {
+        
             "add_pywin32_support": false
         },
+        
+        // *是否显示控制台
+        // *TODO*
         "enable_console": true
     },
+    
+    // 备注
     "note": "",
-    "pyportable_installer_version": "4.1.0"
+    
+    // pyportable-installer 版本
+    // - 同时也是该配置文件的版本
+    "pyportable_installer_version": "4.2.0"
 }
 ```
 
 --------------------------------------------------------------------------------
 
-<font color="red">下方内容将被尽数移除!</font>
-
-## 字段说明
-
-<!-- 注: 本章节将采用局部索引. -->
-
-<span id="A00"></span>
-
-**索引 A**
-
-1. [app_name](#A01)
-2. [app_version](#A02)
-3. [description](#A03)
-4. [authors](#A04)
-5. [build](#A05)
-6. [note](#A06)
-7. [pyportable_installer_version](#A07)
-
-<span id="A01"></span>
-
-### 1. app_name
-
-应用名称.
-
-- 应用名称建议使用正常的大小写格式, 例如: "Hello World".
-
-<span id="A02"></span>
-
-### 2. app_version
-
-应用版本.
-
-- 默认的初始版本号为 "0.1.0".
-- 版本号格式为 `<major>.<minor>.<patch>`", 具体请参考 [SemVer 语义化版本规范](https://semver.org/lang/zh-CN/).
-
-<span id="A03"></span>
-
-### 3. description
-
-应用描述.
-
-- 该字段不参与打包过程, 仅作为附加信息保留.
-
-<span id="A04"></span>
-
-### 4. authors
-
-作者信息.
-
-- 作者信息的格式无强制规定, 推荐使用 `Name` 或 `Name <name@example.com>` 这两类格式
-- 如果有多名作者, 推荐使用列表表示: `"author": ["Name1 <name1@example.com>", "Name2 <name2@example.com>", "Name3 <name3@example.com>", ...]`
-- 该字段不参与打包过程, 仅作为附加信息保留
-
-<span id="A05"></span>
-
-### 5. build
-
-以下为打包时的配置. 它们定义了 pyportable-installer 的具体打包行为.
-
-#### 5.1. build.proj_dir
-
-项目目录. 传入项目主代码所在的文件夹路径.
-
-1. 路径填绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符, 路径末尾不要有 '/' 符号. 例如: 'D:/myproj/src'
-
-#### 5.2. build.dist_dir
-
-打包目录.
-
-1. 路径填绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符, 路径末尾不要有 '/' 符号. 例如: 'D:/myproj/dist/hello_world_0.1.0'
-3. 默认的打包结果将放在 `{项目目录}/dist` 目录下
-    1. 请确保该目录的 **父目录** 已存在. 例如, 要打包到 'D:/myproj/dist/hello_world_0.1.0', 则需确保 'D:/myproj/dist' 已存在
-    2. 请确保该目录事先 **不存在**, 否则 pyportable-installer 会报 "目标目录已存在" 的错误. 如果您正在测试重复生成打包, 请先删除上一次的打包结果后再运行
-4. 打包目录支持特定插入值, 插值使用花括号包裹. 例如: `"dist_dir": "dist/{app_name_lower}_{app_version}"`. 支持的插值列表如下:
-    1. `{app_name}`: 插入应用名
-    2. `{app_name_lower}`: 插入应用名, 并将应用名全小写, 空格替换为下划线表示
-    3. `{app_version}`: 插入应用版本号
-
-#### 5.3. build.icon
-
-图标文件.
-
-1. 路径填绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/assets/launch.ico'
-3. 图标文件可以留空. 留空时, 将使用 "Python (蟒蛇)" 的应用图标作为默认图标
-4. 图标文件必须是 .ico 文件. 如果您只有 png, jpg 等格式的文件, 您可以通过在线网站或者 `pyportable_installer.bat_2_exe.png_2_ico` 模块来转换 (后者需要安装 pillow 第三方库)
-
-#### 5.4. build.target
-
-以下为目标脚本 (入口脚本) 配置.
-
-##### 5.4.1. build.target.file
-
-目标文件. 该文件指的是您的项目在启动时的运行的入口脚本.
-
-1. 路径填绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/src/main.py'
-3. 该路径必须位于 `build.dist_dir` 所定义的目录下
-
-##### 5.4.2. build.target.function
-
-目标函数. 即目标脚本的入口函数.
-
-这里分为两种情况讨论:
-
-1. 有入口函数
-
-    例如:
-
-    ```py
-    # xxx.py
-    def main():
-        print('hello world')
-    ```
-
-    则启动函数填 'main'.
-
-2. 无入口函数
-
-    例如:
-
-    ```py
-    # xxx.py
-    print('hello world')
-    ```
-
-    则启动函数留空, 或者填一个星号 '*'.
-
-##### 5.4.3. build.target.args
-
-目标函数的非关键字参数.
-
-请注意, 考虑到打包成应用后的使用场景, 不支持在这里传入复杂的 Python 对象.
-
-例如, 在写代码的时候, 我们用:
-
-```py
-from os import listdir
-
-def main(filenames):
-    for name in filenames:
-        print(name)
-
-if __name__ == '__main__':
-    main(listdir('.'))
-```
-
-但如果要打包成应用, 我们应该适当改写一下:
-
-```py
-from os import listdir
-
-def launch_input():  # 打包应用从这里启动
-    dir_in = input('请输入目录路径: ')
-    filenames = listdir(dir_in)
-    main(filenames)
-
-def main(filenames):
-    for name in filenames:
-        print(name)
-
-if __name__ == '__main__':
-    main(listdir('.'))
-```
-
-##### 5.4.4. build.target.kwargs
-
-目标函数的关键字参数.
-
-#### 5.5. build.readme
-
-自述文档.
-
-1. 路径填绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符. 例如: 'D:/myproj/README.md'
-3. 该文件会被拷贝到打包目录的根目录下
-
-#### build.attachments
-
-附件资源.
-
-附件资源的格式为: `{path: options, ...}`. 每个 path 都会根据 options 来定义如何被 "复制" 到打包目录. 详见下述定义:
-
-**path**
-
-1. path 支持绝对路径或相对于本配置文件的路径
-2. 路径使用 '/' 分隔符
-3. path 可以是文件夹路径, 也可以是文件路径
-4. 此外, path 还可以使用 "虚拟路径" (见 [本文::章节::h2:虚拟路径](#20210603142638))
-
-**options**
-
-1. options 是由一个或多个特定词组成的字符串
-2. 如果由多个特定词组成, 则特定词之间使用英文逗号连接
-    1. 逗号后不要有空格
-3. 特定词分别有:
-    2. assets: 如果 `path` 是文件, 则 `assets` 表示单个文件; 如果 `path` 是目录, 则 `assets` 表示该目录下的所有文件和文件夹
-    3. top_assets: 表示目录下的所有一级文件 (不包含文件夹)
-    4. TODO
-
-#### build.module_paths
-
-#### build.venv
-
-#### build.venv.enable_venv
-
-#### build.venv.python_version
-
-#### build.venv.mode
-
-#### build.venv.options
-
-##### build.venv.options.depsland
-
-###### build.venv.options.depsland.requirements
-
-##### build.venv.options.source_venv
-
-###### build.venv.options.source_venv.path
-
-##### build.venv.options.pip
-
-###### build.venv.options.pip.requirements
-
-###### build.venv.options.pip.pypi_url
-
-###### build.venv.options.pip.local
-
-###### build.venv.options.pip.offline
-
-#### build.compiler
-
-##### build.compiler.name
-
-##### build.compiler.options
-
-###### build.compiler.options.pyarmor
-
-###### build.compiler.options.pyc
-
-###### build.compiler.options.zipimp
-
-###### build.compiler.options.pyportable_crypto
-
---------------------------------------------------------------------------------
+# <font color="red">以下内容将被移除!</font>
 
 pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下面是添加了注释的版本:
 
@@ -517,112 +454,3 @@ pyproject.json 可从 'pyportable_installer/template/pyproject.json' 获取. 下
     "note": "一些备忘内容..."
 }
 ```
-
-# 附加说明
-
-## <span id="20210603142638">虚拟路径</span>
-
-TODO
-
-# Hello World 项目配置示例
-
-假设项目的目录结构为:
-
-```
-hello_world_project
-|= assets
-    |- launch.ico
-|= dist
-|= docs
-|= hello_world
-    |- main.py
-    |   def main(debug_mode=False):
-    |       if debug_mode:
-    |           print('hello world')
-    |       else:
-    |           name = input("what's your name? ")
-    |           print(f'hello {name}')
-|= venv
-|- CHANGELOG.md
-|- pyproject.json
-|- README.md
-|- requirements.txt
-```
-
-```json
-{
-    "app_name": "Hello World",
-    "app_version": "0.1.0",
-    "description": "My first project.",
-    "author": "Anonymous <anonymous@example.com>",
-    "build": {
-        "proj_dir": "hello_world",
-        "dist_dir": "dist/{app_name_lower}_{app_version}",
-        "icon": "assets/launch.ico",
-        "target": {
-            "file": "hello_world/main.py",
-            "function": "main",
-            "args": [],
-            "kwargs": {
-                "debug_mode": true
-            }
-        },
-        "readme": "README.md",
-        "attachments": {
-            "docs": "assets,dist:root",
-            "requirements.txt": "assets,dist:root/docs",
-            "CHANGELOG.md": "assets,dist:root/docs"
-        },
-        "module_paths": [],
-        "venv": {
-            "enable_venv": true,
-            "python_version": "3.7",
-            "mode": "source_venv",
-            "options": {
-                "depsland": {
-                    "requirements": []
-                },
-                "source_venv": {
-                    "path": "venv"
-                },
-                "pip": {
-                    "requirements": [],
-                    "pypi_url": "https://pypi.python.org/simple/",
-                    "local": "",
-                    "offline": false
-                }
-            }
-        },
-        "compiler": {
-            "name": "pyarmor",
-            "options": {
-                "pyarmor": {
-                    "liscense": "trial",
-                    "obfuscate_level": 0
-                },
-                "pyc": {
-                    "optimize_level": 0
-                },
-                "zipimp": {
-                    "password": ""
-                }
-            }
-        },
-        "enable_console": true
-    },
-    "note": ""
-}
-```
-
-
-<span id="A06"></span>
-
-## 6. note
-
-*TODO*
-
-<span id="A07"></span>
-
-## 7. pyportable_installer_version
-
-*TODO*
