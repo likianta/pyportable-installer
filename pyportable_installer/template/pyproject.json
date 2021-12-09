@@ -5,24 +5,22 @@
     "authors": [],
     "build": {
         "proj_dir": "",
-        "dist_dir": "dist/{app_name_lower}_{app_version}",
-        "launcher_name": "{app_name}",
-        "icon": "",
-        "target": [
-            {
+        "dist_dir": "dist/{app_name_kebab}-{app_version}",
+        "launchers": {
+            "{app_name}": {
                 "file": "",
+                "icon": "",
                 "function": "main",
                 "args": [],
                 "kwargs": {}
             }
-        ],
+        },
         "readme": "",
         "attachments": {},
         "attachments_exclusions": [],
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
-        "platform": "system_default",
         "venv": {
             "enable_venv": true,
             "python_version": "3.10",
@@ -75,11 +73,12 @@
                 }
             }
         },
+        "platform": "system_default",
         "experimental_features": {
             "add_pywin32_support": false
         },
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.1.0"
+    "pyportable_installer_version": "4.2.0"
 }

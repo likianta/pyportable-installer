@@ -1,23 +1,22 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.5.4",
+    "app_version": "0.6.13",
     "description": "Say hello to the given name.",
     "authors": [
         "Likianta <likianta@foxmail.com>"
     ],
     "build": {
         "proj_dir": "./hello_world",
-        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
-        "launcher_name": "{app_name}",
-        "icon": "",
-        "target": [
-            {
+        "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
+        "launchers": {
+            "{app_name_kebab}": {
                 "file": "hello_world/hello.py",
+                "icon": "",
                 "function": "main",
                 "args": [],
                 "kwargs": {}
             }
-        ],
+        },
         "readme": "",
         "attachments": {},
         "attachments_exclusions": [],
@@ -25,8 +24,8 @@
         "module_paths": [],
         "module_paths_scheme": "translate",
         "venv": {
-            "enable_venv": true,
-            "python_version": "3.10",
+            "enable_venv": false,
+            "python_version": "3.8",
             "mode": "depsland",
             "options": {
                 "depsland": {
@@ -51,7 +50,7 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "name": "pyc",
             "options": {
                 "cython": {
                     "c_compiler": "msvc",
@@ -70,7 +69,8 @@
                     "obfuscate_level": 0
                 },
                 "pyc": {
-                    "optimize_level": 0
+                    "optimize_level": 0,
+                    "python_path": "auto_detect"
                 },
                 "pyportable_crypto": {
                     "key": "_trial",
@@ -82,11 +82,12 @@
                 }
             }
         },
+        "platform": "linux",
         "experimental_features": {
             "add_pywin32_support": false
         },
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0"
+    "pyportable_installer_version": "4.2.0"
 }

@@ -38,7 +38,7 @@ def main(conf: TConf):
     """
     dist_tree.add_src_dirs(
         conf['build']['proj_dir'],
-        *(x['file'] for x in conf['build']['target']),
+        *(v['file'] for v in conf['build']['launchers'].values()),
         *(k for k, v in conf['build']['attachments'].items()
           if v['path'] == ''),
     )

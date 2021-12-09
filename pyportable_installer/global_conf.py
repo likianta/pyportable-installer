@@ -1,5 +1,3 @@
-import platform
-
 from os.path import dirname
 from sys import version_info
 
@@ -7,7 +5,7 @@ from sys import version_info
 class GlobalConf:
     """ Most attributes are initialized in `~.main_flow.step1.init_key_params`.
     """
-    system = platform.system().lower()  # 'windows', 'linux', 'macos'.
+    platform = None
     
     pyproj_file = ''
     pyproj_dir = ''

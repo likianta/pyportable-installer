@@ -5,7 +5,7 @@
     "authors": [],
     "build": {
         "proj_dir": ".",
-        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
+        "dist_dir": "../../dist/{app_name_snake}_{app_version}",
         "launcher_name": "{app_name}",
         "icon": "",
         "target": [

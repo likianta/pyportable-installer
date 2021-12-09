@@ -83,9 +83,10 @@ class TVenvBuildConf(TypedDict):
     options: _TVenvModeOptions
 
 
-class TTarget(TypedDict):
+class TLauncher(TypedDict):
     # `template/pyproject.json::build:target`
     file: TPath
+    icon: TPath
     function: str
     args: list
     kwargs: dict
@@ -146,13 +147,15 @@ class TExperimentalFeatures(TypedDict):
     tree_shaking: dict
 
 
+TLauncherName = str
+
+
 class TBuildConf(TypedDict):
     # `template/pyproject.json::build`
     proj_dir: TPath
     dist_dir: TPath
+    launchers: Dict[TLauncherName, TLauncher]
     launcher_name: str
-    icon: TPath
-    target: List[TTarget]
     readme: TPath
     attachments: TAttachments
     attachments_exclusions: Tuple[TPath]
@@ -161,6 +164,7 @@ class TBuildConf(TypedDict):
     module_paths_scheme: Literal['translate', 'leave as-is']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
+    platform: Literal['linux', 'macos', 'system_dependent', 'windows']
     experimental_features: TExperimentalFeatures
     enable_console: bool
 

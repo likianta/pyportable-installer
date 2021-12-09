@@ -7,6 +7,8 @@ from os.path import relpath
 from lk_logger import lk
 from lk_utils.filesniff import normpath
 
+from ...typehint import List
+
 
 class DistTree:
     

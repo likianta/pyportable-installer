@@ -4,6 +4,7 @@ from uuid import uuid1
 
 from lk_logger import lk
 
+from .name_converter import NameConverter
 from .path_formatter import PathFormatter
 from ...path_model import prj_model
 from ...typehint import *
@@ -20,12 +21,29 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
             - Callable: receives one argument as path_i, returns path_o. the
                 typical pattern is: `lambda path_i: path_o`.
     """
+    name_converter = NameConverter(conf['app_name'])
     placeholders = {
-        'app_name'       : conf['app_name'],
-        'app_name_lower' : conf['app_name'].lower().replace(' ', '_'),
-        'app_name_hyphen': conf['app_name'].lower().replace(' ', '-'),
+        'app_name'       : name_converter.raw,
+        'app_name_lower' : name_converter.lower_case,
+        'app_name_upper' : name_converter.upper_case,
+        'app_name_title' : name_converter.title_case,
+        'app_name_snake' : name_converter.snake_case,
+        'app_name_kebab' : name_converter.kebab_case,
+        'app_name_camel' : name_converter.camel_case,
+        'app_name_pascal': name_converter.pascal_case,
+        
+        # new patterns (not complete)
+        'app name'       : name_converter.lower_case,
+        'App Name'       : name_converter.title_case,
+        'APP NAME'       : name_converter.upper_case,
+        # 'app_name': name_converter.snake_case,
+        'app-name'       : name_converter.kebab_case,
+        'appName'        : name_converter.camel_case,
+        'AppName'        : name_converter.pascal_case,
+        
         'app_version'    : conf['app_version'],
     }
+    del name_converter
     
     conf['build']['proj_dir'] = path_fmt(
         conf['build']['proj_dir']
@@ -35,23 +53,27 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         conf['build']['dist_dir'].format(**placeholders)
     )
     
-    conf['build']['launcher_name'] = (
-        conf['build']['launcher_name'].format(**placeholders)
-    )
-    
-    conf['build']['icon'] = path_fmt(
-        conf['build']['icon'] or
-        prj_model.python_ico
-    )
-    
     conf['build']['readme'] = path_fmt(
         conf['build']['readme']
     )
     
-    for t in conf['build']['target']:  # type: TTarget
-        t['file'] = path_fmt(
-            t['file'].format(dist_dir=conf['build']['dist_dir'])
-        )
+    def _reformat_launchers():
+        old, new = conf['build']['launchers'], {}
+        for k, v in old.items():
+            new[k.format(**placeholders)] = v
+        conf['build']['launchers'] = new
+        
+        for i, (k, v) in enumerate(conf['build']['launchers'].items()):
+            v['file'] = path_fmt(
+                v['file'].format(dist_dir=conf['build']['dist_dir'])
+            )
+            if i == 0:
+                conf['build']['launcher_name'] = k
+                v['icon'] = path_fmt(v['icon'] or prj_model.python_ico)
+            else:
+                v['icon'] = path_fmt(v['icon'])
+    
+    _reformat_launchers()
     
     # --------------------------------------------------------------------------
     

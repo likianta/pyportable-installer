@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 from os.path import dirname
 from os.path import exists
@@ -18,6 +19,15 @@ def init_key_params(conf: TConf, **kwargs):
     gconf.pyproj_file = kwargs['pyproj_file']
     # pyproj_dir
     gconf.pyproj_dir = kwargs['pyproj_dir']
+
+    # --------------------------------------------------------------------------
+    # platform
+    
+    platform_ = conf['build']['platform']
+    if platform_ == 'system_dependent':
+        platform_ = platform.system().lower()  # 'windows', 'linux', 'macos'.
+    assert platform_ in ('windows', 'linux', 'macos'), 'platform not support'
+    gconf.platform = platform_
     
     # --------------------------------------------------------------------------
     # attachments
