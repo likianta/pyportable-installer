@@ -20,7 +20,6 @@ import os
 import sys
 import traceback
 
-from importlib import import_module
 from os.path import abspath
 
 # add current dir to `sys.path` (this is necessary for embed python)
@@ -40,7 +39,7 @@ if add_pywin32_support:
         # ref: https://stackoverflow.com/questions/58612306/how-to-fix
         #      -importerror-dll-load-failed-while-importing-win32api
         #      (see comment from @ocroquette)
-        import pywin32_system32
+        import pywin32_system32  # noqa
         _pywin32_dir = pywin32_system32.__path__._path[0]  # noqa
         # -> ~/lib/site-packages/pywin32_system32
         os.add_dll_directory(_pywin32_dir)
@@ -87,9 +86,19 @@ def _parse_target_conf(args):
             return load(f)
 
 
-def launch(main_func, *args, **kwargs):
+def launch(conf):
     try:
-        main_func(*args, **kwargs)
+        # check in target dir to make sure all sequent relative paths
+        # references are based on the target dir.
+        os.chdir(conf['TARGET_DIR'])
+        sys.path.append(abspath('.'))
+
+        from importlib import import_module
+        # target name is a filename without suffix
+        module = import_module(conf['TARGET_NAME'], '')
+        main = getattr(module, conf['TARGET_FUNC'])
+        main(*conf['TARGET_ARGS'], **conf['TARGET_KWARGS'])
+
     except Exception:
         _show_error_info(traceback.format_exc())
         input('Press enter to leave...')
@@ -137,17 +146,7 @@ if __name__ == '__main__':
         conf = _parse_target_conf(sys.argv)
         # from lk_logger import lk
         # lk.logp(conf)
-
-        # check in target dir to make sure all sequent relative paths
-        # references are based on the target dir.
-        os.chdir(conf['TARGET_DIR'])
-        sys.path.append(abspath('.'))
-
-        mod = import_module(conf['TARGET_MOD'], conf['TARGET_PKG'])
-        if conf['TARGET_FUNC']:
-            main = getattr(mod, conf['TARGET_FUNC'])
-            launch(main, *conf['TARGET_ARGS'], **conf['TARGET_KWARGS'])
-
+        launch(conf)
     except Exception:
         _show_error_info(traceback.format_exc())
         input('Press enter to leave...')

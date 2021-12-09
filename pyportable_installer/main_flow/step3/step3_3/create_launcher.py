@@ -15,7 +15,6 @@ from lk_utils.subproc import run_new_thread
 from .bat_2_exe import bat_2_exe
 from ....global_conf import gconf
 from ....path_model import *
-from ....typehint import Dict
 from ....typehint import TBuildConf
 
 thread_pool = {}  # {bat_file: thread, ...}
@@ -72,7 +71,6 @@ def create_launcher(build: TBuildConf):
     
     # --------------------------------------------------------------------------
     
-    deduplicator = LauncherNamesDeduplicator(build['launcher_name'])
     kwargs_part_a = {}  # dynamic
     kwargs_part_b = {  # static
         'add_pywin32_support': build[
@@ -86,25 +84,14 @@ def create_launcher(build: TBuildConf):
         'venv_python'        : 'python' if _is_debug_mode else '',
     }
     
-    for i, t in enumerate(build['target']):
+    for i, (k, v) in enumerate(build['launchers'].items()):
         kwargs_part_a.clear()
-        if i == 0:
-            kwargs_part_a.update({
-                'name'         : build['launcher_name'],
-                'icon'         : build['icon'],
-                'target'       : t,
-                'is_main_entry': True
-            })
-        else:
-            name = get_filename(t['file'], suffix=False)
-            name = deduplicator.optimize_name(name, t['function'])
-            kwargs_part_a.update({
-                'name'         : name,
-                'icon'         : '',
-                'target'       : t,
-                'is_main_entry': False
-            })
-        
+        kwargs_part_a.update({
+            'name'         : k,
+            'icon'         : v['icon'],
+            'target'       : v,
+            'is_main_entry': i == 0
+        })
         file = _create_launcher(**kwargs_part_a, **kwargs_part_b)
         
         # ----------------------------------------------------------------------
@@ -183,6 +170,7 @@ def _create_launcher(
         'lib_dir'    : _rel1(dst_model.lib),  # '../lib'
         'launch_file': _rel0(_abs_paths['launch_file']),  # 'src/pylauncher.py'
         'target_dir' : _rel1(_abs_paths['target_dir']),  # 'hello_world'
+        'target_file': _rel1(_abs_paths['target_file']),
         'conf_file'  : _rel1(_abs_paths['conf_file']),  # '.pylauncher_conf'
         'venv_dir'   : _rel0(dst_model.venv),  # 'venv'
         'venv_python': options.get('venv_python') or
@@ -195,10 +183,15 @@ def _create_launcher(
     _generate_target_conf(target)
     _generate_pylauncher(module_paths, module_paths_scheme)
     # # _generate_bat(options.get('enable_venv', True))
-    _generate_shell(gconf.system, enable_venv=options.get('enable_venv', True))
+    _generate_shell(gconf.platform, enable_venv=options.get('enable_venv', True))
     if options.get('generate_exe', True):
-        _generate_exe(icon, options.get('enable_console', True))
-        return _abs_paths['exe_file']
+        # TEST
+        if gconf.platform == 'windows':
+            _generate_exe(icon, options.get('enable_console', True))
+            return _abs_paths['exe_file']
+        else:
+            _generate_desktop(icon)
+            return _abs_paths['bat_file']
     else:
         return _abs_paths['bat_file']
 
@@ -227,23 +220,23 @@ def _create_depsland_setup(launcher_name, venv_name, venv_id,
         f.write(code)
 
 
-class LauncherNamesDeduplicator:
-    """ Make sure there's no duplicate name generated. """
-    
-    def __init__(self, *top_names):
-        self._names_counter = {}  # type: Dict[str, int]
-        self._names_counter.update({n: 0 for n in top_names})
-    
-    def optimize_name(self, name, function=''):
-        if name in self._names_counter:
-            if function:
-                name += ' ({})'.format(function)
-                return self.optimize_name(name, '')
-            self._names_counter[name] += 1
-            name += ' ({})'.format(self._names_counter[name])
-        else:
-            self._names_counter[name] = 0
-        return name
+# class LauncherNamesDeduplicator:
+#     """ Make sure there's no duplicate name generated. """
+#
+#     def __init__(self, *top_names):
+#         self._names_counter = {}  # type: Dict[str, int]
+#         self._names_counter.update({n: 0 for n in top_names})
+#
+#     def optimize_name(self, name, function=''):
+#         if name in self._names_counter:
+#             if function:
+#                 name += ' ({})'.format(function)
+#                 return self.optimize_name(name, '')
+#             self._names_counter[name] += 1
+#             name += ' ({})'.format(self._names_counter[name])
+#         else:
+#             self._names_counter[name] = 0
+#         return name
 
 
 # ------------------------------------------------------------------------------
@@ -251,6 +244,7 @@ class LauncherNamesDeduplicator:
 def _generate_target_conf(target):
     with open(_abs_paths['conf_file'], 'wb') as f:
         target_dir = _rel_paths['target_dir']
+        target_file = _rel_paths['target_file']
         target_pkg = ''
         # target_pkg = target_dir.replace('/', '.')
         target_mod = '{}.{}'.format(
@@ -260,8 +254,11 @@ def _generate_target_conf(target):
         
         pickle.dump({
             'TARGET_DIR'   : target_dir,
+            'TARGET_FILE'  : target_file,
             'TARGET_PKG'   : target_pkg,
             'TARGET_MOD'   : target_mod,
+            # 'TARGET_NAME'  : xpath.basename(target_file).rsplit('.', 1)[0],
+            'TARGET_NAME'  : get_filename(target_file, suffix=False),
             'TARGET_FUNC'  : target['function'],
             'TARGET_ARGS'  : target['args'],
             'TARGET_KWARGS': target['kwargs'],
@@ -299,15 +296,24 @@ def _generate_pylauncher(module_paths, module_paths_scheme, **options):
     
     with wopen(_abs_paths['launch_file']) as f:
         f.write(code)
-        
-        
+
+
 def _generate_shell(system, **kwargs):
+    def dump_with_crlf_to_lf(code, file_o):
+        # convert CRLF to LF
+        # https://stackoverflow.com/questions/47178459/replace-crlf-with-lf-in
+        # -python-3-6/53657266
+        with open(file_o, 'wb') as f:
+            f.write(code.encode('utf-8').replace(b'\r\n', b'\n'))
+    
     if system == 'windows':
         _generate_bat(**kwargs)
     elif system == 'linux':  # TEST
         template = loads(prj_model.template + '/launch.sh')
         code = template.format(PYTHON='python3', PYCONF=_rel_paths['conf_file'])
-        dumps(code, _abs_paths['launch_file'].replace('.exe', '.sh'))
+        dump_with_crlf_to_lf(
+            code, _abs_paths['exe_file'].replace('.exe', '.sh')  # PERF
+        )
     elif system == 'macos':
         raise NotImplemented()
     else:
@@ -360,3 +366,11 @@ def _generate_exe(icon, enable_console):
         '' if enable_console else '/invisible'
     )
     #   the thread_of_bat_2_exe will be recycled in `..step3_4.cleanup`.
+
+
+def _generate_desktop(icon):  # noqa  # TODO
+    """
+    References:
+        https://juejin.cn/post/6844904127047139342
+    """
+    pass
