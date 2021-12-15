@@ -6,4 +6,4 @@ fire
 lk-logger
 lk-utils
 pyarmor
-pyportable-crypto
+pyportable-crypto >= 1.0.0b0
