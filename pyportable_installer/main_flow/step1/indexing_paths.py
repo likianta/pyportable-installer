@@ -1,8 +1,4 @@
 from os.path import basename
-from os.path import exists
-from uuid import uuid1
-
-from lk_logger import lk
 
 from .name_converter import NameConverter
 from .path_formatter import PathFormatter
@@ -33,13 +29,13 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
         'app_name_pascal': name_converter.pascal_case,
         
         # new patterns (not complete)
-        'app name'       : name_converter.lower_case,
-        'App Name'       : name_converter.title_case,
-        'APP NAME'       : name_converter.upper_case,
+        # 'app name'       : name_converter.lower_case,
+        # 'App Name'       : name_converter.title_case,
+        # 'APP NAME'       : name_converter.upper_case,
         # 'app_name': name_converter.snake_case,
-        'app-name'       : name_converter.kebab_case,
-        'appName'        : name_converter.camel_case,
-        'AppName'        : name_converter.pascal_case,
+        # 'app-name'       : name_converter.kebab_case,
+        # 'appName'        : name_converter.camel_case,
+        # 'AppName'        : name_converter.pascal_case,
         
         'app_version'    : conf['app_version'],
     }
@@ -149,7 +145,8 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     if mode == 'depsland':
         options['venv_name'] = options['venv_name'].format(**placeholders)
         if options['venv_id'] in ('', '_random'):
-            options['venv_id'] = str(uuid1()).replace('-', '')
+            from secrets import token_urlsafe
+            options['venv_id'] = token_urlsafe()
         options['requirements'] = _load_requirements(options['requirements'])
         options['local'] = path_fmt(options['local'])
     elif mode == 'embed_python':
@@ -167,12 +164,10 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     
     name = conf['build']['compiler']['name']
     options = conf['build']['compiler']['options'][name]
+    
     if name == 'pyportable_crypto':
-        if options['key'].startswith('path:'):
-            assert options['key'].endswith('pyportable_runtime')
-            options['key'] = 'path:' + (d := path_fmt(options['key'][5:]))
-            assert exists(d)
-            lk.logt('[I0946]', '(experimental feature)',
-                    'use local precompiled pyportable_runtime package', d)
+        if '{random}' in options['key']:
+            from secrets import token_urlsafe
+            options['key'] = options['key'].format(random=token_urlsafe())
     
     return conf

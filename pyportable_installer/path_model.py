@@ -1,13 +1,15 @@
 import os
 import os.path as xpath
-from uuid import uuid1
 
 from lk_logger import lk
+from lk_utils.filesniff import currdir
 from lk_utils.filesniff import normpath
 
 from ._env import ASSETS_ENTRY  # str['STANDALONE', 'PACKAGE']
 
 lk.logt('[D2952]', ASSETS_ENTRY)
+
+_cur_dir = currdir()
 
 
 def src_2_dst(src_path, src_dir='', dst_dir=''):
@@ -31,45 +33,78 @@ def relpath(path, start):
 
 
 class PyPortablePathModel:
-    cur_root = normpath(xpath.dirname(__file__))
+    # current dir based
+    cur_root = _cur_dir
+    
+    (
+        bat_2_exe_converter,
+        checkup,
+        template,
+    ) = (
+        f'{cur_root}/bat_2_exe/bat_to_exe_converter.exe',
+        f'{cur_root}/checkup',
+        f'{cur_root}/template',
+    )
+    
+    (
+        compilers_lib,
+        pyportable_runtime_py38,
+        pyportable_runtime_py39,
+        pyportable_runtime_py310,
+        pyportable_runtime_py38_linux,
+    ) = (
+        f'{cur_root}/compilers/lib',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py38',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py39',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py310',
+        f'{cur_root}/compilers/lib/linux/pyportable_runtime_py38',
+    )
+    
+    (
+        launch_bat,
+        pyarmor,
+        pylauncher,
+        pyproject,
+        python_ico,
+        pytransform,
+    ) = (
+        f'{cur_root}/template/launch.bat',
+        f'{cur_root}/template/pyarmor',
+        f'{cur_root}/template/pylauncher.txt',
+        f'{cur_root}/template/pyproject.json',
+        f'{cur_root}/template/python.ico',
+        f'{cur_root}/template/pytransform.txt',
+    )
+    
+    (
+        depsland_launcher_part_a,
+        depsland_launcher_part_b,
+        depsland_setup_part_a,
+        depsland_setup_part_b,
+    ) = (
+        f'{cur_root}/template/depsland/launcher_part_a.bat',
+        f'{cur_root}/template/depsland/launcher_part_b.bat',
+        f'{cur_root}/template/depsland/setup_part_a.bat',
+        f'{cur_root}/template/depsland/setup_part_b.txt',
+    )
+    
+    # --------------------------------------------------------------------------
+    # project root
     
     if ASSETS_ENTRY == 'STANDALONE':
         prj_root = xpath.dirname(cur_root)
     else:
         prj_root = f'{cur_root}/assets'
     
-    # prj_root/*
-    dist = f'{prj_root}/dist'
-    lib = f'{prj_root}/lib'
-    temp = f'{prj_root}/temp'
-    
-    # prj_root/lib/*
-    temp_lib = f'{lib}/temp_lib'
-    
-    # cur_root/*
-    checkup = f'{cur_root}/checkup'
-    template = f'{cur_root}/template'
-    
-    # cur_root/template/*
-    launch_bat = f'{template}/launch.bat'
-    pyarmor = f'{template}/pyarmor'
-    pylauncher = f'{template}/pylauncher.txt'
-    pyproject = f'{template}/pyproject.json'
-    python_ico = f'{template}/python.ico'
-    pytransform = f'{template}/pytransform.txt'
-    
-    # cur_root/template/depsland/*
-    _depsland = f'{template}/depsland'
-    depsland_launcher_part_a = f'{_depsland}/launcher_part_a.bat'
-    depsland_launcher_part_b = f'{_depsland}/launcher_part_b.bat'
-    depsland_setup_part_a = f'{_depsland}/setup_part_a.bat'
-    depsland_setup_part_b = f'{_depsland}/setup_part_b.txt'
-    
-    # other
-    accessory = f'{cur_root}/compilers/accessory'
-    bat_2_exe_converter = f'{cur_root}/bat_2_exe/bat_to_exe_converter.exe'
-    cythonize_required_packages_for_python3 = \
-        f'{accessory}/cythonize_required_packages_for_python3.zip'
+    (
+        dist,
+        lib,
+        temp,
+    ) = (
+        f'{prj_root}/dist',
+        f'{prj_root}/lib',
+        f'{prj_root}/temp',
+    )
     
     # --------------------------------------------------------------------------
     
@@ -77,56 +112,20 @@ class PyPortablePathModel:
         if ASSETS_ENTRY == 'STANDALONE':
             assert xpath.exists(self.dist)
             assert xpath.exists(self.lib)
-            assert xpath.exists(self.temp_lib)
             assert xpath.exists(self.temp)
         else:
             if not xpath.exists(self.prj_root):
                 os.mkdir(self.prj_root)
                 os.mkdir(self.dist)
                 os.mkdir(self.lib)
-                os.mkdir(self.temp_lib)
                 os.mkdir(self.temp)
-        
-        if not xpath.exists(self.temp_lib):
-            os.mkdir(self.temp_lib)
-        elif os.listdir(self.temp_lib):
-            from shutil import rmtree
-            rmtree(self.temp_lib)
-            os.mkdir(self.temp_lib)
     
     def create_temp_dir(self):
-        _temp_dir = f'{self.temp}/{uuid1()}'
+        from secrets import token_urlsafe
+        _temp_dir = f'{self.temp}/{token_urlsafe()}'
         lk.loga('make temporary dir', _temp_dir)
         os.mkdir(_temp_dir)
         return _temp_dir
-    
-    def get_pyportable_crypto_trial_package(
-            self, pyversion, assert_exists=True
-    ):
-        out = '/'.join((
-            self.accessory,
-            f'pyportable_crypto_trial_{pyversion}',
-            'pyportable_crypto'
-        ))
-        if assert_exists:
-            assert xpath.exists(out), '''
-                Currently your requested [python_version][1] is not on the
-                [supported trial-list][2].
-                Please try the following options to resolve your problem:
-                    a) Prompt your requested python_version to "3.8" or "3.9";
-                    b) Use a custom pyportable_crypto key instead of trial key;
-                       Note: you need to install Microsoft Visual Studio C++
-                             Build Tools (2019) on your system.
-                    c) Contact pyportable_installer project owner to extend
-                       trial keys for requested [python_version][1].
-                
-                [1]: {0}
-                [2]: {1}
-            '''.format(
-                pyversion,
-                f'{self.accessory}/pyportable_crypto_trial_*'
-            )
-        return out
 
 
 class SourcePathModel:

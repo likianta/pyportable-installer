@@ -1,14 +1,16 @@
 from os.path import dirname
+from platform import system
 from sys import version_info
 
 
 class GlobalConf:
     """ Most attributes are initialized in `~.main_flow.step1.init_key_params`.
     """
-    platform = None
-    
     pyproj_file = ''
     pyproj_dir = ''
+    
+    current_platform = system().lower()
+    target_platform = None
     
     current_pyversion = "python{}{}".format(
         version_info.major, version_info.minor

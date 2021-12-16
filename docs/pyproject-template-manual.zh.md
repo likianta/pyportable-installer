@@ -88,7 +88,7 @@
         //     _world_0.1.0" 事先应不存在. 否则将中止打包
         //   - 如果您的应用名称无法用模板语法表示, 请直接明文书写. 例如 "dist/
         //     H3110 W0r1d 2021.1"
-        "dist_dir": "dist/{app_name_lower}_{app_version}",
+        "dist_dir": "dist/{app_name_kebab}-{app_version}",
         
         // *目标启动脚本
         // - 目标脚本是一个字典, 字典的每一项指向一个可调用的脚本
@@ -187,7 +187,7 @@
                 
                 "depsland": {
                 
-                    "venv_name": "{app_name_lower}_venv",
+                    "venv_name": "{app_name_snake}_venv",
                 
                     "venv_id": "",
                 
@@ -235,7 +235,7 @@
         
                     "c_compiler": "msvc",
         
-                    "python_path": "auto_detect"
+                    "python_path": "{auto_detect}"
                 },
         
                 "pyarmor": {
@@ -252,13 +252,7 @@
         
                 "pyportable_crypto": {
         
-                    "license": "trial",
-        
-                    "key": "",
-        
-                    "c_compiler": "msvc",
-        
-                    "python_path": "auto_detect"
+                    "key": "{random}"
                 },
         
                 "zipapp": {
@@ -268,15 +262,15 @@
             }
         },
         
-        // 目标打包平台
-        // *TODO*
-        "platform": "system_default",
-        
         // 实验性选项
         // *TODO*
         "experimental_features": {
         
             "add_pywin32_support": false
+            
+            // 目标打包平台
+            // *TODO*
+            "platform": "system_default",
         },
         
         // *是否显示控制台

@@ -183,10 +183,10 @@ def _create_launcher(
     _generate_target_conf(target)
     _generate_pylauncher(module_paths, module_paths_scheme)
     # # _generate_bat(options.get('enable_venv', True))
-    _generate_shell(gconf.platform, enable_venv=options.get('enable_venv', True))
+    _generate_shell(gconf.target_platform, enable_venv=options.get('enable_venv', True))
     if options.get('generate_exe', True):
         # TEST
-        if gconf.platform == 'windows':
+        if gconf.target_platform == 'windows':
             _generate_exe(icon, options.get('enable_console', True))
             return _abs_paths['exe_file']
         else:

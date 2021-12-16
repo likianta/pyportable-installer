@@ -5,13 +5,22 @@ Notes:
     .PyPortablePathModel.build_dirs` generate new one.
 """
 import os
+from platform import system
 
 import pyportable_crypto
 from lk_logger import lk
 from lk_utils import run_cmd_args
 
+system = system().lower()
 
-def mainloop(key, root_dir='../pyportable_installer/compilers/lib'):
+
+def mainloop(key, root_dir):
+    """
+    Notes:
+        If you want to generate for multiple python versions, remember to use
+        the same key (especially when you want to generate across different
+        platforms).
+    """
     _check_crypto_version()
     
     while python_dir := input('system python dir (empty to escape loop): '):
@@ -20,15 +29,19 @@ def mainloop(key, root_dir='../pyportable_installer/compilers/lib'):
         # continue the loop.
         if python_dir.startswith('['):
             try:
-                python_dir = _auto_find_python_path(python_dir[1:-1])
+                python_exe = _auto_find_python_exe(python_dir[1:-1])
             except FileNotFoundError:
                 lk.logt('[E0039]', 'cannot find the specific python version, '
                                    'please check your input and try again.')
                 continue
-        
-        python_exe = f'{python_dir}\\python.exe'
+        else:
+            if system == 'windows':
+                python_exe = f'{python_dir}\\python.exe'
+            else:
+                python_exe = python_dir
+            assert os.path.isfile(python_exe), python_exe
+        # del python_dir
         pyversion = _get_pyversion(python_exe)
-        assert os.path.exists(python_exe)
         
         lk.logdx(pyversion)
         dir_o = root_dir + '/pyportable_runtime_' + pyversion
@@ -55,13 +68,19 @@ def _get_pyversion(python_path) -> str:
     return pyversion
 
 
-def _auto_find_python_path(pyversion):
+def _auto_find_python_exe(pyversion):
     """
+    Notes:
+        This function is copied from `pyportable_installer.main_flow.step1
+        .where_is_python`.
+    
     Args:
         pyversion: str['3.8', '3.9', '3.10']
+        
+    Returns:
+        str: python executable path. note this is file path, not dir.
     """
-    from platform import system
-    if system().lower() == 'windows':
+    if system == 'windows':
         path = run_cmd_args(
             'py', f'-{pyversion}', '-c', 'import sys; print(sys.executable)'
         )
@@ -86,5 +105,6 @@ def _auto_find_python_path(pyversion):
 if __name__ == '__main__':
     from secrets import token_urlsafe
     
-    mainloop(key=token_urlsafe())
-    # mainloop(key_='we1c0me_to_depsland', auto_move_to_accessory=False)
+    mainloop(key=token_urlsafe(),
+             root_dir='../pyportable_installer/compilers/lib')
+    # mainloop(key_='we1c0me_to_depsland', root_dir='../temp')

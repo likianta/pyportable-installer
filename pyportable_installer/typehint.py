@@ -122,7 +122,7 @@ class _TCompilerOptions(TypedDict):
     nuitka: dict
     pyarmor: dict
     pyc: dict
-    pyportable_crypto: dict  # {'key': str}
+    pyportable_crypto: dict  # dict[('key', str)]
     zipapp: dict
     _no_compiler: Optional[dict]  # empty dict or None
 
@@ -143,6 +143,7 @@ class TExperimentalFeatures(TypedDict):
     add_pywin32_support: bool
     alert_dialog_box: Literal['console', 'vbsbox', 'tkinter']
     debug_mode: bool
+    platform: Literal['linux', 'macos', 'system_default', 'windows']
     reserve_bat_file: bool
     tree_shaking: dict
 
@@ -164,7 +165,6 @@ class TBuildConf(TypedDict):
     module_paths_scheme: Literal['translate', 'leave as-is']
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
-    platform: Literal['linux', 'macos', 'system_dependent', 'windows']
     experimental_features: TExperimentalFeatures
     enable_console: bool
 

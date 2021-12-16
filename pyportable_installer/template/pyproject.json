@@ -63,19 +63,16 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "license": "trial",
-                    "key": "",
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"
+                    "key": ""
                 },
                 "zipapp": {
                     "password": ""
                 }
             }
         },
-        "platform": "system_default",
         "experimental_features": {
-            "add_pywin32_support": false
+            "add_pywin32_support": false,
+            "platform": "system_default"
         },
         "enable_console": true
     },
