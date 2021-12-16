@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.6.13",
+    "app_version": "0.7.21",
     "description": "Say hello to the given name.",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -23,13 +23,13 @@
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
+        "python_version": "3.8",
         "venv": {
             "enable_venv": false,
-            "python_version": "3.8",
             "mode": "depsland",
             "options": {
                 "depsland": {
-                    "venv_name": "{app_name_lower}_venv",
+                    "venv_name": "{app_name_snake}_venv",
                     "venv_id": "",
                     "requirements": "",
                     "offline": false,
@@ -50,7 +50,7 @@
             }
         },
         "compiler": {
-            "name": "pyc",
+            "name": "pyportable_crypto",
             "options": {
                 "cython": {
                     "c_compiler": "msvc",
@@ -73,18 +73,16 @@
                     "python_path": "auto_detect"
                 },
                 "pyportable_crypto": {
-                    "key": "_trial",
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"
+                    "key": "{random}"
                 },
                 "zipapp": {
                     "password": ""
                 }
             }
         },
-        "platform": "linux",
         "experimental_features": {
-            "add_pywin32_support": false
+            "add_pywin32_support": false,
+            "platform": "windows"
         },
         "enable_console": true
     },

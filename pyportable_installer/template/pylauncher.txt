@@ -58,20 +58,26 @@ if add_pywin32_support:
 # ------------------------------------------------------------------------------
 
 def _parse_target_conf(args):
-    assert len(args) >= 2, ('Invalid args format', args)
-    #   the first arg is python filename to launch, the second is preset
-    #   configuration file (i.e. which we want to parse in this function.)
+    assert len(args) >= 1, 'sys.argv cannot be empty!'
+    #   the first arg is path to pylauncher.py (i.e. this file), the second is
+    #   pylauncher config file (what we want to extract in this function).
 
-    def _remove_exe_file_from_args():
-        target_exe_dir = os.path.dirname(os.getcwd())
-        if (len(args) > 2
-                and args[2].endswith('.exe')
-                and os.path.dirname(args[2]) == target_exe_dir):
-            args.pop(2)
+    # note: if we launch directly by `python pylauncher.py`, the pylauncher
+    # config file is omitted. we will auto repair it.
+    if len(args) == 1:  # auto repair
+        conf_file = '.pylauncher_conf/__main__.pkl'
 
-    _remove_exe_file_from_args()
+    else:
+        def _remove_exe_file_from_args():
+            target_exe_dir = os.path.dirname(os.getcwd())
+            if (len(args) > 2
+                    and args[2].endswith('.exe')
+                    and os.path.dirname(args[2]) == target_exe_dir):
+                args.pop(2)
 
-    conf_file = args.pop(1)
+        _remove_exe_file_from_args()
+        conf_file = args.pop(1)
+
     assert conf_file.endswith(('.json', '.pkl')), (
         'Unknown file type to load config!', conf_file
     )

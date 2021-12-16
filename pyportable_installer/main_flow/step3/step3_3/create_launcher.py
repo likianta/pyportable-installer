@@ -42,8 +42,7 @@ def create_launcher(build: TBuildConf):
             options['requirements'],
             offline=options['offline'],
             local=options['local'],
-            pyversion='python' + build['venv'][
-                'python_version'].replace('.', '')
+            pyversion='python' + build['python_version'].replace('.', '')
         )
     
     # depsland launcher
@@ -164,8 +163,8 @@ def _create_launcher(
         'exe_file'   : f'{dst_model.dst_root}/{launcher_name}.exe',
     }
     
-    _rel0 = lambda p: relpath(p, dst_model.dst_root)  # starts from dst root
-    _rel1 = lambda p: relpath(p, dst_model.src_root)  # strats from pylauncher dir
+    _rel0 = lambda p: relpath(p, dst_model.dst_root)  # start from dst root
+    _rel1 = lambda p: relpath(p, dst_model.src_root)  # start from pylauncher dir
     _rel_paths = {
         'lib_dir'    : _rel1(dst_model.lib),  # '../lib'
         'launch_file': _rel0(_abs_paths['launch_file']),  # 'src/pylauncher.py'
@@ -182,8 +181,8 @@ def _create_launcher(
     
     _generate_target_conf(target)
     _generate_pylauncher(module_paths, module_paths_scheme)
-    # # _generate_bat(options.get('enable_venv', True))
-    _generate_shell(gconf.target_platform, enable_venv=options.get('enable_venv', True))
+    _generate_shell(gconf.target_platform,
+                    enable_venv=options.get('enable_venv', True))
     if options.get('generate_exe', True):
         # TEST
         if gconf.target_platform == 'windows':
@@ -359,8 +358,8 @@ def _generate_exe(icon, enable_console):
         bat_2_exe(bat_file, exe_file, icon_file, *options)
         lk.loga('convertion bat-to-exe done')
     
-    # this is a time-consuming operation (persists 1-10 seconds), we put it
-    # in a sub thread_of_bat_2_exe.
+    # this is a time-consuming operation (persists 1-10 seconds), we put it in
+    # a sub thread_of_bat_2_exe.
     thread_pool[_abs_paths['bat_file']] = run_new_thread(
         _run, _abs_paths['bat_file'], _abs_paths['exe_file'], icon, '/x64',
         '' if enable_console else '/invisible'
@@ -369,7 +368,8 @@ def _generate_exe(icon, enable_console):
 
 
 def _generate_desktop(icon):  # noqa  # TODO
-    """
+    """ Generate Linux desktop launcher with icon.
+    
     References:
         https://juejin.cn/post/6844904127047139342
     """

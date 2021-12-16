@@ -21,9 +21,9 @@
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
+        "python_version": "3.10",
         "venv": {
             "enable_venv": true,
-            "python_version": "3.10",
             "mode": "source_venv",
             "options": {
                 "depsland": {

@@ -14,12 +14,10 @@ Examples:
     bat_to_exe_converter /bat xxx.bat /exe xxx.exe /x64 /icon xxx.ico
     bat_to_exe_converter /bat xxx.bat /exe xxx.exe /x64 /icon xxx.ico
 """
-from os import popen
-from os.path import abspath
+from lk_utils import run_cmd_args
+from lk_utils.filesniff import relpath
 
-from lk_utils import send_cmd
-
-_bat_2_exe_converter = abspath(f'{__file__}/../bat_to_exe_converter.exe')
+_converter = relpath('bat_to_exe_converter.exe')
 
 
 def main(bat_file, exe_file, icon='', *options):
@@ -37,21 +35,10 @@ def main(bat_file, exe_file, icon='', *options):
             /uac-user
     """
     if icon: assert icon.endswith('.ico')
-    cmd = '"{}" /bat "{}" /exe "{}" {} {}'.format(
-        _bat_2_exe_converter,
-        bat_file,
-        exe_file,
+    return run_cmd_args(
+        _converter,
+        '/bat', bat_file,
+        '/exe', exe_file,
         '' if not icon else f'/icon "{icon}"',
         ' '.join(options)
-    ).strip()
-    return send_cmd(cmd)
-
-
-if __name__ == '__main__':
-    cmd = '{} /bat {} /exe {}'.format(
-        _bat_2_exe_converter,
-        abspath('../template/launch_by_venv.bat'),
-        abspath('../../tests/test1.exe')
     )
-    print(cmd)
-    print(popen(cmd).read())

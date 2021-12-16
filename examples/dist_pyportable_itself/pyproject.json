@@ -1,101 +1,96 @@
 {
-  "app_name": "PyPortable Installer",
-  "app_version": "4.0.1",
-  "description": "",
-  "authors": [
-    "Likianta <likianta@foxmail.com>"
-  ],
-  "build": {
-    "proj_dir": "../../pyportable_installer",
-    "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
-    "launcher_name": "{app_name}",
-    "icon": "launcher.ico",
-    "target": [
-      {
-        "file": "../../shortcut/build.py",
-        "function": "main",
-        "args": [],
-        "kwargs": {}
-      }
+    "app_name": "PyPortable Installer",
+    "app_version": "4.2.0",
+    "description": "",
+    "authors": [
+        "Likianta <likianta@foxmail.com>"
     ],
-    "readme": "",
-    "attachments": {
-      "../../dist": "only_folder",
-      "../../lib": "only_folder",
-      "../../lib/temp_lib": "only_folder",
-      "../../shortcut": "assets,compile",
-      "../../sidework": "assets,compile,dist:{name}",
-      "../../temp": "only_folder"
+    "build": {
+        "proj_dir": "../../pyportable_installer",
+        "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
+        "launchers": {
+            "{app_name}": {
+                "file": "../../shortcut/build.py",
+                "icon": "launcher.ico",
+                "function": "main",
+                "args": [],
+                "kwargs": {}
+            }
+        },
+        "readme": "",
+        "attachments": {
+            "../../dist": "only_folder",
+            "../../shortcut": "assets,compile",
+            "../../temp": "only_folder"
+        },
+        "attachments_exclusions": [],
+        "attachments_exist_scheme": "override",
+        "module_paths": [],
+        "module_paths_scheme": "translate",
+        "python_version": "3.8",
+        "venv": {
+            "enable_venv": false,
+            "mode": "depsland",
+            "options": {
+                "depsland": {
+                    "venv_name": "{app_name_snake}_venv",
+                    "venv_id": "",
+                    "requirements": "../../requirements.txt",
+                    "offline": false,
+                    "local": ""
+                },
+                "source_venv": {
+                    "path": ""
+                },
+                "pip": {
+                    "requirements": [],
+                    "pypi_url": "https://pypi.python.org/simple/",
+                    "local": "",
+                    "offline": false
+                },
+                "embed_python": {
+                    "path": ""
+                }
+            }
+        },
+        "compiler": {
+            "name": "pyportable_crypto",
+            "options": {
+                "cython": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
+                "mypyc": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
+                "nuitka": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
+                "pyarmor": {
+                    "liscense": "trial",
+                    "obfuscate_level": 0
+                },
+                "pyc": {
+                    "optimize_level": 0
+                },
+                "pyportable_crypto": {
+                    "key": "{random}"
+                },
+                "zipapp": {
+                    "password": ""
+                }
+            }
+        },
+        "experimental_features": {
+            "add_pywin32_support": false,
+            "platform": "system_default"
+        },
+        "enable_console": true
     },
-    "attachments_exclusions": [],
-    "attachments_exist_scheme": "override",
-    "module_paths": [],
-    "module_paths_scheme": "translate",
-    "venv": {
-      "enable_venv": true,
-      "python_version": "3.8",
-      "mode": "depsland",
-      "options": {
-        "depsland": {
-          "venv_name": "{app_name_lower}_venv",
-          "venv_id": "",
-          "requirements": "../../requirements.txt",
-          "offline": false,
-          "local": ""
-        },
-        "source_venv": {
-          "path": ""
-        },
-        "pip": {
-          "requirements": [],
-          "pypi_url": "https://pypi.python.org/simple/",
-          "local": "",
-          "offline": false
-        },
-        "embed_python": {
-          "path": ""
-        }
-      }
-    },
-    "compiler": {
-      "name": "pyportable_crypto",
-      "options": {
-        "cython": {
-          "c_compiler": "msvc",
-          "python_path": "_auto_detect"
-        },
-        "mypyc": {
-          "c_compiler": "msvc",
-          "python_path": "_auto_detect"
-        },
-        "nuitka": {
-          "c_compiler": "msvc",
-          "python_path": "_auto_detect"
-        },
-        "pyarmor": {
-          "liscense": "trial",
-          "obfuscate_level": 0
-        },
-        "pyc": {
-          "optimize_level": 0
-        },
-        "pyportable_crypto": {
-          "key": "_trial",
-          "c_compiler": "msvc",
-          "python_path": "_auto_detect"
-        },
-        "zipapp": {
-          "password": ""
-        }
-      }
-    },
-    "experimental_features": {
-      "add_pywin32_support": false
-    },
-    "enable_console": true
-  },
-  "note": [
-    "check './requirements_offline' latest"
-  ],
-  "pyportable_installer_version": "4.0.1"
+    "note": [
+        "check './requirements_offline' latest"
+    ],
+    "pyportable_installer_version": "4.2.0"
 }

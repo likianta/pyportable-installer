@@ -6,7 +6,7 @@ TPathFormat = Literal['abspath', 'relpath']
 TPyVersion = str
 #   e.g.
 #       64bit: '3.6', '3.7', '3.8', etc.
-#       32big: '3.6-32', '3.7-32', '3.8-32', etc.
+#       32bit: '3.6-32', '3.7-32', '3.8-32', etc.
 #   see `embed_python/manager.py::EmbedPythonManager.options.keys`
 
 # `template/pyproject.json::build:venv:options:depsland,pip:requirements`
@@ -78,7 +78,6 @@ TVenvMode = Literal['depsland', 'embed_python', 'pip', 'source_venv',
 class TVenvBuildConf(TypedDict):
     # `template/pyproject.json::build:venv`
     enable_venv: bool
-    python_version: TPyVersion
     mode: TVenvMode
     options: _TVenvModeOptions
 
@@ -163,6 +162,7 @@ class TBuildConf(TypedDict):
     attachments_exist_scheme: Literal['error', 'override', 'skip']
     module_paths: List[TPath]
     module_paths_scheme: Literal['translate', 'leave as-is']
+    python_version: TPyVersion
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']
     experimental_features: TExperimentalFeatures

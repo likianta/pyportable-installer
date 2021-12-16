@@ -67,4 +67,4 @@ def _precheck(full_pack):
 
 if __name__ == '__main__':
     main(full_pack=False)
-    main(full_pack=True)
+    # main(full_pack=True)

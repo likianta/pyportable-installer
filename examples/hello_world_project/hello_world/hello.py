@@ -1,5 +1,5 @@
 def main(name=input("What's your name: ")):
-    print(f'Hello {name}!')
+    input(f'Hello {name}!')  # press enter to exit
 
 
 if __name__ == '__main__':

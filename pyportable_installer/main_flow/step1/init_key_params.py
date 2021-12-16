@@ -1,9 +1,9 @@
 import os
 import os.path
-from os.path import exists
 
 from lk_logger import lk
 
+from . import where_is_python
 from ...global_conf import gconf
 from ...path_model import prj_model
 from ...typehint import *
@@ -20,6 +20,7 @@ def init_key_params(conf: TConf, **kwargs):
     _init_pyversion()
     _init_platform()
     _init_pyportable_runtime_package()
+    _init_python_paths()
 
 
 def _init_proj_paths(**kwargs):
@@ -34,8 +35,8 @@ def _init_attachments_scheme():
 
 
 def _init_pyversion():
-    pyversion = _conf['build']['venv']['python_version']
-    assert pyversion, '`conf["build"]["venv"]["python_version"]` not defined'
+    pyversion = _conf['build']['python_version']
+    assert pyversion, '`conf["build"]["python_version"]` not defined'
     pyversion = 'python' + pyversion.replace('.', '')  # e.g. 'python38'
     gconf.target_pyversion = pyversion
 
@@ -55,12 +56,16 @@ def _init_pyportable_runtime_package():
     import sys
     
     if gconf.target_platform == 'windows':
-        package_dir = {
+        runtime_dir = {
             'python38' : prj_model.pyportable_runtime_py38,
             'python39' : prj_model.pyportable_runtime_py39,
             'python310': prj_model.pyportable_runtime_py310,
-        }[gconf.target_pyversion]
-        sys.path.insert(0, os.path.dirname(package_dir))
+        }[gconf.current_pyversion]
+        sys.path.insert(0, os.path.dirname(runtime_dir))
+
+        import pyportable_runtime  # noqa
+        lk.logt('[I4053]', pyportable_runtime.__path__)
+
         return
     
     # # package_dir = {
@@ -74,11 +79,11 @@ def _init_pyportable_runtime_package():
         raise Exception('For Linux/macOS system, the python version accepts '
                         'only 3.8 for now.')
     try:
-        assert exists(prj_model.pyportable_runtime_py38_linux)
+        assert os.path.exists(prj_model.pyportable_runtime_py38_linux)
     except AssertionError:
         from textwrap import dedent
         lk.logd('interactive prompt')
-        temp_path = input(dedent('''
+        runtime_dir = input(dedent('''
             The platform you defined in project configurations requires
             pyportable_runtime package which is built on Linux. You can find
             this package in https://github.com/likianta/pyportable-installer
@@ -92,12 +97,15 @@ def _init_pyportable_runtime_package():
         '''.format(
             prj_model.pyportable_runtime_py38_linux
         )).strip() + ' ').strip()
-        if temp_path == '':
+        if runtime_dir == '':
             exit()
         else:
-            assert exists(temp_path)
-            prj_model.pyportable_runtime_py38_linux = temp_path
-            sys.path.insert(0, os.path.dirname(temp_path))
+            assert os.path.exists(runtime_dir)
+            prj_model.pyportable_runtime_py38_linux = runtime_dir
+            sys.path.insert(0, os.path.dirname(runtime_dir))
+
+        import pyportable_runtime  # noqa
+        lk.logt('[I4053]', pyportable_runtime.__path__)
 
 
 def _init_python_paths():
@@ -166,9 +174,9 @@ def _init_python_paths():
     if is_full_python_required:
         # noinspection PyTypedDict
         options = _conf['build']['compiler']['options'][name]
-        if options['python_path'] in ('{auto_detect}', 'auto_detect', ''):
+        if options.get('python_path', '') in \
+                ('{auto_detect}', 'auto_detect', ''):
             try:
-                from . import where_is_python
                 gconf.full_python = where_is_python.get_full_python(pyversion)
             except FileNotFoundError:
                 lk.logt(
@@ -182,32 +190,20 @@ def _init_python_paths():
         else:
             gconf.full_python = options['python_path']
         lk.logt('[I1955]', gconf.full_python)
-        assert exists(gconf.full_python)
+        assert os.path.exists(gconf.full_python)
     
     # --------------------------------------------------------------------------
     
-    def _get_embed_python_from_local(pyversion):
-        if pyversion == 'python39' and \
-                exists(f'{prj_model.prj_root}/venv/python39._pth.bak'):
-            return f'{prj_model.prj_root}/venv/python.exe'
-        else:
-            return ''
-    
-    def _get_embed_python(pyversion, add_pip_suits: bool):
-        from embed_python_manager import EmbedPythonManager
-        manager = EmbedPythonManager(pyversion)
-        manager.change_source('npm_taobao_org.yml')
-        manager.deploy(
-            add_pip_suits=add_pip_suits,
-            add_pip_scripts=False,
-            add_tk_suits=False  # FIXME: check tkinter requirement
-        )
-        return manager.python
-    
     if is_embed_python_required:
         if is_pip_required:
-            gconf.embed_python = _get_embed_python(pyversion, True)
+            gconf.embed_python = where_is_python.get_embed_python(
+                pyversion, add_pip_suits=True
+            )
         else:
-            gconf.embed_python = _get_embed_python_from_local(pyversion) or \
-                                 _get_embed_python(pyversion, False)
-        assert exists(gconf.embed_python)
+            gconf.embed_python = (
+                    where_is_python.get_embed_python_from_local(pyversion) or
+                    where_is_python.get_embed_python(
+                        pyversion, add_pip_suits=False
+                    )
+            )
+        assert os.path.exists(gconf.embed_python)

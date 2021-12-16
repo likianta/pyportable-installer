@@ -1,9 +1,9 @@
 # pip download -r requirements.txt -d examples/dist_pyportable_itself/requirements_offline
 # note: don't forget to update '~/examples/dist_pyportable_itself/requirements_offline' manually.
-cython
+# cython
 embed-python-manager
-fire
+# fire
 lk-logger
-lk-utils
-pyarmor
-pyportable-crypto >= 1.0.0b0
+lk-utils >= 2.1.2
+# pyarmor
+pyportable-crypto >= 1.0

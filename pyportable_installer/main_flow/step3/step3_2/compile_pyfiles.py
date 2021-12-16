@@ -18,7 +18,7 @@ def get_compiler(name: TCompilerName, **kwargs):
     elif name == 'pyc':
         return compilers.PycCompiler(gconf.embed_python)
     elif name == 'pyportable_crypto':
-        return compilers.PyportableEncryptor(**kwargs)
+        return compilers.PyportableCompiler(salt=kwargs['key'])
     elif name == '_no_compiler':
         return compilers.EffectlessCompiler()
     else:

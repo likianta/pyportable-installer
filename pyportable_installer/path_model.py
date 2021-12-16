@@ -35,6 +35,7 @@ def relpath(path, start):
 class PyPortablePathModel:
     # current dir based
     cur_root = _cur_dir
+    # lk.logt('[D0957]', cur_root)
     
     (
         bat_2_exe_converter,
@@ -54,10 +55,10 @@ class PyPortablePathModel:
         pyportable_runtime_py38_linux,
     ) = (
         f'{cur_root}/compilers/lib',
-        f'{cur_root}/compilers/lib/pyportable_runtime_py38',
-        f'{cur_root}/compilers/lib/pyportable_runtime_py39',
-        f'{cur_root}/compilers/lib/pyportable_runtime_py310',
-        f'{cur_root}/compilers/lib/linux/pyportable_runtime_py38',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py38/pyportable_runtime',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py39/pyportable_runtime',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py310/pyportable_runtime',
+        f'{cur_root}/compilers/lib/linux/pyportable_runtime_py38/pyportable_runtime',
     )
     
     (
@@ -98,11 +99,11 @@ class PyPortablePathModel:
     
     (
         dist,
-        lib,
+        # lib,
         temp,
     ) = (
         f'{prj_root}/dist',
-        f'{prj_root}/lib',
+        # f'{prj_root}/lib',
         f'{prj_root}/temp',
     )
     
@@ -111,13 +112,11 @@ class PyPortablePathModel:
     def build_dirs(self):
         if ASSETS_ENTRY == 'STANDALONE':
             assert xpath.exists(self.dist)
-            assert xpath.exists(self.lib)
             assert xpath.exists(self.temp)
         else:
             if not xpath.exists(self.prj_root):
                 os.mkdir(self.prj_root)
                 os.mkdir(self.dist)
-                os.mkdir(self.lib)
                 os.mkdir(self.temp)
     
     def create_temp_dir(self):

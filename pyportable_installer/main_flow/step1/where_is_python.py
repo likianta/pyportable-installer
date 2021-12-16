@@ -4,6 +4,7 @@ from os.path import exists
 from lk_utils import run_cmd_args
 
 from ...global_conf import gconf
+from ...path_model import prj_model
 
 
 def get_full_python(pyversion):
@@ -36,3 +37,23 @@ def get_full_python(pyversion):
         if not exists(path):
             raise FileNotFoundError(path)
         return path
+
+
+def get_embed_python(pyversion, add_pip_suits: bool):
+    from embed_python_manager import EmbedPythonManager
+    manager = EmbedPythonManager(pyversion)
+    manager.change_source('npm_taobao_org.yml')
+    manager.deploy(
+        add_pip_suits=add_pip_suits,
+        add_pip_scripts=False,
+        add_tk_suits=False  # FIXME: check tkinter requirement
+    )
+    return manager.python
+
+
+def get_embed_python_from_local(pyversion):
+    if pyversion == 'python38' and \
+            exists(f'{prj_model.prj_root}/venv/python38._pth.bak'):
+        return f'{prj_model.prj_root}/venv/python.exe'
+    else:
+        return ''

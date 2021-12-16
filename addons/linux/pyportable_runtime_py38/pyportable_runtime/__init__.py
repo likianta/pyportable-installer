@@ -24,4 +24,4 @@ del _init_check
 from .cipher import decrypt  # noqa
 from .cipher import encrypt  # noqa
 
-__version__ = '1.0.0b1'
+__version__ = '1.0.0'

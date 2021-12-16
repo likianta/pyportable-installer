@@ -14,13 +14,13 @@ default = true
 
 [tool.poetry.dependencies]
 python = "^3.8"
-cython = ""
+# cython = ""
 embed-python-manager = ""
-fire = ""
+# fire = ""
 lk-logger = ""
-lk-utils = ""
-pyarmor = ""
-pyportable-crypto = ""
+lk-utils = ">=2.1.2"
+# pyarmor = ""
+pyportable-crypto = ">=1.0.0"
 
 [tool.poetry.dev-dependencies]
 

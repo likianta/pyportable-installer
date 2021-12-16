@@ -30,6 +30,7 @@ def mainloop(key, root_dir):
         if python_dir.startswith('['):
             try:
                 python_exe = _auto_find_python_exe(python_dir[1:-1])
+                lk.logt('[I2926]', 'auto locate python exe', python_exe)
             except FileNotFoundError:
                 lk.logt('[E0039]', 'cannot find the specific python version, '
                                    'please check your input and try again.')
