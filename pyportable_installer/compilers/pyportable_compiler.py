@@ -43,14 +43,17 @@ class PyportableCompiler(BaseCompiler):
         #   the package path is added since `../main_flow/step1/init_key_params.py:
         #   [func]_init_pyportable_runtime_package`.
         
-        package_dir = {
-            'python38' : prj_model.pyportable_runtime_py38,
-            'python39' : prj_model.pyportable_runtime_py39,
-            'python310': prj_model.pyportable_runtime_py310,
-        }[gconf.target_pyversion]
-        #   note this is different from `../main_flow/step1/init_key_params.py:
-        #   [func]_init_pyportable_runtime_package`. here we are using
-        #   `gconf.target_pyversion`, not `gconf.current_pyversion`.
+        if gconf.target_platform == 'windows':
+            package_dir = {
+                'python38' : prj_model.pyportable_runtime_py38,
+                'python39' : prj_model.pyportable_runtime_py39,
+                'python310': prj_model.pyportable_runtime_py310,
+            }[gconf.target_pyversion]
+            #   note this is different from `../main_flow/step1/init_key_params
+            #   .py:[func]_init_pyportable_runtime_package`. here we are using
+            #   `gconf.target_pyversion`, not `gconf.current_pyversion`.
+        else:
+            package_dir = prj_model.pyportable_runtime_py38_linux
         
         dir_i = package_dir
         dir_o = dst_model.lib + '/pyportable_runtime'

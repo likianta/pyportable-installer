@@ -8,7 +8,7 @@ from ...global_conf import gconf
 from ...path_model import prj_model
 from ...typehint import *
 
-_conf = ...
+_conf = ...  # type: TConf
 
 
 def init_key_params(conf: TConf, **kwargs):
@@ -55,57 +55,56 @@ def _init_platform():
 def _init_pyportable_runtime_package():
     import sys
     
-    if gconf.target_platform == 'windows':
+    if gconf.target_platform != 'windows':
+        # # package_dir = {
+        # #     'python38' : prj_model.pyportable_runtime_py38_linux,
+        # #     'python39' : prj_model.pyportable_runtime_py39_linux,
+        # #     'python310': prj_model.pyportable_runtime_py310_linux,
+        # # }[gconf.target_pyversion]
+        try:
+            assert _conf['build']['python_version'] == '3.8'
+        except AssertionError:
+            raise Exception('For Linux/macOS system, the python version '
+                            'accepts only 3.8 for now.')
+        try:
+            assert os.path.exists(prj_model.pyportable_runtime_py38_linux)
+        except AssertionError:
+            from textwrap import dedent
+            lk.logd('interactive prompt')
+            runtime_dir = input(dedent('''
+                The platform you defined in project configurations requires
+                pyportable_runtime package which is built on Linux. You can find
+                this package in https://github.com/likianta/pyportable-installer
+                (browse ~/addons/linux/pyportable_runtime_py38), and copy it
+                here:
+                    {}
+                Then re-run this installer.
+                BTW if you have downloaded that package but not copied, you can
+                pass me the path of download here, to continue the process (or
+                press enter to leave):
+            '''.format(
+                prj_model.pyportable_runtime_py38_linux
+            )).strip() + ' ').strip()
+            if runtime_dir == '':
+                exit()
+            else:
+                assert os.path.exists(runtime_dir)
+                prj_model.pyportable_runtime_py38_linux = runtime_dir
+    
+    # -------------------------------------------------------------------------
+    
+    if gconf.current_platform == 'windows':
         runtime_dir = {
             'python38' : prj_model.pyportable_runtime_py38,
             'python39' : prj_model.pyportable_runtime_py39,
             'python310': prj_model.pyportable_runtime_py310,
         }[gconf.current_pyversion]
         sys.path.insert(0, os.path.dirname(runtime_dir))
-
-        import pyportable_runtime  # noqa
-        lk.logt('[I4053]', pyportable_runtime.__path__)
-
-        return
+    else:
+        sys.path.insert(0, prj_model.pyportable_runtime_py38_linux)
     
-    # # package_dir = {
-    # #     'python38' : prj_model.pyportable_runtime_py38_linux,
-    # #     'python39' : prj_model.pyportable_runtime_py39_linux,
-    # #     'python310': prj_model.pyportable_runtime_py310_linux,
-    # # }[gconf.target_pyversion]
-    try:
-        assert _conf['build']['venv']['python_path'] == '3.8'
-    except AssertionError:
-        raise Exception('For Linux/macOS system, the python version accepts '
-                        'only 3.8 for now.')
-    try:
-        assert os.path.exists(prj_model.pyportable_runtime_py38_linux)
-    except AssertionError:
-        from textwrap import dedent
-        lk.logd('interactive prompt')
-        runtime_dir = input(dedent('''
-            The platform you defined in project configurations requires
-            pyportable_runtime package which is built on Linux. You can find
-            this package in https://github.com/likianta/pyportable-installer
-            (browse ~/addons/linux/pyportable_runtime_py38), and copy it
-            here:
-                {}
-            Then re-run this installer.
-            BTW if you have downloaded that package but not copied, you can
-            pass me the path of download here, to continue the process (or
-            press enter to leave):
-        '''.format(
-            prj_model.pyportable_runtime_py38_linux
-        )).strip() + ' ').strip()
-        if runtime_dir == '':
-            exit()
-        else:
-            assert os.path.exists(runtime_dir)
-            prj_model.pyportable_runtime_py38_linux = runtime_dir
-            sys.path.insert(0, os.path.dirname(runtime_dir))
-
-        import pyportable_runtime  # noqa
-        lk.logt('[I4053]', pyportable_runtime.__path__)
+    import pyportable_runtime  # noqa
+    lk.logt('[I4053]', pyportable_runtime.__path__)
 
 
 def _init_python_paths():
