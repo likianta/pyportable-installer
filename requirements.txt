@@ -1,8 +1,9 @@
 # pip download -r requirements.txt -d examples/dist_pyportable_itself/requirements_offline
-# note: don't forget to update '~/examples/dist_pyportable_itself/requirements_offline' manually.
-# cython
+# pip download <package> -d examples/dist_pyportable_itself/requirements_offline
+
 embed-python-manager
 fire
+gen-exe
 lk-logger
 lk-utils >= 2.1.2
 # pyarmor

@@ -63,7 +63,7 @@
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": ""
+                    "key": "{random}"
                 },
                 "zipapp": {
                     "password": ""
@@ -77,5 +77,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.2.0"
+    "pyportable_installer_version": "4.2.2"
 }

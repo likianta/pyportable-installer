@@ -40,8 +40,8 @@ class PyportableCompiler(BaseCompiler):
     def _generate_runtime_lib(self):
         import pyportable_runtime  # noqa
         #   this package is from `.lib.*.pyportable_runtime`.
-        #   the package path is added since `../main_flow/step1/init_key_params.py:
-        #   [func]_init_pyportable_runtime_package`.
+        #   the package path is added since `../main_flow/step1/init_key_params
+        #   .py:[func]_init_pyportable_runtime_package`.
         
         if gconf.target_platform == 'windows':
             package_dir = {

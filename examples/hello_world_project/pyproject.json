@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.7.21",
+    "app_version": "0.7.28",
     "description": "Say hello to the given name.",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -11,7 +11,7 @@
         "launchers": {
             "{app_name_kebab}": {
                 "file": "hello_world/hello.py",
-                "icon": "",
+                "icon": "../dist_pyportable_itself/launcher.ico",
                 "function": "main",
                 "args": [],
                 "kwargs": {}
@@ -87,5 +87,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.2.0"
+    "pyportable_installer_version": "4.2.2"
 }

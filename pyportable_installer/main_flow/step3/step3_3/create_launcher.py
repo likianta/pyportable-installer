@@ -4,20 +4,16 @@ import pickle
 import shutil
 from secrets import token_hex
 
-from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import loads
 from lk_utils import ropen
 from lk_utils import wopen
 from lk_utils.filesniff import get_filename
-from lk_utils.subproc import run_new_thread
 
-from .bat_2_exe import bat_2_exe
 from ....global_conf import gconf
 from ....path_model import *
 from ....typehint import TBuildConf
 
-thread_pool = {}  # {bat_file: thread, ...}
 _is_depsland_mode = False  # TODO: downgrade it to local variable
 _abs_paths = ...  # type: dict
 _rel_paths = ...  # type: dict
@@ -114,7 +110,7 @@ def create_launcher(build: TBuildConf):
             ), file_part_a_i)
             _generate_exe(
                 icon=kwargs_part_a['icon'],
-                enable_console=kwargs_part_b['enable_console']
+                show_console=kwargs_part_b['enable_console']
             )
             
             # move previous bat launcher into `dst_model.build/_bat_launchers`
@@ -351,20 +347,17 @@ def _generate_bat(enable_venv):
         f.write(code)
 
 
-def _generate_exe(icon, enable_console):
-    def _run(bat_file, exe_file, icon_file, *options):
-        lk.loga('converting bat to exe ... '
-                '(it may take several seconds ~ one minute)')
-        bat_2_exe(bat_file, exe_file, icon_file, *options)
-        lk.loga('convertion bat-to-exe done')
-    
-    # this is a time-consuming operation (persists 1-10 seconds), we put it in
-    # a sub thread_of_bat_2_exe.
-    thread_pool[_abs_paths['bat_file']] = run_new_thread(
-        _run, _abs_paths['bat_file'], _abs_paths['exe_file'], icon, '/x64',
-        '' if enable_console else '/invisible'
+def _generate_exe(icon, show_console):
+    from .bat_2_exe import bat_2_exe
+    bat_2_exe(
+        file_i=_abs_paths['bat_file'],
+        file_o=_abs_paths['exe_file'],
+        icon=icon,
+        show_console=show_console
     )
-    #   the thread_of_bat_2_exe will be recycled in `..step3_4.cleanup`.
+    
+    # then delete bat file
+    os.remove(_abs_paths['bat_file'])
 
 
 def _generate_desktop(icon):  # noqa  # TODO

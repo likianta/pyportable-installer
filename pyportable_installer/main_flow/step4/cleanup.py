@@ -18,14 +18,6 @@ def main(pyproj_file, additional_conf):
 def _cleanup_intermediate_files():
     lk.logt('[I5325]', 'clean up intermediate files')
     
-    # wait for bat-2-exe thread joins then delete bat file.
-    from ..step3.step3_3.create_launcher import thread_pool
-    for bat_file, thread in thread_pool.items():
-        thread.join()
-        if os.path.exists(bat_file):
-            os.remove(bat_file)
-    thread_pool.clear()
-    
     for d in find_dirs(prj_model.temp):
         shutil.rmtree(d)
         # try:
