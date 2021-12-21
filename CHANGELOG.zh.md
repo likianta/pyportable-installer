@@ -6,6 +6,13 @@
 
 - 新增: 通过 `gen-exe` (based on pywin32) 库创建 exe 文件, 取代 bat-2-exe-converter. 转换速度由 ~5s 提升到 <1s
 
+次要更新:
+
+- 移除: bat-2-exe-converter
+- 移除: bat-2-exe 线程管理
+- 修复: `gen-exe` 不需要对 sys.argv 进行预处理
+- 修复: `gen-exe` 不需要外部传入 `%*` 参数
+
 ## 4.2.1 | 2021-12-17
 
 次要更新:

@@ -8,12 +8,13 @@ from lk_utils.subproc import format_cmd  # noqa
 def bat_2_exe(file_i, file_o, icon='', show_console=True):
     data_r = load_list(file_i)
     # data_w = ' && '.join(format_cmd(*data_r))
-    data_w = ' && '.join(data_r)
+    data_w = ' && '.join(data_r).strip()
     
     # https://github.com/silvandeleemput/gen-exe
     # https://blog.csdn.net/qq981378640/article/details/52980741
     data_w = data_w.replace('%~dp0', '{EXE_DIR}')
     data_w = data_w.replace('%cd%', '{EXE_DIR}')
+    if data_w.endswith('%*'): data_w = data_w[:-3]
     
     generate_exe(
         target=Path(file_o),
