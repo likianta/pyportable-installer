@@ -2,7 +2,6 @@
 # pip download <package> -d examples/dist_pyportable_itself/requirements_offline
 
 embed-python-manager
-fire
 gen-exe
 lk-logger
 lk-utils >= 2.1.2

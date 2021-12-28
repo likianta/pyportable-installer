@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.7.28",
+    "app_version": "0.8.7",
     "description": "Say hello to the given name.",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -87,5 +87,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.2.2"
+    "pyportable_installer_version": "4.3.0"
 }

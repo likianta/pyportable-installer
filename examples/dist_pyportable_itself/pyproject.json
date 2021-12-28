@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.2.0",
+    "app_version": "4.3.0-build.5",
     "description": "",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -10,7 +10,7 @@
         "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
         "launchers": {
             "{app_name}": {
-                "file": "../../shortcut/build.py",
+                "file": "../../pyportable_installer/user_interface/gui_on_psg.py",
                 "icon": "launcher.ico",
                 "function": "main",
                 "args": [],
@@ -19,8 +19,8 @@
         },
         "readme": "",
         "attachments": {
+            "./requirements_offline/PySimpleGUI": "assets,dist:lib/{name}",
             "../../dist": "only_folder",
-            "../../shortcut": "assets,compile",
             "../../temp": "only_folder"
         },
         "attachments_exclusions": [],
@@ -90,7 +90,7 @@
         "enable_console": true
     },
     "note": [
-        "check './requirements_offline' latest"
+        "before run this script, download and extract pysimplegui package to ./requirements_offline/PySimpleGUI"
     ],
-    "pyportable_installer_version": "4.2.0"
+    "pyportable_installer_version": "4.3.0"
 }

@@ -12,5 +12,6 @@ __pycache__
 bat_2_exe/settings
 
 !/dist/.gitkeep
+!/examples/dist_pyportable_itself/requirements_offline/.gitkeep
 !/examples/dist_pyportable_itself/requirements_offline/readme.md
 !/temp/.gitkeep
