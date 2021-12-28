@@ -21,7 +21,7 @@
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
-        "python_version": "3.10",
+        "python_version": "3.8",
         "venv": {
             "enable_venv": true,
             "mode": "source_venv",
@@ -56,7 +56,7 @@
                     "python_path": "auto_detect"
                 },
                 "pyarmor": {
-                    "liscense": "trial",
+                    "license": "trial",
                     "obfuscate_level": 0
                 },
                 "pyc": {

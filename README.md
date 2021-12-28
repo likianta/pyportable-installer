@@ -8,7 +8,7 @@
 > | 独立免安装版 (标准版) | 用户电脑上需预先安装 [Depsland][1] 软件, 安装过程需要联网 | 4.5MB | 见本项目 Release 页面 |
 > | 独立免安装版 (完整版) | 该压缩包内置了 [Depsland][1]. 下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | 见本项目 Release 页面 |
 >
-> ![](./build/demo-20210929-111301.gif)
+> ![](./.assets/20211228144650.gif)
 
 --------------------------------------------------------------------------------
 
@@ -121,19 +121,17 @@ pip install pyportable-installer>=4.0.0
 ```
 hello_world_project
 |= data
-   |- names.txt ::
-   |     Elena
-   |     Lorez
-   |     Mei
+   |- names.txt
+|= dist
 |= hello_world
-   |- main.py   ::
-   |     def say_hello(file):
-   |         with open(file, 'r') as f:
-   |             for name in f:
-   |                 print(f'Hello {name}!')
-   |
-   |     if __name__ == '__main__':
-   |         say_hello('../data/names.txt')
+   |- main.py
+   |  # def say_hello(file):
+   |  #     with open(file, 'r') as f:
+   |  #         for name in f:
+   |  #             print(f'Hello {name}!')
+   |  #
+   |  # if __name__ == '__main__':
+   |  #     say_hello('../data/names.txt')
 |- pyproject.json
 |- README.md
 ```
@@ -144,34 +142,49 @@ hello_world_project
 
 ```json5
 {
-    "app_name": "Hello World",  // ◆◇◆ 应用名称 ◆◇◆
-    "app_version": "0.1.0",  // ◆◇◆ 应用版本 ◆◇◆
+    // 注意: 凡是配置项中涉及到路径的填写, 均使用相对于本文件的相对路径, 或者使
+    // 用绝对路径. pyportable-installer 会自动将它们转换到打包目录的内部结构中.
+
+    // ◆◇◆ 应用名称 ◆◇◆
+    "app_name": "Hello World",
+    // ◆◇◆ 应用版本 ◆◇◆
+    "app_version": "0.1.0",
     "description": "",
     "authors": [],
     "build": {
-        "proj_dir": "./hello_world",  // ◆◇◆ 要打包的项目目录 ◆◇◆
-        "dist_dir": "./dist/{app_name_lower}_{app_version}",  // ◆◇◆ 打包结果目录 ◆◇◆
-        "launcher_name": "{app_name}",
-        "icon": "",
-        "target": [
-            {
-                "file": "hello_world/main.py",  // ◆◇◆ 目标脚本 ◆◇◆
-                "function": "main",  // ◆◇◆ 目标脚本函数 ◆◇◆
-                "args": ["../data/names.txt"],  // ◆◇◆ 目标函数参数 ◆◇◆
+        // ◆◇◆ 项目目录的入口 ◆◇◆
+        "proj_dir": "./hello_world",
+        // ◆◇◆ 打包结果放在哪里 ◆◇◆
+        //     注意打包结果的父目录必须事先存在, 以及打包结果目录事先应不存在.
+        //     否则打包活动将中止.
+        "dist_dir": "./dist/{app_name_snake}_{app_version}",
+        // ◆◇◆ 启动器配置 ◆◇◆
+        //  1. 启动器配置是一个字典.
+        //  2. 字典的键是要生成的启动器. 键可以使用花括号语法指代一个名称, 例如 
+        //     "{app_name}" 指代 "Hello World", "{app_name_lower}" 指代 "hello 
+        //     world" 等 (详见配置指南).
+        //  3. 字典的值是该启动器的配置.
+        "launchers": {
+            "{app_name}": {
+                "file": "./hello_world/main.py",
+                "icon": "",
+                "function": "main",
+                "args": ["../data/names.txt"],
                 "kwargs": {}
             }
-        ],
+        },
         "readme": "",
-        "attachments": {  // ◆◇◆ 要包含的附件资源清单 ◆◇◆
-            "data/names.txt": "assets"
+        // ◆◇◆ 要加入到打包的附件 ◆◇◆
+        "attachments": {
+            "./data/names.txt": "assets"
         },
         "attachments_exclusions": [],
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
+        "python_version": "3.8",
         "venv": {
-            "enable_venv": false,  // ◆◇◆ 是否开启虚拟环境 (否: 使用系统 Python) ◆◇◆
-            "python_version": "3.9",
+            "enable_venv": true,
             "mode": "source_venv",
             "options": {
                 "depsland": {
@@ -197,27 +210,21 @@ hello_world_project
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",  // ◆◇◆ 选择一个编译器 ◆◇◆
+            "name": "pyportable_crypto",
             "options": {
                 "cythonize": {
                     "c_compiler": "msvc",
-                    "python_path": "_auto_detect"
+                    "python_path": "auto_detect"
                 },
                 "pyarmor": {
-                    "liscense": "trial",
+                    "license": "trial",
                     "obfuscate_level": 0
                 },
                 "pyc": {
                     "optimize_level": 0
                 },
                 "pyportable_crypto": {
-                    "key": "_trial",
-                    "c_compiler": "msvc",
-                    "python_path": "_auto_detect",
-                    "note": [
-                        "if key is '_trial', it doesn't need to define 'c_compiler' and 'python_path'.",
-                        "trial mode is only for development and test purpose."
-                    ]
+                    "key": "{random}"
                 },
                 "zipapp": {
                     "password": ""
@@ -225,12 +232,13 @@ hello_world_project
             }
         },
         "experimental_features": {
-            "add_pywin32_support": false
+            "add_pywin32_support": false,
+            "platform": "system_default"
         },
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.0b4"
+    "pyportable_installer_version": "4.3.0"
 }
 ```
 
@@ -258,18 +266,20 @@ hello_world
 |= dist
    |= hello_world_0.1.0
       |= build
-         |- manifest.json   # 应用构建信息 (数据已自动去敏, 可伴随项目一起发布)
+         |- manifest.json   # 1. 应用构建信息 (数据已自动去敏, 可随项目一起发布)
       |= src
+         |= .pylauncher_conf
+            |- __main__.pkl     # 5. pylauncher 会从这里读取启动配置信息
          |= data
             |- names.txt
          |= hello_world
-            |- main.py      # 这是加密后的脚本, 与源文件同名
-         |- pylauncher.py
+            |- main.py          # 2. 这是加密后的脚本, 与源文件同名
+         |- pylauncher.py       # 4. 启动器 (exe) 会调用这个文件
       |= lib
          |= pyportable_runtime
             |- __init__.py
             |- inject.pyd
-      |- Hello World.exe    # 双击启动
+      |- Hello World.exe    # 3. 双击启动!
 |- ...
 ```
 
@@ -277,7 +287,7 @@ hello_world
 
 1.  要生成的打包目录事先应不存在, 否则 pyportable-installer 会中止打包
 2.  如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则会导致启动失败 (该问题可能与 Embedded Python 解释器有关)
-3.  `pyportable-installer` 需要 Python 3.9 解释器运行. 打包的目标 Python 版本可调 (目前对 Python 2.7 和 Python 3.7 以下的版本未做充分测试)
+3.  `pyportable-installer` 需要 Python 3.8 及以上的解释器运行. 打包的目标 Python 版本可调 (目前对 Python 2.7 和 Python 3.7 以下的版本未做充分测试)
 
 # FAQ
 
@@ -299,13 +309,13 @@ hello_world
 
 这是因为您发布的项目中的虚拟环境使用的是嵌入式 Python, 而嵌入式 Python 并没有自带 tkinter 库.
 
-解决方法 1 (适用于 v4.0.0b3+): 在配置文件中的实验性功能中启用 "add_tkinter_support":
+~~解决方法 1 (适用于 v4.0.0b3+): 在配置文件中的实验性功能中启用 "add_tkinter_support":~~
 
 ```json
 {
-    "...": "...",
+    // ...
     "build": {
-        "...": "...",
+        // ...
         "experimental_features": {
             "add_tkinter_support": {
                 "enable": true,
@@ -338,7 +348,7 @@ hello_world
 from pyportable_installer.bat_2_exe import png_2_ico
 
 # a) 传入文件名和目标位置
-png_2_ico.main('aaa.png', 'my_launcher.ico')
+png_2_ico.main('some_icon.png', 'launcher.ico')
 
 # b) 根据提示传入一个文件名, 会在同一目录下生成 .ico 后缀的同名文件
 png_2_ico.dialog()
@@ -355,9 +365,9 @@ png_2_ico.dialog()
     "app_name": "你好世界",  // 定义应用名为中文. 将生成 "你好世界.exe"
     "build": {
         "dist_dir": "dist/hello_world_{app_version}",  // 这里用英文路径
-        "...": "..."
+        // ...
     },
-    "...": "..."
+    // ...
 }
 ```
 
@@ -367,11 +377,13 @@ png_2_ico.dialog()
 {
     "app_name": "Hello World",  // 仍保持原来的名字
     "build": {
-        "dist_dir": "dist/{app_name_lower}_{app_version}",
-        "launcher_name": "你好世界",  // 单独修改启动器的名字
-        "...": "..."
+        "launchers": {
+            // 单独修改启动器的名字
+            "你好世界": {...}
+        },
+        // ...
     },
-    "...": "..."
+    // ...
 }
 ```
 
