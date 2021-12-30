@@ -1,14 +1,16 @@
 # PyPortable Installer
 
 > pyportable-installer 提供源码版和直装版两个版本供使用. 请根据需要选择:
-> 
+>
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
-> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip install pyportable-installer>=4.0.0` |
+> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip install pyportable-installer` |
 > | 独立免安装版 (标准版) | 用户电脑上需预先安装 [Depsland][1] 软件, 安装过程需要联网 | 4.5MB | 见本项目 Release 页面 |
 > | 独立免安装版 (完整版) | 该压缩包内置了 [Depsland][1]. 下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | 见本项目 Release 页面 |
 >
-> ![](./.assets/20211228144650.gif)
+> `python -m pyportable_installer` 快速演示:
+>
+> ![](./.assets/QCdvnW6kJK.gif)
 
 --------------------------------------------------------------------------------
 
@@ -105,12 +107,12 @@
 通过 pip 安装:
 
 ```
-pip install pyportable-installer>=4.0.0
+pip install pyportable-installer
 ```
 
 > 注意事项:
 > 
-> 1. pyportable-installer 最新发布版本仍处于 beta 阶段, 正式版预计于 2021 年 11 月之前发布
+> 1. pyportable-installer 最新版本为 4.3.0+ (截至 2021-12-30)
 > 2. 上代版本 (3.3.3 及以前) 已不推荐使用
 > 3. pyportable-installer 需要 Python 3.8 及以上的解释器运行
 
@@ -182,6 +184,7 @@ hello_world_project
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
+        // ◆◇◆ 目标应用的 python 解释器版本 ◆◇◆
         "python_version": "3.8",
         "venv": {
             "enable_venv": true,
@@ -311,7 +314,7 @@ hello_world
 
 ~~解决方法 1 (适用于 v4.0.0b3+): 在配置文件中的实验性功能中启用 "add_tkinter_support":~~
 
-```json
+```json5
 {
     // ...
     "build": {

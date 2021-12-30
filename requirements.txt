@@ -7,3 +7,4 @@ lk-logger
 lk-utils >= 2.1.2
 # pyarmor
 pyportable-crypto >= 1.0
+pysimplegui

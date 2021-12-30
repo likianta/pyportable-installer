@@ -21,7 +21,7 @@ lk-logger = ""
 lk-utils = ">=2.1.2"
 # pyarmor = ""
 pyportable-crypto = ">=1.0.0"
-# pysimplegui = ""
+pysimplegui = ""
 
 [tool.poetry.dev-dependencies]
 
