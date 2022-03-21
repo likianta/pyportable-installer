@@ -3,7 +3,6 @@ from os import remove
 from shutil import copyfile
 from textwrap import dedent
 
-from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import loads
 from lk_utils import send_cmd
@@ -110,14 +109,14 @@ class PyArmorCompiler(BaseCompiler):
             | `pyarmor obfuscate | *unknown*                                   |
             |  --bootstrap 4`    |                                             |
         """
-        lk.loga('compiling', ospath.basename(src_file))
+        print('compiling', ospath.basename(src_file))
         
         if self._liscense == 'trial':
             # The limitation of content size is 32768 bytes (i.e. 32KB) in
             # pyarmor trial version.
             if (size := ospath.getsize(src_file)) > 32768:
-                lk.logt(
-                    '[W0357]',
+                print(
+                    ':v3', '[W0357]',
                     f'该文件: "{src_file}" 的体积超出了 pyarmor 试用版的限制 '
                     f'({size} > 32768 Bytes) , 请购买个人版或商业版许可后重新编'
                     f'译! (本文件谨以源码形式打包)'
@@ -146,6 +145,6 @@ class PyArmorCompiler(BaseCompiler):
         try:
             send_cmd(cmd)
         except Exception as e:
-            lk.logt('[E1747]', 'compile failed', e)
+            print(':v4', '[E1747]', 'compile failed', e)
             if ospath.exists(dst_file): remove(dst_file)
             copyfile(src_file, dst_file)

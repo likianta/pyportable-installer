@@ -1,7 +1,6 @@
 import os
 from textwrap import dedent
 
-from lk_logger import lk
 from lk_utils import run_cmd_args
 
 from .base_compiler import BaseCompiler
@@ -18,11 +17,11 @@ class PycCompiler(BaseCompiler):
         ''').replace('\n', '\\n').replace("'", "\\'")
     
     def compile_all(self, pyfiles):
-        with lk.counting(len(pyfiles)):
-            for i, o in pyfiles:
-                o += 'c'  # *.py -> *.pyc
-                lk.logx('compiling', os.path.relpath(i, src_model.prj_root))
-                self.compile_one(i, o)
+        print(':i0')
+        for i, o in pyfiles:
+            o += 'c'  # *.py -> *.pyc
+            print(':i', 'compiling', os.path.relpath(i, src_model.prj_root))
+            self.compile_one(i, o)
     
     def compile_one(self, src_file, dst_file):
         """ Compile py file to pyc.

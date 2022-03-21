@@ -1,7 +1,6 @@
 import os
 import shutil
 
-from lk_logger import lk
 from lk_utils import find_dirs
 from lk_utils import find_files
 from lk_utils.read_and_write import dumps
@@ -16,7 +15,7 @@ def main(pyproj_file, additional_conf):
 
 
 def _cleanup_intermediate_files():
-    lk.logt('[I5325]', 'clean up intermediate files')
+    print('[I5325]', 'clean up intermediate files', ':v2')
     
     for d in find_dirs(prj_model.temp):
         shutil.rmtree(d)

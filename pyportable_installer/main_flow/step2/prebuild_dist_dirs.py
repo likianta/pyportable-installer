@@ -1,8 +1,6 @@
 from os import mkdir
 from os.path import exists
 
-from lk_logger import lk
-
 from .dist_tree import DistTree
 from ...typehint import *
 
@@ -45,7 +43,7 @@ def main(conf: TConf):
     
     src_root = dist_tree.suggest_src_root()
     dst_root = conf['build']['dist_dir']
-    lk.loga(f'the suggest source root directory is: {src_root}')
+    print(f'the suggest source root directory is: {src_root}', ':v2')
     
     dist_tree.build_dst_dirs(src_root, f'{dst_root}/src')
     
@@ -66,7 +64,7 @@ def _precheck(conf: TConf):
         if not exists(src_path):
             paths_not_exist.append(src_path)
     if paths_not_exist:
-        lk.logp(paths_not_exist)
+        print(':l', paths_not_exist)
         raise FileNotFoundError(
             'Please make sure all required paths in `conf["build"]'
             '["attachments"]` are existed.'

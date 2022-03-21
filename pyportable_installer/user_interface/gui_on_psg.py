@@ -5,7 +5,6 @@ requirements:
 import os.path
 
 import PySimpleGUI as Gui
-from lk_logger import lk  # noqa
 
 import pyportable_installer
 

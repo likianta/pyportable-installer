@@ -8,7 +8,6 @@ import os
 from platform import system
 
 import pyportable_crypto
-from lk_logger import lk
 from lk_utils import run_cmd_args
 
 system = system().lower()
@@ -30,10 +29,10 @@ def mainloop(key, root_dir):
         if python_dir.startswith('['):
             try:
                 python_exe = _auto_find_python_exe(python_dir[1:-1])
-                lk.logt('[I2926]', 'auto locate python exe', python_exe)
+                print('[I2926]', 'auto locate python exe', python_exe, ':v2')
             except FileNotFoundError:
-                lk.logt('[E0039]', 'cannot find the specific python version, '
-                                   'please check your input and try again.')
+                print('[E0039]', 'cannot find the specific python version, '
+                                 'please check your input and try again.', ':v4')
                 continue
         else:
             if system == 'windows':
@@ -44,7 +43,7 @@ def mainloop(key, root_dir):
         # del python_dir
         pyversion = _get_pyversion(python_exe)
         
-        lk.logdx(pyversion)
+        print(pyversion, ':di')
         dir_o = root_dir + '/pyportable_runtime_' + pyversion
         pyportable_crypto.cipher_gen.generate_custom_cipher_package(
             key, dir_o, python_exe

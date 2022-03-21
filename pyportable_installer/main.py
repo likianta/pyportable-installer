@@ -1,6 +1,6 @@
 from os import path as ospath
 
-from lk_logger import lk
+import lk_logger
 
 from . import main_flow
 from .typehint import TConf
@@ -76,13 +76,13 @@ def debug_build(file, additional_conf=None):
     if additional_conf is None:
         additional_conf = {'build': {
             'attachments_exist_scheme': 'override',
-            'module_paths_scheme': 'leave as-is',
-            'compiler': {
-                'name': '_no_compiler',
+            'module_paths_scheme'     : 'leave as-is',
+            'compiler'                : {
+                'name'   : '_no_compiler',
                 'options': {'_no_compiler': {}}
             },
-            'venv': {
-                'mode': '_no_venv',
+            'venv'                    : {
+                'mode'   : '_no_venv',
                 'options': {'_no_venv': {}}
             }
         }}
@@ -98,7 +98,7 @@ def debug_build(file, additional_conf=None):
         node_b1['name'] = '_no_venv'
         node_b2 = node_b1.setdefault('options', {})
         node_b2['_no_venv'] = {}
-
+    
     return main(file, additional_conf)
 
 
@@ -116,16 +116,16 @@ def main(pyproj_file: TPath, additional_conf: dict) -> TConf:
         '~/docs/devnote/difference-between-roots.md'
     """
     if Misc.log_level == 0:
-        lk.disable()
+        lk_logger.disable()
     elif Misc.log_level == 1:
-        lk.enable_lite_mode()
+        pass  # TODO: enable lite mode
     
     conf = main_flow.main(pyproj_file, additional_conf)
     
     m, n = ospath.split(conf['build']['dist_dir'])
-    lk.logt("[I2501]", f'See distributed project at: \n\t"{m}:0" >> {n}')
-    #   this path link is clickable in pycharm console   ^-----^
+    print(':v2', f'See distributed project at: \n\t"{m}:0" >> {n}')
+    #   the link is clickable in pycharm console   ^-----^
     
-    lk.enable()
+    lk_logger.enable()
     
     return conf

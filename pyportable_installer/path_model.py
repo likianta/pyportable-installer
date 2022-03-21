@@ -1,13 +1,12 @@
 import os
 import os.path as xpath
 
-from lk_logger import lk
 from lk_utils.filesniff import currdir
 from lk_utils.filesniff import normpath
 
 from ._env import ASSETS_ENTRY  # str['STANDALONE', 'PACKAGE']
 
-lk.logt('[D2952]', ASSETS_ENTRY)
+print(':v1', ASSETS_ENTRY)
 
 _cur_dir = currdir()
 
@@ -35,7 +34,7 @@ def relpath(path, start):
 class PyPortablePathModel:
     # current dir based
     cur_root = _cur_dir
-    # lk.logt('[D0957]', cur_root)
+    print(':v1', cur_root)
     
     (
         bat_2_exe_converter,
@@ -122,7 +121,7 @@ class PyPortablePathModel:
     def create_temp_dir(self):
         from secrets import token_urlsafe
         _temp_dir = f'{self.temp}/{token_urlsafe()}'
-        lk.loga('make temporary dir', _temp_dir)
+        print('make temporary dir', _temp_dir)
         os.mkdir(_temp_dir)
         return _temp_dir
 

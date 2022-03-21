@@ -21,7 +21,6 @@ from shutil import rmtree
 from textwrap import dedent
 from uuid import uuid1
 
-from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import find_dirs
 from lk_utils import run_cmd_args
@@ -64,11 +63,11 @@ class CythonCompiler(BaseCompiler):
         #       .py' instead of defining long string here in the future.
     
     def compile_all(self, pyfiles):
-        with lk.counting(len(pyfiles)):
-            for i, o in pyfiles:
-                o += 'd'  # *.py -> *.pyd
-                lk.logtx('[D5520]', 'compiling', i, o)
-                self.compile_one(i, o)
+        print(':i0')
+        for i, o in pyfiles:
+            o += 'd'  # *.py -> *.pyd
+            print(':iv1' 'compiling', i, o)
+            self.compile_one(i, o)
         run_new_thread(self.cleanup)
     
     def compile_one(self, src_file, dst_file):
@@ -77,8 +76,8 @@ class CythonCompiler(BaseCompiler):
         if filename == '__init__.py':
             # https://stackoverflow.com/questions/58797673/how-to-compile-init
             #   -py-file-using-cython-on-windows
-            lk.logt('[D0359]', 'cython doesn\'t compile __init__.py (leave it '
-                               'uncompiled, just copy to the dist)', src_file)
+            print(':v1', 'cython doesn\'t compile __init__.py (leave it '
+                         'uncompiled, just copy to the dist)', src_file)
             copyfile(src_file, dst_file)
             return dst_file
         
@@ -92,10 +91,10 @@ class CythonCompiler(BaseCompiler):
             # https://docs.microsoft.com/en-us/cpp/error-messages/compiler
             # -errors-1/fatal-error-c1081).
             # we have to move `tmp_file` to another place.
-            lk.logt('[I3926]', f'the tmp_file path is too long '
-                               f'({len(tmp_file)} > {path_limit}), we have to '
-                               f'create it in your desktop direcotry (it will '
-                               f'be auto removed when compilation done)')
+            print(':v2', '[I3926]',
+                  f'the tmp_file path is too long ({len(tmp_file)} > '
+                  f'{path_limit}), we have to create it in your desktop '
+                  f'direcotry (it will be auto removed when compilation done)')
             _desktop_mode = True
             
             # ref: https://blog.csdn.net/u013948858/article/details/75072873
@@ -119,7 +118,7 @@ class CythonCompiler(BaseCompiler):
         ), _setup := f'{tmp_dir}/_setup.py')
         
         from lk_utils.subproc import format_cmd
-        lk.logt('[D5200]', format_cmd(
+        print(':v1', '[D5200]', format_cmd(
             self._interpreter, _setup, 'build_ext', '--inplace'))
         
         run_cmd_args(self._interpreter, _setup, 'build_ext', '--inplace')
@@ -139,5 +138,5 @@ class CythonCompiler(BaseCompiler):
     
     def cleanup(self):
         for d in find_dirs(self._temp_dir):
-            lk.logt('[D5334]', 'delete dir', d)
+            print(':v1', '[D5334]', 'delete dir', d)
             rmtree(d)

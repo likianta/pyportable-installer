@@ -3,7 +3,7 @@
 
 embed-python-manager
 gen-exe
-lk-logger
+lk-logger >= 5.0.0
 lk-utils >= 2.1.2
 # pyarmor
 pyportable-crypto >= 1.0

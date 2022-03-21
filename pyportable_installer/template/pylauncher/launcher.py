@@ -86,19 +86,12 @@ def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):
 
 
 if __name__ == '__main__':
-    # try:
-    #     from lk_logger import lk
-    #     lk.enable_lite_mode()
-    # except Exception:
-    #     lk = None
     import os
 
     os.chdir(os.path.dirname(__file__))
 
     try:
         conf = _parse_target_conf(sys.argv)
-        # from lk_logger import lk
-        # lk.logp(conf)
         
         # check in target dir to make sure all sequent relative paths
         # references are based on the target dir.
@@ -113,7 +106,3 @@ if __name__ == '__main__':
     except Exception:
         _show_error_info(traceback.format_exc())
         input('Press enter to leave...')
-    
-    # finally:
-    #     if lk:
-    #         lk.enable()

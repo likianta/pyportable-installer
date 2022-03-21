@@ -14,7 +14,6 @@ from shutil import copyfile
 from shutil import rmtree
 from uuid import uuid1
 
-from lk_logger import lk
 from lk_utils import find_dirs
 from lk_utils import send_cmd
 from lk_utils.subproc import run_new_thread
@@ -30,11 +29,11 @@ class NuitkaCompiler(BaseCompiler):
         self._temp_dir = prj_model.temp
     
     def compile_all(self, pyfiles):
-        with lk.counting(len(pyfiles)):
-            for i, o in pyfiles:
-                o += 'd'  # py -> pyd
-                lk.logtx('[D5520]', 'compiling', i, o, h='parent')
-                self.compile_one(i, o)
+        print(':i0')
+        for i, o in pyfiles:
+            o += 'd'  # py -> pyd
+            print(':ivp', '[D5520]', 'compiling', i, o)
+            self.compile_one(i, o)
         run_new_thread(self._cleanup)
     
     def compile_one(self, src_file, dst_file):
@@ -51,7 +50,7 @@ class NuitkaCompiler(BaseCompiler):
         
         # copy source file from src_dir to tmp_dir
         tmp_dir = f'{self._temp_dir}/{uuid1()}'
-        lk.logt('[D1402]', tmp_dir)
+        print(':v1', '[D1402]', tmp_dir)
         mkdir(tmp_dir)
         tmp_file = f'{tmp_dir}/{basename(src_file)}'
         copyfile(src_file, tmp_file)
@@ -81,5 +80,5 @@ class NuitkaCompiler(BaseCompiler):
     
     def _cleanup(self):
         for d in find_dirs(self._temp_dir):
-            lk.logt('[D5334]', 'delete dir', d)
+            print(':v1', '[D5334]', 'delete dir', d)
             rmtree(d)

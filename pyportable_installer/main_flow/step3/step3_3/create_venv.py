@@ -2,7 +2,6 @@ import re
 from os import makedirs
 from os import mkdir
 
-from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import run_cmd_args
 
@@ -79,9 +78,9 @@ def create_venv(mode: TVenvMode, options):
             else:
                 dst_model.venv = options['path']
                 #   FIXME: black magic is not recommended!
-                lk.logt('[W0644]', 'The source venv is not copied, you may '
-                                   'copy it later after progress finished',
-                        options['path'])
+                print(':v3', '[W0644]',
+                      'The source venv is not copied, you may copy it later '
+                      'after progress finished', options['path'])
     
     else:
         raise NotImplemented(mode, options)

@@ -2,7 +2,6 @@ import os
 from os import path as xpath
 from shutil import copyfile
 
-from lk_logger import lk
 from lk_utils import filesniff
 
 from .exclusions import attachments_exclusions_handler
@@ -104,7 +103,7 @@ def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]
         if 'asset' in marks or xpath.isfile(path_i):
             if attachments_exclusions_handler.monitor_transferring(
                     '', path_i, 'file') is False:
-                lk.logt('[D4756]', 'the file is in exclusion list', path_i)
+                print(':v', '[D4756]', 'the file is in exclusion list', path_i)
             else:
                 if (d := xpath.dirname(path_o)) not in _created_dirs:
                     os.makedirs(d, exist_ok=True)
@@ -124,7 +123,7 @@ def copy_attachments(attachments: TAttachments) -> Iterator[Tuple[TPath, TPath]]
         
         if attachments_exclusions_handler.monitor_transferring(
                 '', dir_i, 'dir') is False:
-            lk.logt('[D4757]', 'the directory is in exclusion list', dir_i)
+            print(':v', '[D4757]', 'the directory is in exclusion list', dir_i)
             continue
         if not xpath.exists(dir_o):
             os.mkdir(dir_o)

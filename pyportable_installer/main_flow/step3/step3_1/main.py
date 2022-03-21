@@ -1,7 +1,5 @@
 from shutil import copyfile
 
-from lk_logger import lk
-
 from .attachments import copy_attachments
 from ....path_model import dst_model
 from ....path_model import src_model
@@ -12,10 +10,10 @@ def main(conf: TConf):
     src_model.assert_ready()
     dst_model.assert_ready()
     
-    lk.logp(
+    print(
+        ':l', 'model paths overview',
         (src_model.src_root, src_model.prj_root),
         (dst_model.dst_root, dst_model.src_root, dst_model.prj_root),
-        title='model paths overview'
     )
     
     if src_model.readme:

@@ -1,8 +1,6 @@
 import os
 import os.path
 
-from lk_logger import lk
-
 from . import where_is_python
 from ...global_conf import gconf
 from ...path_model import prj_model
@@ -70,7 +68,7 @@ def _init_pyportable_runtime_package():
             assert os.path.exists(prj_model.pyportable_runtime_py38_linux)
         except AssertionError:
             from textwrap import dedent
-            lk.logd('interactive prompt')
+            print(':d', 'interactive prompt')
             runtime_dir = input(dedent('''
                 The platform you defined in project configurations requires
                 pyportable_runtime package which is built on Linux. You can find
@@ -104,7 +102,7 @@ def _init_pyportable_runtime_package():
         sys.path.insert(0, prj_model.pyportable_runtime_py38_linux)
     
     import pyportable_runtime  # noqa
-    lk.logt('[I4053]', pyportable_runtime.__path__)
+    print(':v2', '[I4053]', pyportable_runtime.__path__)
 
 
 def _init_python_paths():
@@ -161,10 +159,10 @@ def _init_python_paths():
     if enable_venv and mode == 'pip':
         is_pip_required = True
     
-    lk.logt('[I5239]',
-            is_full_python_required,
-            is_embed_python_required,
-            is_pip_required)
+    print(':v2', '[I5239]',
+          is_full_python_required,
+          is_embed_python_required,
+          is_pip_required)
     
     # --------------------------------------------------------------------------
     
@@ -178,8 +176,8 @@ def _init_python_paths():
             try:
                 gconf.full_python = where_is_python.get_full_python(pyversion)
             except FileNotFoundError:
-                lk.logt(
-                    '[W5951]',
+                print(
+                    ':v3', '[W5951]',
                     'Cannot find installed python in your computer. Please '
                     'pass in your python path (e.g. ~/python.exe) manually.'
                 )
@@ -188,7 +186,7 @@ def _init_python_paths():
                 )
         else:
             gconf.full_python = options['python_path']
-        lk.logt('[I1955]', gconf.full_python)
+        print(':v2', '[I1955]', gconf.full_python)
         assert os.path.exists(gconf.full_python)
     
     # --------------------------------------------------------------------------

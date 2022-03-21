@@ -1,7 +1,6 @@
 import os
 import shutil
 
-from lk_logger import lk
 from lk_utils import dumps
 from lk_utils import loads
 
@@ -26,7 +25,7 @@ class PyportableCompiler(BaseCompiler):
                 /generate_pyportable_crypto_trial_version.py`.
             **_:
         """
-        lk.logt('[D3100]', salt)
+        print(':v', '[D3100]', salt)
         self.salt = salt
         
         from textwrap import dedent
@@ -72,10 +71,10 @@ class PyportableCompiler(BaseCompiler):
               dir_o + '/__salt__')
     
     def compile_all(self, pyfiles):
-        with lk.counting(len(pyfiles)):
-            for i, o in pyfiles:
-                lk.logx('compiling', os.path.relpath(i, src_model.prj_root))
-                self.compile_one(i, o)
+        print(':i0')
+        for i, o in pyfiles:
+            print(':i', 'compiling', os.path.relpath(i, src_model.prj_root))
+            self.compile_one(i, o)
     
     def compile_one(self, src_file, dst_file):
         if os.path.basename(src_file) == '__init__.py':

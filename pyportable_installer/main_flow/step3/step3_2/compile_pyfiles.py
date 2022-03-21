@@ -1,12 +1,10 @@
-from lk_logger import lk
-
 from .... import compilers
 from ....global_conf import gconf
 from ....typehint import TCompilerName, TPyFilesToCompile
 
 
 def get_compiler(name: TCompilerName, **kwargs):
-    lk.logt('[I1028]', 'compiler name', name)
+    print('[I1028]', 'compiler name', name, ':v2')
     if name == 'cython':
         return compilers.CythonCompiler(gconf.full_python)
     elif name == 'mypyc':

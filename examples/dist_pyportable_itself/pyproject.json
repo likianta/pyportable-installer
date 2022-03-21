@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.3.0-build.5",
+    "app_version": "4.3.1-build.8",
     "description": "",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -19,7 +19,6 @@
         },
         "readme": "",
         "attachments": {
-            "./requirements_offline/PySimpleGUI": "assets,dist:lib/{name}",
             "../../dist": "only_folder",
             "../../temp": "only_folder"
         },
@@ -92,5 +91,5 @@
     "note": [
         "before run this script, download and extract pysimplegui package to ./requirements_offline/PySimpleGUI"
     ],
-    "pyportable_installer_version": "4.3.0"
+    "pyportable_installer_version": "4.3.1"
 }

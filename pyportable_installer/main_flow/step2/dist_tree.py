@@ -4,7 +4,6 @@ from os.path import exists
 from os.path import isfile
 from os.path import relpath
 
-from lk_logger import lk
 from lk_utils.filesniff import normpath
 
 from ...typehint import List
@@ -58,7 +57,7 @@ class DistTree:
             if dir_ not in existed:
                 existed.add(dir_)
                 if not exists(dir_):
-                    lk.logt('[D0604]', 'create empty folder', dir_)
+                    print(':v1', '[D0604]', 'create empty folder', dir_)
                     # mkdir(dir_)
                     makedirs(dir_)
         
@@ -73,7 +72,7 @@ class DistTree:
         
         # part 3.
         src_dirs.sort()
-        lk.logp(self.paths)
+        print(':l', self.paths)
         for src_path in src_dirs:
             dst_path = src_2_dst(src_path)
             _mkdir(dst_path)
