@@ -1,6 +1,6 @@
 {
     "app_name": "Hello World",
-    "app_version": "0.8.12",
+    "app_version": "0.8.13",
     "description": "Say hello to the given name.",
     "authors": [
         "Likianta <likianta@foxmail.com>"
