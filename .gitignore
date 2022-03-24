@@ -5,6 +5,8 @@
 /history/
 /lib/temp_lib/*
 /pyportable_installer/template/pyarmor/
+/pyportable_installer/user_interface/launch_qml.py
+/pyportable_installer/user_interface/qml/
 /temp/*
 /tests/
 
