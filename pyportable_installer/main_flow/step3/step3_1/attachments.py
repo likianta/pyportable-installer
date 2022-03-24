@@ -15,7 +15,7 @@ __all__ = ['copy_attachments']
 def find_files(dir_i):
     for fp, fn in filter(
             lambda x: attachments_exclusions_handler.filter_files(*x),
-            filesniff.find_files(dir_i, fmt='zip')
+            filesniff.find_files(dir_i)
     ):
         yield fp, fn
 
@@ -24,10 +24,10 @@ def find_dirs(dir_i):
     for dp, dn in filter(
             lambda x: attachments_exclusions_handler.filter_dirs(*x),
             filesniff.find_dirs(
-                dir_i, fmt='zip', exclude_protected_folders=False
-                #                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                #   set this param to False, we will use `exclusions_handler`
-                #   to filter the protected folders.
+                dir_i, exclude_protected_folders=False
+                #      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                #   set this param to False, we will use our own
+                #   `exclusions_handler` to filter the protected folders.
             )
     ):
         yield dp, dn

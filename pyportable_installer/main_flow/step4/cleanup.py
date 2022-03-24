@@ -17,14 +17,14 @@ def main(pyproj_file, additional_conf):
 def _cleanup_intermediate_files():
     print('[I5325]', 'clean up intermediate files', ':v2')
     
-    for d in find_dirs(prj_model.temp):
+    for d, _ in find_dirs(prj_model.temp):
         shutil.rmtree(d)
         # try:
         #     shutil.rmtree(d)
         # except PermissionError:
         #     continue
     
-    for f in find_files(prj_model.temp):
+    for f, _ in find_files(prj_model.temp):
         if f.endswith('.gitkeep'):
             continue
         os.remove(f)

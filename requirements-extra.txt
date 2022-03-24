@@ -1,5 +1,7 @@
 cython
+gen-exe  # windows only
 mypy
 nuitka
 pillow
+pyarmor
 pysimplegui

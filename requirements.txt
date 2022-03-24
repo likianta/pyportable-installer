@@ -2,9 +2,8 @@
 # pip download <package> -d examples/dist_pyportable_itself/requirements_offline
 
 embed-python-manager
-gen-exe
 lk-logger >= 5.0.0
-lk-utils >= 2.1.2
-# pyarmor
+lk-utils >= 2.2.0
 pyportable-crypto >= 1.0
-pysimplegui
+
+# extra: see ./requirements-extra.txt

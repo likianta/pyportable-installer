@@ -137,6 +137,6 @@ class CythonCompiler(BaseCompiler):
         return dst_file
     
     def cleanup(self):
-        for d in find_dirs(self._temp_dir):
+        for d, _ in find_dirs(self._temp_dir):
             print(':v1', '[D5334]', 'delete dir', d)
             rmtree(d)

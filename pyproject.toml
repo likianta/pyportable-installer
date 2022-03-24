@@ -2,8 +2,9 @@
 
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.3.1"
+version = "4.3.2"
 description = "Build and distribute portable Python application by all-in-one configuration file."
+readme = "README.md"
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"
 
@@ -15,15 +16,18 @@ default = true
 [tool.poetry.dependencies]
 python = "^3.8"
 embed-python-manager = ""
-# fire = ""
-gen-exe = ""
-lk-logger = ""
-lk-utils = ">=2.1.2"
-# pyarmor = ""
-pyportable-crypto = ">=1.0.0"
-pysimplegui = ""
+lk-logger = "^5.0.1"
+lk-utils = "^2.2.0"
+pyportable-crypto = "^1.0.0"
+# extra
+gen-exe = { version = "", markers = "platform_system == 'Windows'" }
+pillow = { version = "", optional = true }
+pyarmor = { version = "", optional = true }
+pysimplegui = { version = "", optional = true }
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.extras]
+all = ["pillow", "pyarmor", "pysimplegui"]
+gui = ["pysimplegui"]
 
 [build-system]
 requires = ["poetry>=1.0"]
