@@ -1,9 +1,7 @@
-# pip download -r requirements.txt -d examples/dist_pyportable_itself/requirements_offline
-# pip download <package> -d examples/dist_pyportable_itself/requirements_offline
-
-embed-python-manager
-lk-logger >= 5.0.0
+embed-python-manager >= 0.2.7
+lk-logger >= 5.0.1
 lk-utils >= 2.2.0
-pyportable-crypto >= 1.0
+pyportable-crypto >= 1.0.1
+pysimplegui
 
 # extra: see ./requirements-extra.txt

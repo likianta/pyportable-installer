@@ -77,7 +77,7 @@
         "enable_console": true
     },
     "note": [
-        "To have a full test schedule, firstly delete '<python>/lib/site-packages/embed-python-manager/dowloads' folder (if exists).",
+        "To have a full test schedule, firstly delete '<python>/lib/site-packages/embed-python-manager/assets' folder (if exists).",
         "For Windows users, you must run this application in Windows Terminal, not CMD.exe. Because the latter doesnot support lk-logger logging colors."
     ],
     "pyportable_installer_version": "4.3.1"
