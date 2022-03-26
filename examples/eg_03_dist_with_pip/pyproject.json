@@ -1,18 +1,16 @@
 {
-    "app_name": "Hello World",
-    "app_version": "0.8.13",
-    "description": "Say hello to the given name.",
-    "authors": [
-        "Likianta <likianta@foxmail.com>"
-    ],
+    "app_name": "Project Example 03",
+    "app_version": "0.2.2",
+    "description": "Test packaging with pip.",
+    "authors": [],
     "build": {
-        "proj_dir": "./hello_world",
+        "proj_dir": ".",
         "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
         "launchers": {
-            "{app_name_kebab}": {
-                "file": "hello_world/hello.py",
-                "icon": "../dist_pyportable_itself/launcher.ico",
-                "function": "main",
+            "{app_name}": {
+                "file": "main.py",
+                "icon": "",
+                "function": "",
                 "args": [],
                 "kwargs": {}
             }
@@ -23,26 +21,27 @@
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
-        "python_version": "3.8",
+        "python_version": "3.10",
         "venv": {
-            "enable_venv": false,
-            "mode": "depsland",
+            "enable_venv": true,
+            "mode": "pip",
             "options": {
                 "depsland": {
-                    "venv_name": "{app_name_snake}_venv",
+                    "venv_name": "{app_name_lower}_venv",
                     "venv_id": "",
-                    "requirements": "",
+                    "requirements": [],
                     "offline": false,
                     "local": ""
                 },
                 "source_venv": {
-                    "path": ""
+                    "path": "",
+                    "copy_venv": true
                 },
                 "pip": {
-                    "requirements": "",
+                    "requirements": "./requirements.txt",
                     "pypi_url": "https://pypi.python.org/simple/",
-                    "local": "",
-                    "offline": false
+                    "offline": false,
+                    "local": ""
                 },
                 "embed_python": {
                     "path": ""
@@ -52,25 +51,16 @@
         "compiler": {
             "name": "pyportable_crypto",
             "options": {
-                "cython": {
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"
-                },
-                "mypyc": {
-                    "c_compiler": "msvc",
-                    "python_path": "auto_detect"
-                },
-                "nuitka": {
+                "cythonize": {
                     "c_compiler": "msvc",
                     "python_path": "auto_detect"
                 },
                 "pyarmor": {
-                    "liscense": "trial",
+                    "license": "trial",
                     "obfuscate_level": 0
                 },
                 "pyc": {
-                    "optimize_level": 0,
-                    "python_path": "auto_detect"
+                    "optimize_level": 0
                 },
                 "pyportable_crypto": {
                     "key": "{random}"
@@ -82,10 +72,13 @@
         },
         "experimental_features": {
             "add_pywin32_support": false,
-            "platform": "windows"
+            "platform": "system_default"
         },
         "enable_console": true
     },
-    "note": "",
-    "pyportable_installer_version": "4.3.0"
+    "note": [
+        "To have a full test schedule, firstly delete '<python>/lib/site-packages/embed-python-manager/dowloads' folder (if exists).",
+        "For Windows users, you must run this application in Windows Terminal, not CMD.exe. Because the latter doesnot support lk-logger logging colors."
+    ],
+    "pyportable_installer_version": "4.3.1"
 }

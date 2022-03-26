@@ -1,7 +1,7 @@
 # Project exclude paths
 /.idea/
 /dist/*
-/examples/dist_pyportable_itself/requirements_offline/*
+/examples/eg_02_pyportable_installer_bootstrap/requirements_offline/*
 /history/
 /lib/temp_lib/*
 /pyportable_installer/template/pyarmor/
@@ -14,6 +14,6 @@ __pycache__
 bat_2_exe/settings
 
 !/dist/.gitkeep
-!/examples/dist_pyportable_itself/requirements_offline/.gitkeep
-!/examples/dist_pyportable_itself/requirements_offline/readme.md
+!/examples/eg_02_pyportable_installer_bootstrap/requirements_offline/.gitkeep
+!/examples/eg_02_pyportable_installer_bootstrap/requirements_offline/readme.md
 !/temp/.gitkeep

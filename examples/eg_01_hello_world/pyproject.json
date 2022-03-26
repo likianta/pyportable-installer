@@ -1,48 +1,48 @@
 {
-    "app_name": "Pass Params Via CLI",
-    "app_version": "0.2.2",
-    "description": "Test passing parameters via command line interface.",
-    "authors": ["likianta <likianta@foxmail.com>"],
+    "app_name": "Hello World",
+    "app_version": "0.8.14",
+    "description": "Say hello to the given name.",
+    "authors": [
+        "Likianta <likianta@foxmail.com>"
+    ],
     "build": {
-        "proj_dir": "./src",
-        "dist_dir": "../../dist/{app_name_lower}_{app_version}",
-        "launcher_name": "{app_name_hyphen}",
-        "icon": "",
-        "target": [
-            {
-                "file": "./src/main.py",
+        "proj_dir": "./hello_world",
+        "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
+        "launchers": {
+            "{app_name_kebab}": {
+                "file": "hello_world/hello.py",
+                "icon": "../dist_pyportable_itself/launcher.ico",
                 "function": "main",
                 "args": [],
                 "kwargs": {}
             }
-        ],
+        },
         "readme": "",
         "attachments": {},
         "attachments_exclusions": [],
         "attachments_exist_scheme": "override",
         "module_paths": [],
         "module_paths_scheme": "translate",
+        "python_version": "3.8",
         "venv": {
             "enable_venv": false,
-            "python_version": "3.8",
-            "mode": "source_venv",
+            "mode": "depsland",
             "options": {
                 "depsland": {
-                    "venv_name": "{app_name_lower}_venv",
+                    "venv_name": "{app_name_snake}_venv",
                     "venv_id": "",
-                    "requirements": [],
+                    "requirements": "",
                     "offline": false,
                     "local": ""
                 },
                 "source_venv": {
-                    "path": "",
-                    "copy_venv": true
+                    "path": ""
                 },
                 "pip": {
-                    "requirements": [],
+                    "requirements": "",
                     "pypi_url": "https://pypi.python.org/simple/",
-                    "offline": false,
-                    "local": ""
+                    "local": "",
+                    "offline": false
                 },
                 "embed_python": {
                     "path": ""
@@ -52,25 +52,28 @@
         "compiler": {
             "name": "pyportable_crypto",
             "options": {
-                "cythonize": {
+                "cython": {
                     "c_compiler": "msvc",
-                    "python_path": "_auto_detect"
+                    "python_path": "auto_detect"
+                },
+                "mypyc": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
+                },
+                "nuitka": {
+                    "c_compiler": "msvc",
+                    "python_path": "auto_detect"
                 },
                 "pyarmor": {
                     "liscense": "trial",
                     "obfuscate_level": 0
                 },
                 "pyc": {
-                    "optimize_level": 0
+                    "optimize_level": 0,
+                    "python_path": "auto_detect"
                 },
                 "pyportable_crypto": {
-                    "key": "_trial",
-                    "c_compiler": "msvc",
-                    "python_path": "_auto_detect",
-                    "note": [
-                        "if key is '_trial', it doesn't need to define 'c_compiler' and 'python_path'.",
-                        "trial mode is only for development and test purpose."
-                    ]
+                    "key": "{random}"
                 },
                 "zipapp": {
                     "password": ""
@@ -78,10 +81,11 @@
             }
         },
         "experimental_features": {
-            "add_pywin32_support": false
+            "add_pywin32_support": false,
+            "platform": "windows"
         },
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.0.1"
+    "pyportable_installer_version": "4.3.0"
 }
