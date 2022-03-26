@@ -43,7 +43,7 @@ def main(conf: TConf):
     
     src_root = dist_tree.suggest_src_root()
     dst_root = conf['build']['dist_dir']
-    print(f'the suggest source root directory is: {src_root}', ':v2')
+    print(f'the suggested source root directory is: {src_root}', ':v2')
     
     dist_tree.build_dst_dirs(src_root, f'{dst_root}/src')
     
