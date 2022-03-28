@@ -4,7 +4,7 @@
 >
 > | 版本类型 | 说明 | 体积 | 下载方式 |
 > | -------- | ---- | ---- | -------- |
-> | 第三方库 | 适合开发者在 Python 工程中引入 | 4MB | `pip install pyportable-installer` |
+> | 第三方库 | 适合开发者在 Python 工程中引入 | 500KB | `pip install pyportable-installer` |
 > | 独立免安装版 (标准版) | 用户电脑上需预先安装 [Depsland][1] 软件, 安装过程需要联网 | 4.5MB | 见本项目 Release 页面 |
 > | 独立免安装版 (完整版) | 该压缩包内置了 [Depsland][1]. 下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | 见本项目 Release 页面 |
 >
@@ -69,7 +69,7 @@
 
     1.  该文件名是可以任取的
 
-    2.  [这里](./pyportable_installer/template/pyproject.json) 有一个模板文件可供使用. 以及一个 [手册](./docs/pyproject-template-manual.zh.md) 供查阅每个选项的格式和作用
+    2.  [这里](pyportable_installer/template/pyproject.json) 有一个模板文件可供使用. 以及一个 [手册](docs/pyproject-manual.md) 供查阅每个选项的格式和作用
 
 3.  通过 `pyportable-installer` 处理此配置文件, 完成打包:
 
@@ -245,7 +245,7 @@ hello_world_project
 }
 ```
 
-*注: 更多用法请参考 [Pyproject Template Manual](./docs/pyproject-template-manual.zh.md).*
+*注: 更多用法请参考 [Pyproject Template Manual](docs/pyproject-manual.md).*
 
 运行以下代码即可生成打包结果:
 
