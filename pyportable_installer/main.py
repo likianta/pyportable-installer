@@ -75,14 +75,14 @@ def debug_build(file, additional_conf=None):
     
     if additional_conf is None:
         additional_conf = {'build': {
-            'attachments_exist_scheme': 'override',
+            'attachments_exist_scheme': 'overwrite',
             'module_paths_scheme'     : 'as-is',
             'compiler'                : {'enabled': False},
             'venv'                    : {'enabled': False},
         }}
     else:
         node_0 = additional_conf.setdefault('build', {})
-        node_0['attachments_exists_scheme'] = 'override'
+        node_0['attachments_exists_scheme'] = 'overwrite'
         node_0['module_paths_scheme'] = 'as-is'
         node_a1 = node_0.setdefault('compiler', {})
         node_a1['enabled'] = False

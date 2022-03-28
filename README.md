@@ -181,17 +181,17 @@ hello_world_project
             "./data/names.txt": "assets"
         },
         "attachments_exclusions": [],
-        "attachments_exist_scheme": "override",
+        "attachments_exist_scheme": "overwrite",
         "module_paths": [],
         "module_paths_scheme": "translate",
         // ◆◇◆ 目标应用的 python 解释器版本 ◆◇◆
         "python_version": "3.8",
         "venv": {
-            "enable_venv": true,
+            "enabled": true,
             "mode": "source_venv",
             "options": {
                 "depsland": {
-                    "venv_name": "{app_name_lower}_venv",
+                    "venv_name": "{app_name_snake}_venv",
                     "venv_id": "",
                     "requirements": [],
                     "offline": false,
@@ -213,6 +213,7 @@ hello_world_project
             }
         },
         "compiler": {
+            "enabled": true,
             "name": "pyportable_crypto",
             "options": {
                 "cythonize": {
@@ -241,7 +242,7 @@ hello_world_project
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.3.0"
+    "pyportable_installer_version": "4.4.0"
 }
 ```
 
@@ -382,7 +383,12 @@ png_2_ico.dialog()
     "build": {
         "launchers": {
             // 单独修改启动器的名字
-            "你好世界": {...}
+            "你好世界": {
+                "file": "...",
+                "icon": "",
+                "args": [],
+                "kwargs": {}
+            }
         },
         // ...
     },

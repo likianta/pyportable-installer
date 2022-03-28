@@ -45,7 +45,7 @@ def _handle_file_exists(file_o, scheme=''):
     
     if scheme == 'error':
         raise FileExistsError(file_o)
-    elif scheme == 'override':
+    elif scheme == 'overwrite':
         os.remove(file_o)
         return 'go_on'
     elif scheme == 'skip':

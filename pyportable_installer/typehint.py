@@ -157,7 +157,7 @@ class TBuildConf(TypedDict):
     readme: TPath
     attachments: TAttachments
     attachments_exclusions: Tuple[TPath]
-    attachments_exist_scheme: Literal['error', 'override', 'skip']
+    attachments_exist_scheme: Literal['error', 'overwrite', 'skip']
     module_paths: List[TPath]
     module_paths_scheme: Literal['translate', 'as-is']
     python_version: TPyVersion
