@@ -70,7 +70,7 @@ def _precheck(conf: TConf):
             '["attachments"]` are existed.'
         )
     
-    # if conf['build']['venv']['enable_venv']:
+    # if conf['build']['venv']['enabled']:
     #     from .embed_python import EmbedPythonManager
     #     builder = EmbedPythonManager(
     #         pyversion=conf['build']['venv']['python_version']

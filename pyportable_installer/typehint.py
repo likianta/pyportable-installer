@@ -67,17 +67,15 @@ class _TVenvModeOptions(TypedDict):
     embed_python: _TEmbedPythonOptions
     pip: _TPipOptions
     source_venv: _TSourceVenvOptions
-    _no_venv: Optional[dict]  # empty dict or None
 
 
 # TVenvMode: _TVenvModeOptions:attrs
-TVenvMode = Literal['depsland', 'embed_python', 'pip', 'source_venv',
-                    '_no_venv']
+TVenvMode = Literal['depsland', 'embed_python', 'pip', 'source_venv']
 
 
 class TVenvBuildConf(TypedDict):
     # `template/pyproject.json::build:venv`
-    enable_venv: bool
+    enabled: bool
     mode: TVenvMode
     options: _TVenvModeOptions
 
@@ -123,17 +121,17 @@ class _TCompilerOptions(TypedDict):
     pyc: dict
     pyportable_crypto: dict  # dict[('key', str)]
     zipapp: dict
-    _no_compiler: Optional[dict]  # empty dict or None
 
 
 # `template/pyproject.json::build:compiler:name`
 TCompilerName = Literal['cython', 'mypyc', 'nuitka', 'pyarmor', 'pyc',
-                        'pyportable_crypto', 'zipapp', '_no_compiler']
+                        'pyportable_crypto', 'zipapp']
 
 
 class TCompiler(TypedDict):
     # `template/pyproject.json::build:compiler`
-    name: TCompilerName
+    enabled: bool
+    mode: TCompilerName
     options: _TCompilerOptions
 
 
@@ -161,7 +159,7 @@ class TBuildConf(TypedDict):
     attachments_exclusions: Tuple[TPath]
     attachments_exist_scheme: Literal['error', 'override', 'skip']
     module_paths: List[TPath]
-    module_paths_scheme: Literal['translate', 'leave as-is']
+    module_paths_scheme: Literal['translate', 'as-is']
     python_version: TPyVersion
     venv: TVenvBuildConf
     compiler: TCompiler  # Literal['pyarmor', 'pyc', 'pycrypto']

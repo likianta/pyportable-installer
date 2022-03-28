@@ -23,7 +23,7 @@
         "module_paths_scheme": "translate",
         "python_version": "3.8",
         "venv": {
-            "enable_venv": true,
+            "enabled": true,
             "mode": "source_venv",
             "options": {
                 "depsland": {
@@ -49,6 +49,7 @@
             }
         },
         "compiler": {
+            "enabled": true,
             "name": "pyportable_crypto",
             "options": {
                 "cythonize": {
@@ -77,5 +78,5 @@
         "enable_console": true
     },
     "note": "",
-    "pyportable_installer_version": "4.3.3"
+    "pyportable_installer_version": "4.4.0"
 }

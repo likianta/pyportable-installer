@@ -292,7 +292,7 @@ platform = 'system_default'
 
     The application name. Use natual naming style. (Including letters, spaces, etc.)
 
-    The name will be shown as a launcher's filename, for example in Windows it is "Hello World.exe", in macOS it is "Hello World.app"[^3].
+    The name will be shown as a launcher's filename, for example in Windows it is "Hello World.exe", in macOS it is "Hello World.app"[^1].
 
     See also [build.launchers](#20220324181449).
 
@@ -427,17 +427,17 @@ platform = 'system_default'
 
     `dist_dir` supports the following placeholders:
 
-    | Placeholder         | Description            | Example       |
-    | ------------------- | ---------------------- | ------------- |
-    | `{app_name}`        | app_name               | 'Hello World' |
-    | `{app_name_lower}`  | app_name in lower case | 'hello world' |
-    | `{app_name_upper}`  | app_name in UPPER CASE | 'HELLO WORLD' |
-    | `{app_name_title}`  | app_name in Title Case | 'Hello World' |
-    | `{app_name_snake}`  | app_name in snake_case | 'hello_world' |
-    | `{app_name_kebab}`  | app_name in kebab-case | 'hello-world' |
-    | `{app_name_camel}`  | app_name in camelCase  | 'helloWorld'  |
-    | `{app_name_pascal}` | app_name in PascalCase | 'HelloWorld'  |
-    | `{app_version}`     | app_version            | '0.1.0'       |
+    | Placeholder         | Description            | Example     |
+    | ------------------- | ---------------------- | ----------- |
+    | `{app_name}`        | app_name               | Hello World |
+    | `{app_name_lower}`  | app_name in lower case | hello world |
+    | `{app_name_upper}`  | app_name in UPPER CASE | HELLO WORLD |
+    | `{app_name_title}`  | app_name in Title Case | Hello World |
+    | `{app_name_snake}`  | app_name in snake_case | hello_world |
+    | `{app_name_kebab}`  | app_name in kebab-case | hello-world |
+    | `{app_name_camel}`  | app_name in camelCase  | helloWorld  |
+    | `{app_name_pascal}` | app_name in PascalCase | HelloWorld  |
+    | `{app_version}`     | app_version            | 0.1.0       |
 
 - **default**: "dist/{app_name_kebab}-{app_version}"
 
@@ -915,7 +915,7 @@ platform = 'system_default'
 
     Setting false is mostly used for debug purpose.
 
-    Setting true requires network connection to download embedded python[^4]. The embedded size is around 15 ~ 30 MB.
+    Setting true requires network connection to download embedded python[^2]. The embedded size is around 15 ~ 30 MB.
 
     Once it is downloaded, it will be local cached and can be reused in the future.
 
@@ -1044,7 +1044,5 @@ platform = 'system_default'
 
 - **type**: `str` (constant)
 
-[^1]: To be determined. Currently (v4.x.x) not supports.
-[^2]: To be determined. Currently (v4.x.x) not supports.
-[^3]: Currently (v4.x.x) supports only Windows platform.
-[^4]: If venv mode is "depsland", network connection is not required.
+[^1]: Currently (v4.x.x) supports only Windows platform.
+[^2]: If venv mode is "depsland", network connection is not required.

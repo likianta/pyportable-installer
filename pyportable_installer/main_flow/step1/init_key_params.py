@@ -125,14 +125,14 @@ def _init_python_paths():
             - zipapp is not supported.
             - the venv/compiler list is from `typehint._TCompilerOptions` and
               `typehint._TVenvModeOptions`.
-            - venv related options only available when enable_venv is True.
+            - venv related options only available when it enabled.
             - pyportable_crypto is the best option in current version.
             - the table is made for general suggestions, not responsible for the
               final decision.
     """
-    name = _conf['build']['compiler']['name']  # type: TCompilerName
+    name = _conf['build']['compiler']['mode']  # type: TCompilerName
     mode = _conf['build']['venv']['mode']  # type: TVenvMode
-    enable_venv = _conf['build']['venv']['enable_venv']  # type: bool
+    enable_venv = _conf['build']['venv']['enabled']  # type: bool
     
     # --------------------------------------------------------------------------
     

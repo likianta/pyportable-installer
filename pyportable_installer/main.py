@@ -76,28 +76,18 @@ def debug_build(file, additional_conf=None):
     if additional_conf is None:
         additional_conf = {'build': {
             'attachments_exist_scheme': 'override',
-            'module_paths_scheme'     : 'leave as-is',
-            'compiler'                : {
-                'name'   : '_no_compiler',
-                'options': {'_no_compiler': {}}
-            },
-            'venv'                    : {
-                'mode'   : '_no_venv',
-                'options': {'_no_venv': {}}
-            }
+            'module_paths_scheme'     : 'as-is',
+            'compiler'                : {'enabled': False},
+            'venv'                    : {'enabled': False},
         }}
     else:
         node_0 = additional_conf.setdefault('build', {})
         node_0['attachments_exists_scheme'] = 'override'
-        node_0['module_paths_scheme'] = 'leave as-is'
+        node_0['module_paths_scheme'] = 'as-is'
         node_a1 = node_0.setdefault('compiler', {})
-        node_a1['name'] = '_no_compiler'
-        node_a2 = node_a1.setdefault('options', {})
-        node_a2['_no_compiler'] = {}
+        node_a1['enabled'] = False
         node_b1 = node_0.setdefault('venv', {})
-        node_b1['name'] = '_no_venv'
-        node_b2 = node_b1.setdefault('options', {})
-        node_b2['_no_venv'] = {}
+        node_b1['enabled'] = False
     
     return main(file, additional_conf)
 

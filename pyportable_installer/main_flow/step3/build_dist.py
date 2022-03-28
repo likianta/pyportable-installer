@@ -24,9 +24,13 @@ def main(conf: TConf):
     """
     pyfiles = step3_1(conf)
     
-    name = conf['build']['compiler']['name']
-    options = conf['build']['compiler']['options'][name]
-    step3_2(name, pyfiles, options)
+    if conf['build']['compiler']['enabled']:
+        mode = conf['build']['compiler']['mode']
+        options = conf['build']['compiler']['options'][mode]
+    else:  # FIXME: this is a workaround
+        mode = '_no_compiler'
+        options = {}
+    step3_2(mode, pyfiles, options)
     
     step3_3(conf['build'])
 

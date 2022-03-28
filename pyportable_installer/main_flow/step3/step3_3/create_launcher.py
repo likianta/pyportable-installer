@@ -21,12 +21,9 @@ _rel_paths = ...  # type: dict
 
 def create_launcher(build: TBuildConf):
     global _is_depsland_mode
-    _is_debug_mode = False
-    if build['venv']['enable_venv']:
+    if build['venv']['enabled']:
         if build['venv']['mode'] == 'depsland':
             _is_depsland_mode = True
-        elif build['venv']['mode'] == '_no_venv':
-            _is_debug_mode = True
     
     # depsland setup
     if _is_depsland_mode:
@@ -71,12 +68,10 @@ def create_launcher(build: TBuildConf):
         'add_pywin32_support': build[
             'experimental_features']['add_pywin32_support'],
         'enable_console'     : build['enable_console'],
-        'enable_venv'        : build['venv']['enable_venv'],
-        'generate_exe'       : False if _is_depsland_mode or
-                                        _is_debug_mode else True,
+        'enable_venv'        : build['venv']['enabled'],
+        'generate_exe'       : False if _is_depsland_mode else True,
         'module_paths'       : build['module_paths'],
         'module_paths_scheme': build['module_paths_scheme'],
-        'venv_python'        : 'python' if _is_debug_mode else '',
     }
     
     for i, (k, v) in enumerate(build['launchers'].items()):
@@ -137,11 +132,10 @@ def _create_launcher(
     Keyword Args:
         add_pywin32_support: bool[False]
         enable_console: bool[True]
-        enable_venv:
+        enable_venv: bool[True]
         generate_exe: bool[True]
         module_paths: List[str]
-        module_paths_scheme: Literal['translate', 'leave as-is']
-        venv_python: str
+        module_paths_scheme: Literal['translate', 'as-is']
     """
     launcher_name = name
     conf_name = '__main__' if is_main_entry else token_hex(16)
@@ -168,8 +162,7 @@ def _create_launcher(
         'target_file': _rel1(_abs_paths['target_file']),
         'conf_file'  : _rel1(_abs_paths['conf_file']),  # '.pylauncher_conf'
         'venv_dir'   : _rel0(dst_model.venv),  # 'venv'
-        'venv_python': options.get('venv_python') or
-                       _rel0(dst_model.python)  # 'venv/python.exe'
+        'venv_python': _rel0(dst_model.python)  # 'venv/python.exe'
     }
     del _rel0, _rel1
     

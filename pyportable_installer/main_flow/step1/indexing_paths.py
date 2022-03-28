@@ -162,10 +162,10 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     # --------------------------------------------------------------------------
     # build:compiler
     
-    name = conf['build']['compiler']['name']
-    options = conf['build']['compiler']['options'][name]
+    mode = conf['build']['compiler']['mode']
+    options = conf['build']['compiler']['options'][mode]
     
-    if name == 'pyportable_crypto':
+    if mode == 'pyportable_crypto':
         if '{random}' in options['key']:
             from secrets import token_urlsafe
             options['key'] = options['key'].format(random=token_urlsafe())

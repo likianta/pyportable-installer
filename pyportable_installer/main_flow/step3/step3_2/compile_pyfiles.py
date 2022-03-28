@@ -3,25 +3,25 @@ from ....global_conf import gconf
 from ....typehint import TCompilerName, TPyFilesToCompile
 
 
-def get_compiler(name: TCompilerName, **kwargs):
-    print('[I1028]', 'compiler name', name, ':v2')
-    if name == 'cython':
+def get_compiler(mode: TCompilerName, **kwargs):
+    print(f'compiler name: {mode}', ':v2')
+    if mode == 'cython':
         return compilers.CythonCompiler(gconf.full_python)
-    elif name == 'mypyc':
+    elif mode == 'mypyc':
         return compilers.MypycCompiler(gconf.full_python)
-    elif name == 'nuitka':
+    elif mode == 'nuitka':
         return compilers.NuitkaCompiler(gconf.full_python)
-    elif name == 'pyarmor':
+    elif mode == 'pyarmor':
         return compilers.PyArmorCompiler(gconf.embed_python)
-    elif name == 'pyc':
+    elif mode == 'pyc':
         return compilers.PycCompiler(gconf.embed_python)
-    elif name == 'pyportable_crypto':
+    elif mode == 'pyportable_crypto':
         return compilers.PyportableCompiler(salt=kwargs['key'])
-    elif name == '_no_compiler':
+    elif mode == '_no_compiler':
         return compilers.EffectlessCompiler()
     else:
         raise NotImplemented(
-            'Unopened compiler in current pyportable version', name
+            'Unopened compiler in current pyportable version', mode
         )
 
 

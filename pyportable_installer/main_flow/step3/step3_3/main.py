@@ -4,7 +4,7 @@ from ....typehint import TBuildConf
 
 
 def main(build: TBuildConf):
-    if build['venv']['enable_venv']:
+    if build['venv']['enabled']:
         create_venv((m := build['venv']['mode']),
                     build['venv']['options'][m])
     create_launcher(build)
