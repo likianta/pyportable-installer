@@ -214,7 +214,7 @@ hello_world_project
         },
         "compiler": {
             "enabled": true,
-            "name": "pyportable_crypto",
+            "mode": "pyportable_crypto",
             "options": {
                 "cythonize": {
                     "c_compiler": "msvc",

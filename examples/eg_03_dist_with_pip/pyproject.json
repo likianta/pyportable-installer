@@ -1,11 +1,11 @@
 {
     "app_name": "Project Example 03",
-    "app_version": "0.2.2",
+    "app_version": "0.3.0",
     "description": "Test packaging with pip.",
     "authors": [],
     "build": {
         "proj_dir": ".",
-        "dist_dir": "../../dist/{app_name_kebab}-{app_version}",
+        "dist_dir": "../../dist/{app_name_kebab}-v{app_version}",
         "launchers": {
             "{app_name}": {
                 "file": "main.py",
@@ -18,12 +18,12 @@
         "readme": "",
         "attachments": {},
         "attachments_exclusions": [],
-        "attachments_exist_scheme": "override",
+        "attachments_exist_scheme": "overwrite",
         "module_paths": [],
         "module_paths_scheme": "translate",
         "python_version": "3.10",
         "venv": {
-            "enable_venv": true,
+            "enabled": true,
             "mode": "pip",
             "options": {
                 "depsland": {
@@ -49,7 +49,8 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "enabled": true,
+            "mode": "pyportable_crypto",
             "options": {
                 "cythonize": {
                     "c_compiler": "msvc",
@@ -80,5 +81,5 @@
         "To have a full test schedule, firstly delete '<python>/lib/site-packages/embed-python-manager/assets' folder (if exists).",
         "For Windows users, you must run this application in Windows Terminal, not CMD.exe. Because the latter doesnot support lk-logger logging colors."
     ],
-    "pyportable_installer_version": "4.3.1"
+    "pyportable_installer_version": "4.4.0"
 }

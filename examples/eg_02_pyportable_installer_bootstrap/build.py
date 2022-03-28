@@ -12,10 +12,10 @@ def main(full_pack=False):
                 'attachments': {
                     './requirements_offline': 'assets,dist:build/{name}',
                 },
-                'venv': {
-                    'enable_venv': True,
-                    'mode'       : 'depsland',
-                    'options'    : {
+                'venv'       : {
+                    'enabled': True,
+                    'mode'   : 'depsland',
+                    'options': {
                         'depsland': {
                             'offline': True,
                             'local'  : 'dist:build/requirements_offline'
@@ -26,7 +26,7 @@ def main(full_pack=False):
         })  # dist size: ~15MB
     else:
         conf = full_build('pyproject.json')  # dist size: ~10MB
-        
+    
     if not full_pack:
         # generate notice file indicates to downloading depsland.
         from lk_utils import dumps

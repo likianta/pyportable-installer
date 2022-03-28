@@ -1,6 +1,6 @@
 {
     "app_name": "PyPortable Installer",
-    "app_version": "4.3.3-build.1",
+    "app_version": "4.4.0-build.4",
     "description": "",
     "authors": [
         "Likianta <likianta@foxmail.com>"
@@ -23,12 +23,12 @@
             "../../temp": "only_folder"
         },
         "attachments_exclusions": [],
-        "attachments_exist_scheme": "override",
+        "attachments_exist_scheme": "overwrite",
         "module_paths": [],
         "module_paths_scheme": "translate",
         "python_version": "3.8",
         "venv": {
-            "enable_venv": false,
+            "enabled": false,
             "mode": "depsland",
             "options": {
                 "depsland": {
@@ -53,7 +53,8 @@
             }
         },
         "compiler": {
-            "name": "pyportable_crypto",
+            "enabled": true,
+            "mode": "pyportable_crypto",
             "options": {
                 "cython": {
                     "c_compiler": "msvc",
@@ -86,8 +87,8 @@
             "add_pywin32_support": false,
             "platform": "system_default"
         },
-        "enable_console": true
+        "enable_console": false
     },
     "note": "",
-    "pyportable_installer_version": "4.3.3"
+    "pyportable_installer_version": "4.4.0"
 }

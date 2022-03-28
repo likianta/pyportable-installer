@@ -12,7 +12,7 @@ class EffectlessCompiler(BaseCompiler):
     
     # noinspection PyMissingConstructor
     def __init__(self):
-        del self._interpreter
+        pass
     
     def compile_all(self, pyfiles: TPyFilesToCompile):
         for i, o in pyfiles:
