@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.4.0"
+version = "4.4.0dev2"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 readme = "README.md"
 authors = ["Likianta <likianta@foxmail.com>"]
@@ -18,15 +18,20 @@ python = "^3.8"
 embed-python-manager = "^0.2.7"
 gen-exe = { version = "", markers = "platform_system == 'Windows'" }
 lk-logger = "^5.0.1"
-lk-utils = "^2.2.0"
+lk-utils = "^2.2.1"
 pyportable-crypto = "^1.0.1"
 pysimplegui = ""
+rich-click = ""
 # extra
 pillow = { version = "", optional = true }
 pyarmor = { version = "", optional = true }
+pyyaml = { version = "", optional = true }
+toml = { version = "", optional = true }
 
 [tool.poetry.extras]
-all = ["pillow", "pyarmor"]
+all = ["pillow", "pyarmor", "pyyaml", "toml"]
+tml = ["toml"]
+yml = ["pyyaml"]
 
 [build-system]
 requires = ["poetry>=1.0"]

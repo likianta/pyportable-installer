@@ -1,7 +1,8 @@
 embed-python-manager >= 0.2.7
 lk-logger >= 5.0.1
-lk-utils >= 2.2.0
+lk-utils >= 2.2.1
 pyportable-crypto >= 1.0.1
 pysimplegui
+rich-click
 
 # extra: see ./requirements-extra.txt

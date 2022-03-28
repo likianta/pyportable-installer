@@ -133,9 +133,9 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
                 if path_fmt.fmt == 'relpath':
                     # file = path_fmt.dir_i + '/' + path_fmt
                     return ['...']
-                from lk_utils.read_and_write import load_list
+                from lk_utils.read_and_write import read_lines
                 file = path_fmt(req)
-                return [x for x in load_list(file)
+                return [x for x in read_lines(file)
                         if x and not x.startswith('#')]
             else:
                 return []

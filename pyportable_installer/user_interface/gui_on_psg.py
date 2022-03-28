@@ -38,7 +38,7 @@ class GuiEx:
         return Gui.Frame(title, list(unpack_dict()), key=key)
 
 
-def main():
+def main():  # TODO: add `default_file` parameter.
     layout = [
         [  # row 0: welcome message
             Gui.Text('Welcome using PyPortable Installer!\n'
