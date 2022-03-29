@@ -3,6 +3,8 @@
 > `python -m pyportable_installer --help`
 >
 > ![](.assets/20220329143401.png)
+>
+> [点此查看视频演示](.assets/20220329151910-compressed-by-flex-clip.mp4)
 
 `pyportable-installer` 是一个 Python 项目打包工具, 它受启发于 [poetry](https://github.com/python-poetry/poetry), 并旨在作为 [pyinstaller](https://github.com/pyinstaller/pyinstaller) 的替代品出现.
 
