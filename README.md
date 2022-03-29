@@ -1,18 +1,8 @@
 # PyPortable Installer
 
-> pyportable-installer 提供源码版和直装版两个版本供使用. 请根据需要选择:
+> `python -m pyportable_installer --help`
 >
-> | 版本类型 | 说明 | 体积 | 下载方式 |
-> | -------- | ---- | ---- | -------- |
-> | 第三方库 | 适合开发者在 Python 工程中引入 | 500KB | `pip install pyportable-installer` |
-> | 独立免安装版 (标准版) | 用户电脑上需预先安装 [Depsland][1] 软件, 安装过程需要联网 | 4.5MB | 见本项目 Release 页面 |
-> | 独立免安装版 (完整版) | 该压缩包内置了 [Depsland][1]. 下载后解压即可使用, 无需 Python 开发环境, 完全离线安装 | 47MB | 见本项目 Release 页面 |
->
-> `python -m pyportable_installer` 快速演示:
->
-> ![](./.assets/QCdvnW6kJK.gif)
-
---------------------------------------------------------------------------------
+> ![](.assets/20220329143401.png)
 
 `pyportable-installer` 是一个 Python 项目打包工具, 它受启发于 [poetry](https://github.com/python-poetry/poetry), 并旨在作为 [pyinstaller](https://github.com/pyinstaller/pyinstaller) 的替代品出现.
 
@@ -24,11 +14,11 @@
 
 1.  打包后的体积很小. 在不附带虚拟环境的情况下, 与您的源代码同等量级 (这通常只有几百 KB ~ 几 MB 之间)
 
-2.  易于使用. 您只需要维护一个 pyproject.json 配置文件即可. 在快速迭代的环境下, 您甚至只需要更改版本号就能立即生成新的打包结果
+2.  易于使用. 您只需要维护一个 "pyproject.json" 配置文件即可. 在快速迭代的环境下, 您甚至只需要更改版本号就能立即生成新的打包结果
 
 3.  打包速度快. 一个中小型项目在数秒间即可生成打包结果
 
-4.  源代码加密. `pyportable-installer` 内置了多种编译和混淆器供选择, 其中推荐使用 [pyportable-crypto](https://github.com/likianta/pyportable-crypto) 库或 [pyarmor](https://github.com/dashingsoft/pyarmor) 库对源代码进行混淆, 保障代码安全
+4.  源代码加密. `pyportable-installer` 内置了多种编译和混淆器方案, 其中推荐使用 [pyportable-crypto](https://github.com/likianta/pyportable-crypto) 库或 [pyarmor](https://github.com/dashingsoft/pyarmor) 库对源代码进行混淆, 保障代码安全
 
 5.  开箱即用. `pyportable-installer` 打包后的目录结构非常清晰, 如下示例:
 
@@ -55,7 +45,7 @@
 
 7.  摆脱虚拟环境 (该特性仍处于实验阶段). 您可以在 配置文件/虚拟环境配置项 中启用 "[depsland][1]" 选项, 客户端在安装 depsland 软件后, 运行您发布的程序时会自动部署依赖, 这样真正做到打包体积控制, 加快分发并减轻用户下载负担
 
-8.  *无痛更新 (该特性将在后续版本提供). 双击软件目录下的 `checkup/update.pyd` 即可获取软件的最新版本*
+8.  *无痛更新 (该特性将在后续版本提供). 运行软件目录下的 `build/update.exe` 即可获取软件的最新版本*
 
 9.  *激活和授权 (该特性将在后续版本提供). 该特性由 pyarmor 提供, `pyportable-installer` 将其同样整合在 all-in-one 配置文件中*
 
@@ -65,13 +55,24 @@
 
 1.  准备您要打包的项目
 
-2.  在项目的根目录下新建一个 all-in-one 配置文件: "pyproject.json"
+2.  在项目的根目录下新建一个 all-in-one 配置文件: "pyproject.json"[^1]
 
-    1.  该文件名是可以任取的
+    1.  通过 `python -m pyportable_installer init` 在目录下生成模板文件
 
-    2.  [这里](pyportable_installer/template/pyproject.json) 有一个模板文件可供使用. 以及一个 [手册](docs/pyproject-manual.md) 供查阅每个选项的格式和作用
+    2.  根据 [配置手册](docs/pyproject-manual.md) 查阅每个字段的格式和作用, 完成项目配置的填写
 
 3.  通过 `pyportable-installer` 处理此配置文件, 完成打包:
+
+    方法 1. 命令行运行:
+
+    ```shell
+    # python -m pyportable_installer build --help
+    python -m pyportable_installer build
+    ```
+
+    ![](.assets/20220329144808.png)
+
+    方法 2. 脚本运行:
 
     ```py
     from pyportable_installer import full_build
@@ -112,7 +113,7 @@ pip install pyportable-installer
 
 > 注意事项:
 > 
-> 1. pyportable-installer 最新版本为 4.3.0+ (截至 2021-12-30)
+> 1. pyportable-installer 最新版本为 4.4.0+ (截至 2022-03-29)
 > 2. 上代版本 (3.3.3 及以前) 已不推荐使用
 > 3. pyportable-installer 需要 Python 3.8 及以上的解释器运行
 
@@ -121,24 +122,24 @@ pip install pyportable-installer
 假设 "Hello World" 的项目结构如下:
 
 ```
-hello_world_project
+hello_world_project # 项目目录
+|= dist             # 暂时是一个空目录
+|= hello_world      # 源代码目录
+   |- main.py
+   |  ~ def say_hello(file):
+   |  ~     with open(file, 'r') as f:
+   |  ~         for name in f:
+   |  ~             print(f'Hello {name}!')
+   |  ~
+   |  ~ if __name__ == '__main__':
+   |  ~     say_hello('../data/names.txt')
 |= data
    |- names.txt
-|= dist
-|= hello_world
-   |- main.py
-   |  # def say_hello(file):
-   |  #     with open(file, 'r') as f:
-   |  #         for name in f:
-   |  #             print(f'Hello {name}!')
-   |  #
-   |  # if __name__ == '__main__':
-   |  #     say_hello('../data/names.txt')
 |- pyproject.json
 |- README.md
 ```
 
-在项目根目录下新建 'pyproject.json' ([这里](./pyportable_installer/template/pyproject.json) 有一个模板文件可供使用), 填写以下内容:
+在项目根目录下新建 '[pyproject.json](./pyportable_installer/template/pyproject.json)', 填写以下内容:
 
 > 注: '◆◇◆' 标记的是必填的项, 其他可使用缺省设置.
 
@@ -157,20 +158,20 @@ hello_world_project
         // ◆◇◆ 项目目录的入口 ◆◇◆
         "proj_dir": "./hello_world",
         // ◆◇◆ 打包结果放在哪里 ◆◇◆
-        //     注意打包结果的父目录必须事先存在, 以及打包结果目录事先应不存在.
+        //     注意打包结果的父目录必须事先存在, 且打包结果所在的目录事先应不存在.
         //     否则打包活动将中止.
         "dist_dir": "./dist/{app_name_snake}_{app_version}",
         // ◆◇◆ 启动器配置 ◆◇◆
         //  1. 启动器配置是一个字典.
         //  2. 字典的键是要生成的启动器. 键可以使用花括号语法指代一个名称, 例如 
         //     "{app_name}" 指代 "Hello World", "{app_name_lower}" 指代 "hello 
-        //     world" 等 (详见配置指南).
+        //     world" 等 (详见配置手册).
         //  3. 字典的值是该启动器的配置.
         "launchers": {
             "{app_name}": {
                 "file": "./hello_world/main.py",
                 "icon": "",
-                "function": "main",
+                "function": "say_hello",
                 "args": ["../data/names.txt"],
                 "kwargs": {}
             }
@@ -246,7 +247,7 @@ hello_world_project
 }
 ```
 
-*注: 更多用法请参考 [Pyproject Template Manual](docs/pyproject-manual.md).*
+*注: 更多用法请参考 [配置手册](docs/pyproject-manual.md).*
 
 运行以下代码即可生成打包结果:
 
@@ -270,27 +271,27 @@ hello_world
 |= dist
    |= hello_world_0.1.0
       |= build
-         |- manifest.json   # 1. 应用构建信息 (数据已自动去敏, 可随项目一起发布)
+         |- manifest.json       # 1. 应用构建信息 (数据已自动去敏, 可随项目一起发布)
       |= src
+         |= hello_world
+            |- main.py          # 2. 这是加密后的脚本, 与源文件同名
          |= .pylauncher_conf
             |- __main__.pkl     # 5. pylauncher 会从这里读取启动配置信息
          |= data
             |- names.txt
-         |= hello_world
-            |- main.py          # 2. 这是加密后的脚本, 与源文件同名
          |- pylauncher.py       # 4. 启动器 (exe) 会调用这个文件
+      |- Hello World.exe        # 3. 双击启动!
       |= lib
          |= pyportable_runtime
             |- __init__.py
             |- inject.pyd
-      |- Hello World.exe    # 3. 双击启动!
 |- ...
 ```
 
 # 注意事项
 
 1.  要生成的打包目录事先应不存在, 否则 pyportable-installer 会中止打包
-2.  如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则会导致启动失败 (该问题可能与 Embedded Python 解释器有关)
+2.  如果您启用了虚拟环境选项, 则安装路径不能包含中文, 否则可能导致启动失败 (该问题可能与 Embedded Python 解释器有关)
 3.  `pyportable-installer` 需要 Python 3.8 及以上的解释器运行. 打包的目标 Python 版本可调 (目前对 Python 2.7 和 Python 3.7 以下的版本未做充分测试)
 
 # FAQ
@@ -301,9 +302,9 @@ hello_world
 
 ```json
 {
-    "...": "...",
+    // ...
     "build": {
-        "...": "...",
+        // ...
         "enable_console": false
     }
 }
@@ -343,20 +344,6 @@ hello_world
 图标仅支持 ico 格式. 如果您手上只有 png, jpg 等格式的图片文件, 可通过在线网站转换:
 
 - https://www.aconvert.com/cn/image/
-
-或者通过本项目自带的脚本:
-
-*(注意: 需要事先安装 pillow 库.)*
-
-```python
-from pyportable_installer.bat_2_exe import png_2_ico
-
-# a) 传入文件名和目标位置
-png_2_ico.main('some_icon.png', 'launcher.ico')
-
-# b) 根据提示传入一个文件名, 会在同一目录下生成 .ico 后缀的同名文件
-png_2_ico.dialog()
-```
 
 ## 如何通过配置文件实现: 打包路径用英文, 启动器名字用中文?
 
@@ -428,3 +415,5 @@ pyportable-crypto 使用随机步骤生成器产生一个密钥机, 再将密钥
 
 [1]: https://github.com/likianta/depsland/releases
 [2]: https://github.com/likianta/depsland
+
+[^1]: 该文件名和文件位置是可以更改的. 为方便表述, 本文谨以根目录下的 pyproject.json 作为参考.

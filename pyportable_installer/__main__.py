@@ -37,7 +37,7 @@ def init(directory='.'):
 
 @click.cmd()
 @click.arg('pyproject-file', default='./pyproject.json', type=Path(exists=True))
-def run(pyproject_file='./pyproject.json'):
+def build(pyproject_file='./pyproject.json'):
     """
     Start building application from pyproject config file.
     
