@@ -302,7 +302,7 @@ hello_world
 
 在配置文件中将 "enable_console" 选项关闭:
 
-```json
+```json5
 {
     // ...
     "build": {

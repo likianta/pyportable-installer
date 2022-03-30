@@ -2,7 +2,7 @@
 
 To package an application, pyportable_installer parses a configuration file to manage what and how to arrange all required assets.
 
-The config file is conventionally named "pyproject.json", and is located under the root of the application. However it could be anyname and anywhere (for [example when we package this project itself](../examples/eg_02_pyportable_installer_bootstrap/pyproject.json)).
+The config file is conventionally named "pyproject.json", and is located under the root of the project. However it could be anyname and anywhere (for [example when we package this project itself](../examples/eg_02_pyportable_installer_bootstrap/pyproject.json)).
 
 The following rules are basically used for config file:
 
@@ -13,7 +13,7 @@ The following rules are basically used for config file:
 Check the command help:
 
 ```shell
-python -m pyportable_installer create-pyproject --help
+python -m pyportable_installer init --help
 ```
 
 *TODO:AddImage*
@@ -21,19 +21,21 @@ python -m pyportable_installer create-pyproject --help
 To create a standard pyproject.json:
 
 ```shell
-python -m pyportable_installer create-pyproject <dirpath>
+python -m pyportable_installer init
 ```
+
+*TODO:BelowNotImplemented*
 
 To customize the filename:
 
 ```shell
-python -m pyportable_installer create-pyproject <dirpath> --filename=<filename>
+python -m pyportable_installer init <custom_dir> --filename=<custom_name>
 ```
 
 To use another file format (json, yaml, toml):
 
 ```shell
-python -m pyportable_installer create-pyproject <dirpath> --format=<format>
+python -m pyportable_installer init --format=<format>
 ```
 
 (Note: for yaml and toml format, you need to install their related libraries.)
@@ -290,7 +292,7 @@ platform = 'system_default'
 
 - **desc**:
 
-    The application name. Use natual naming style. (Including letters, spaces, etc.)
+    The application name. Use natual naming style (including letters, spaces, etc.).
 
     The name will be shown as a launcher's filename, for example in Windows it is "Hello World.exe", in macOS it is "Hello World.app"[^1].
 
