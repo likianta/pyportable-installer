@@ -16,13 +16,15 @@ Check the command help:
 python -m pyportable_installer init --help
 ```
 
-*TODO:AddImage*
+![20220419115941](.assets/20220419115941.png)
 
 To create a standard pyproject.json:
 
 ```shell
 python -m pyportable_installer init
 ```
+
+<!-- 
 
 *TODO:BelowNotImplemented*
 
@@ -39,6 +41,8 @@ python -m pyportable_installer init --format=<format>
 ```
 
 (Note: for yaml and toml format, you need to install their related libraries.)
+
+-->
 
 ## Configuration Overview
 
