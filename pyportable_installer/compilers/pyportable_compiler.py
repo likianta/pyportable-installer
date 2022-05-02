@@ -73,7 +73,7 @@ class PyportableCompiler(BaseCompiler):
     def compile_all(self, pyfiles):
         print(':i0')
         for i, o in pyfiles:
-            print(':i', 'compiling', os.path.relpath(i, src_model.prj_root))
+            print(':is', 'compiling', os.path.relpath(i, src_model.prj_root))
             self.compile_one(i, o)
     
     def compile_one(self, src_file, dst_file):

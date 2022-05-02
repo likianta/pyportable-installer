@@ -11,9 +11,9 @@ from .extensions import DoNotSortCommands
 from .extensions import ArgumentSupportsAddingHelpText
 from .extensions import CommandSupportsAddingHelpTextToItsArguments
 
-click.rich_click.SHOW_ARGUMENTS = True
-# click.rich_click.STYLE_COMMANDS_PANEL_BORDER = 'cyan'
-click.rich_click.USE_RICH_MARKUP = True
+click.rich_click.SHOW_ARGUMENTS = True  # noqa
+# click.rich_click.STYLE_COMMANDS_PANEL_BORDER = 'cyan'  # noqa
+click.rich_click.USE_RICH_MARKUP = True  # noqa
 
 __all__ = [
     'group', 'command', 'argument', 'option',

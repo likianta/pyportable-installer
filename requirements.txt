@@ -1,7 +1,8 @@
-embed-python-manager >= 0.2.7
-lk-logger >= 5.0.1
-lk-utils >= 2.2.1
-pyportable-crypto >= 1.0.1
+embed-python-manager>=0.2.7
+# lk-logger>=5.0.5 has fixed future annotations which was crashed in python 3.8.
+lk-logger>=5.0.5
+lk-utils>=2.2.1
+pyportable-crypto>=1.0.1
 pysimplegui
 rich-click
 

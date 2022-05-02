@@ -58,9 +58,9 @@ class AttachmentsExclusions:
         
         if not pass_through:
             if type_ == 'file':
-                print('[D5438]', 'skip making file', path, f':vp{h}')
+                print('skip making file', path, f':vp{h}s')
             else:
-                print('[D5439]', 'skip making dir', path, f':vp{h}')
+                print('skip making dir', path, f':vp{h}s')
         return pass_through
     
     def filter_files(self, path: str, name: str):

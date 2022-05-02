@@ -57,7 +57,7 @@ class DistTree:
             if dir_ not in existed:
                 existed.add(dir_)
                 if not exists(dir_):
-                    print(':v1', '[D0604]', 'create empty folder', dir_)
+                    print(':v1s', 'create empty folder', dir_)
                     # mkdir(dir_)
                     makedirs(dir_)
         

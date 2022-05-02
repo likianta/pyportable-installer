@@ -159,7 +159,7 @@ def _init_python_paths():
     if enable_venv and mode == 'pip':
         is_pip_required = True
     
-    print(':v2', '[I5239]',
+    print(':v2l', 'python interpreter spec',
           is_full_python_required,
           is_embed_python_required,
           is_pip_required)
