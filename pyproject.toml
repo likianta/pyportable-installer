@@ -2,7 +2,8 @@
 
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.4.1dev0"
+version = "4.4.1dev1"
+homepage = "https://github.com/likianta/pyportable-installer"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 readme = "README.md"
 authors = ["Likianta <likianta@foxmail.com>"]
@@ -17,7 +18,7 @@ default = true
 python = "^3.8"
 embed-python-manager = "^0.2.7"
 gen-exe = { version = "", markers = "platform_system == 'Windows'" }
-lk-logger = "^5.0.1"
+lk-logger = "^5.0.5"
 lk-utils = "^2.2.1"
 pyportable-crypto = "^1.0.1"
 pysimplegui = ""

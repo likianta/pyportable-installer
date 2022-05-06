@@ -93,7 +93,8 @@ def indexing_paths(conf: TConf, path_fmt: Union[PathFormatter, Callable]):
     conf['build']['attachments'] = temp0
     del temp0
     
-    # noinspection PyTypedDict
+    if (d := conf['build']['dist_dir']).startswith(conf['build']['proj_dir']):
+        conf['build']['attachments_exclusions'].insert(0, d)
     conf['build']['attachments_exclusions'] = tuple(
         map(path_fmt, conf['build']['attachments_exclusions'])
     )

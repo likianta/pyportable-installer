@@ -156,7 +156,7 @@ class TBuildConf(TypedDict):
     launcher_name: str
     readme: TPath
     attachments: TAttachments
-    attachments_exclusions: Tuple[TPath]
+    attachments_exclusions: Union[List[TPath], Tuple[TPath, ...]]
     attachments_exist_scheme: Literal['error', 'overwrite', 'skip']
     module_paths: List[TPath]
     module_paths_scheme: Literal['translate', 'as-is']
