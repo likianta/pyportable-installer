@@ -13,6 +13,8 @@
 __pycache__
 bat_2_exe/settings
 
+.DS_Store
+
 !/dist/.gitkeep
 !/examples/eg_02_pyportable_installer_bootstrap/requirements_offline/.gitkeep
 !/examples/eg_02_pyportable_installer_bootstrap/requirements_offline/readme.md
