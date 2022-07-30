@@ -4,3 +4,5 @@ mypy
 nuitka
 pillow
 pyarmor
+# pytermgui
+pyyaml
