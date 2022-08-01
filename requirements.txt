@@ -1,8 +1,8 @@
 argsense >= 0.4.1
-embed-python-manager >= 0.2.7
+embed-python-manager >= 0.2.8
 lk-logger >= 5.1.6
 lk-utils >= 2.3.0
-pyportable-crypto >= 1.0.1
-pysimplegui  # TODO: move this to optional.
+pyportable-crypto >= 1.0.2
+pysimplegui
 
 # extra: see ./requirements-extra.txt
