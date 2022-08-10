@@ -43,14 +43,17 @@ def _init_platform():
     p = _conf['build']['experimental_features']['platform']
     if p == 'system_default':
         from platform import system
-        p = system().lower()  # 'windows', 'linux', 'macos'.
+        p = system().lower()  # 'windows', 'linux', 'darwin'.
     
-    assert p in ('windows', 'linux', 'macos'), 'platform not support'
+    assert p in ('darwin', 'linux', 'windows'), f'platform not support: {p}'
     
     gconf.target_platform = p
 
 
 def _init_pyportable_runtime_package():
+    if _conf['build']['compiler']['enabled'] is False:
+        return
+    
     import sys
     
     if gconf.target_platform != 'windows':

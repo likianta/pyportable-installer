@@ -15,8 +15,14 @@ def get_full_python(pyversion):
     Returns:
         str: python executable path. note this is file path, not dir.
     """
+    import sys
+    
     pyversion = '.'.join(re.search(r'(\d)(\d+)', pyversion).groups())
     # -> '3.8', '3.9', '3.10'
+    
+    if sys.version.startswith(pyversion):
+        return sys.executable
+    
     if gconf.current_platform == 'windows':
         path = run_cmd_args(
             'py', f'-{pyversion}', '-c', 'import sys; print(sys.executable)'

@@ -296,16 +296,14 @@ def _generate_shell(system, **kwargs):
     
     if system == 'windows':
         _generate_bat(**kwargs)
-    elif system == 'linux':  # TEST
+    elif system == 'linux' or system == 'darwin':  # TEST
         template = loads(prj_model.template + '/launch.sh')
         code = template.format(PYTHON='python3', PYCONF=_rel_paths['conf_file'])
         dump_with_crlf_to_lf(
             code, _abs_paths['exe_file'].replace('.exe', '.sh')  # PERF
         )
-    elif system == 'macos':
-        raise NotImplemented()
     else:
-        raise Exception()
+        raise Exception(system)
 
 
 def _generate_bat(enable_venv):
