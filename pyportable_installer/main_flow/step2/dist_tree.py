@@ -26,14 +26,17 @@ class DistTree:
                 self.paths.append(d)
     
     def suggest_src_root(self):
-        try:  # check whether paths are from one hard driver.
-            # FIXME: this scheme is only available in Windows platform.
+        from os import name as os_name
+        from os.path import commonprefix
+        
+        # check whether paths are from one hard driver.
+        if os_name == 'nt':
             assert len(set(x.split(':', 1)[0] for x in self.paths)) == 1
-        except AssertionError:
-            return ''
         else:
-            minimal_common_path = min(self.paths, key=lambda p: p.count('/'))
-            return dirname(minimal_common_path)
+            assert len(set(x.split('/', 2)[1] for x in self.paths)) == 1
+        
+        print(':vl', self.paths)
+        return commonprefix(self.paths)
     
     def build_dst_dirs(self, src_root: str, dst_root: str, src_dirs=None):
         """
@@ -46,7 +49,7 @@ class DistTree:
             src_dirs: files which starts with `src_root`.
                 None: use `self.paths` instead.
         """
-        assert exists(src_root) and exists(dst_root)
+        assert exists(src_root) and exists(dst_root), (src_root, dst_root)
         if src_dirs is None:
             src_dirs = self.paths
         
