@@ -79,6 +79,6 @@ class NuitkaCompiler(BaseCompiler):
         return dst_file
     
     def _cleanup(self):
-        for d, _ in find_dirs(self._temp_dir):
-            print(':v1', '[D5334]', 'delete dir', d)
-            rmtree(d)
+        for d in find_dirs(self._temp_dir):
+            print(':v1', '[D5334]', 'delete dir', d.relpath)
+            rmtree(d.path)

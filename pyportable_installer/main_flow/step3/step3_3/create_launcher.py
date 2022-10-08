@@ -8,7 +8,7 @@ from lk_utils import dumps
 from lk_utils import loads
 from lk_utils import ropen
 from lk_utils import wopen
-from lk_utils.filesniff import get_filename
+from lk_utils.filesniff import filename
 
 from ....global_conf import gconf
 from ....path_model import *
@@ -237,7 +237,7 @@ def _generate_target_conf(target):
         # target_pkg = target_dir.replace('/', '.')
         target_mod = '{}.{}'.format(
             target_dir.replace('/', '.'),
-            get_filename(_abs_paths['target_file'], suffix=False)
+            filename(_abs_paths['target_file'], suffix=False)
         )
         
         pickle.dump({
@@ -246,7 +246,7 @@ def _generate_target_conf(target):
             'TARGET_PKG'   : target_pkg,
             'TARGET_MOD'   : target_mod,
             # 'TARGET_NAME'  : xpath.basename(target_file).rsplit('.', 1)[0],
-            'TARGET_NAME'  : get_filename(target_file, suffix=False),
+            'TARGET_NAME'  : filename(target_file, suffix=False),
             'TARGET_FUNC'  : target['function'],
             'TARGET_ARGS'  : target['args'],
             'TARGET_KWARGS': target['kwargs'],

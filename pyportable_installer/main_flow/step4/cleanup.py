@@ -15,19 +15,19 @@ def main(pyproj_file, additional_conf):
 
 
 def _cleanup_intermediate_files():
-    print('[I5325]', 'clean up intermediate files', ':v2')
+    print('clean up intermediate files', ':v2')
     
-    for d, _ in find_dirs(prj_model.temp):
-        shutil.rmtree(d)
+    for d in find_dirs(prj_model.temp):
+        shutil.rmtree(d.path)
         # try:
-        #     shutil.rmtree(d)
+        #     shutil.rmtree(d.path)
         # except PermissionError:
         #     continue
     
-    for f, _ in find_files(prj_model.temp):
-        if f.endswith('.gitkeep'):
+    for f in find_files(prj_model.temp):
+        if f.name == '.gitkeep':
             continue
-        os.remove(f)
+        os.remove(f.path)
 
 
 def _generate_manifest(pyproj_file, file_o, additional_conf):
