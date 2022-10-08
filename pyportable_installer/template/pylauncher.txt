@@ -57,91 +57,118 @@ if add_pywin32_support:
 
 # ------------------------------------------------------------------------------
 
-def _parse_target_conf(args):
-    if len(args) == 0:
-        raise Exception('sys.argv cannot be empty!')
-    elif len(args) == 1:  # auto repair
-        # note: if we launch directly from `python pylauncher.py`, the
-        #   pylauncher config file is omitted. we will auto repair it.
-        conf_file = '.pylauncher_conf/__main__.pkl'
-    else:
-        if args[1].startswith('.pylauncher_conf/'):
-            conf_file = args.pop(1)
-        else:
-            print('[pylauncher][warning]',
-                  'pylauncher config file not provided, will use default '
-                  'config path')
-            conf_file = '.pylauncher_conf/__main__.pkl'
+def _parse_argv() -> dict:
+    """
+    Returns:
+        {{'launch_exception_output': literal['terminal', 'messagebox'],
+          'target': {{...}}}}
+    """
+    argv = sys.argv
+    out = {{
+        'launch_exception_output': 'messagebox',
+        'target': None,
+    }}
+
+    def _is_conf_file(arg: str) -> bool:
+        return arg.startswith('.pylauncher_conf/')
+
+    def _is_output_option(arg: str) -> bool:
+        return arg in ('terminal', 'messagebox')
+
+    if len(argv) == 1:
+        conf_file = '.pylauncher_conf/.main.pkl'
+    elif len(argv) >= 2:
+        if _is_conf_file(argv[1]):
+            conf_file = argv.pop(1)
+        if _is_output_option(argv[1]):
+            out['launch_exception_output'] = argv.pop(1)
+    else:  # len(argv) == 0? (never reachable case)
+        raise Exception(argv)
 
     assert conf_file.endswith(('.json', '.pkl')), (
-        'Unknown file type to load config!', conf_file
+        'Unknown file type to load target config!', conf_file
     )
-
-    if conf_file.endswith('.json'):
-        from json import load
-        with open(conf_file, 'r', encoding='utf-8') as f:
-            return load(f)
-    else:
+    if conf_file.endswith('.pkl'):
         from pickle import load
         with open(conf_file, 'rb') as f:
-            return load(f)
+            conf_data = load(f)
+    else:
+        from json import load
+        with open(conf_file, 'r', encoding='utf-8') as f:
+            conf_data = load(f)
+    out['target'] = conf_data
+
+    return out
 
 
-def launch(conf):
-    try:
-        # check in target dir to make sure all sequent relative paths
-        # references are based on the target dir.
-        os.chdir(conf['TARGET_DIR'])
-        sys.path.append(abspath('.'))
+def launch(conf: dict) -> None:
+    # change working directory to `conf['TARGET_DIR']`, to make sure all 
+    # sequent relative paths are correct.
+    os.chdir(conf['TARGET_DIR'])
+    sys.path.append(abspath('.'))
 
-        from importlib import import_module
-        # target name is a filename without suffix
-        module = import_module(conf['TARGET_NAME'], '')
-        main = getattr(module, conf['TARGET_FUNC'], None)
-        if main is not None:
-            main(*conf['TARGET_ARGS'], **conf['TARGET_KWARGS'])
-
-    except Exception:
-        _show_error_info(traceback.format_exc())
-        input('Press enter to leave...')
-    sys.exit()
+    from importlib import import_module
+    # target name is a filename without suffix
+    module = import_module(conf['TARGET_NAME'], '')
+    main = getattr(module, conf['TARGET_FUNC'], None)
+    if main is not None:
+        main(*conf['TARGET_ARGS'], **conf['TARGET_KWARGS'])
 
 
-def _show_error_info(err_msg, title='Runtime Exception', terminal='console'):
+def _prompt_error(
+    msg: str,
+    title='Runtime Exception',
+    output='terminal'
+) -> None:
     """
     Args:
-        err_msg: suggest passing `traceback.format_exc()`.
+        msg:
         title:
-        terminal:
+        output:
+            - terminal: show error message in terminal.
+            - messagebox: show error message in a messagebox (os dependent).
 
     Rerferences:
-        https://stackoverflow.com/questions/1278705/when-i-catch-an-exception
-            -how-do-i-get-the-type-file-and-line-number
-        https://stackoverflow.com/questions/17280637/tkinter-messagebox-without
-            -window
+        https://stackoverflow.com/questions/2963263/how-can-i-create-a-simple-
+            message-box-in-python
+        https://stackoverflow.com/questions/1278705/when-i-catch-an-exception-
+            how-do-i-get-the-type-file-and-line-number
+        https://stackoverflow.com/questions/17280637/tkinter-messagebox-without-
+            window
         https://www.cnblogs.com/freeweb/p/5048833.html
     """
-    if terminal == 'console':
-        print(title + ':', err_msg)
-    elif terminal == 'tkinter':
-        from tkinter import Tk, messagebox
-        root = Tk()
-        root.withdraw()
-        messagebox.showerror(title=title, message=err_msg)
-    elif terminal == 'vbsbox':
-        return os.popen(
-            'echo msgbox "{{msg}}", 64, "{{title}}" > '
-            'alert.vbs && start '
-            'alert.vbs && ping -n 2 127.1 > '
-            'nul && del alert.vbs'.format(title=title, msg=err_msg)
-        ).read()
+    if output == 'terminal':
+        print(title + ':', msg)
+        input('Press enter to leave...')
+        sys.exit(1)
+    else:
+        try:
+            import tkinter
+        except (ImportError, ModuleNotFoundError):
+            import subprocess
+            if sys.platform == 'win32':
+                subprocess.call(['msg', '*', title + ': ' + msg])
+            elif sys.platform == 'darwin':
+                subprocess.call([
+                    'osascript', '-e', 'Tell application "System Events" to '
+                    'display dialog "{{}}" with title "{{}}"'.format(msg, title)
+                ])
+            else:
+                raise NotImplementedError
+        else:
+            from tkinter import Tk, messagebox
+            root = Tk()
+            root.withdraw()
+            messagebox.showerror(title=title, message=msg)
 
 
 if __name__ == '__main__':
     try:
-        conf = _parse_target_conf(sys.argv)
-        # print(':l', conf)
-        launch(conf)
+        info = _parse_argv(sys.argv)
+        # print(':l', info)
+        launch(info['target'])
     except Exception:
-        _show_error_info(traceback.format_exc())
-        input('Press enter to leave...')
+        _prompt_error(
+            traceback.format_exc(),
+            output=info['launch_exception_output']
+        )

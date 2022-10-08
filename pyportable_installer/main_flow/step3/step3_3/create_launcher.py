@@ -138,7 +138,7 @@ def _create_launcher(
         module_paths_scheme: Literal['translate', 'as-is']
     """
     launcher_name = name
-    conf_name = '__main__' if is_main_entry else token_hex(16)
+    conf_name = '.main' if is_main_entry else token_hex(16)
     
     global _abs_paths, _rel_paths
     
@@ -265,7 +265,7 @@ def _generate_pylauncher(module_paths, module_paths_scheme, **options):
             ),
             module_paths
         ))
-    else:  # leave module paths as is. (usually this is used in debug mode)
+    else:  # leave module paths as is. (usually used for debug mode)
         _ext_paths = list(map(
             lambda d: d[4:] if d.startswith('src:') else d,
             module_paths
@@ -279,7 +279,6 @@ def _generate_pylauncher(module_paths, module_paths_scheme, **options):
             ADD_PYWIN32_SUPPORT=str(
                 options.get('add_pywin32_support', False)),
             MODULE_PATHS=str(_ext_paths),
-            # DEFAULT_CONF='default.pkl',
         )
     
     with wopen(_abs_paths['launch_file']) as f:
