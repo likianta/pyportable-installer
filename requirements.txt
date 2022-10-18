@@ -1,7 +1,7 @@
 argsense >= 0.4.2
 embed-python-manager >= 0.2.8
-lk-logger >= 5.4.1
-lk-utils >= 2.4.0
+lk-logger >= 5.4.3
+lk-utils >= 2.4.1
 pyportable-crypto >= 1.0.3
 pysimplegui
 
