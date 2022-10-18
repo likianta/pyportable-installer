@@ -80,7 +80,7 @@ def _parse_argv() -> dict:
     elif len(argv) >= 2:
         if _is_conf_file(argv[1]):
             conf_file = argv.pop(1)
-        if _is_output_option(argv[1]):
+        if len(argv) >= 2 and _is_output_option(argv[1]):
             out['launch_exception_output'] = argv.pop(1)
     else:  # len(argv) == 0? (never reachable case)
         raise Exception(argv)
@@ -164,7 +164,7 @@ def _prompt_error(
 
 if __name__ == '__main__':
     try:
-        info = _parse_argv(sys.argv)
+        info = _parse_argv()
         # print(':l', info)
         launch(info['target'])
     except Exception:
