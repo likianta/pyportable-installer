@@ -2,7 +2,7 @@
 
 To package an application, pyportable_installer parses a configuration file to manage what and how to arrange all required assets.
 
-The config file is conventionally named "pyproject.json", and is located under the root of the project. However it could be anyname and anywhere (for [example when we package this project itself](../examples/eg_02_pyportable_installer_bootstrap/pyproject.json)).
+The config file is conventionally named "pyproject.json", and is located under the root of the project. However it could be anyname and anywhere (for [example when we package this project itself](../examples/eg_02_pyportable_installer_self_build/pyproject.json)).
 
 The following rules are basically used for config file:
 
