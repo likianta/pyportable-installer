@@ -1,8 +1,6 @@
-# Follow the guide of 'docs/devnote/pypi-publish-guide.md'.
-
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.4.2"
+version = "5.5.0a0"
 homepage = "https://github.com/likianta/pyportable-installer"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 readme = "README.md"
@@ -12,22 +10,29 @@ license = "MIT"
 [[tool.poetry.source]]
 name = "tsinghua"
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
-default = true
+priority = "default"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9,!=3.9.7"
+#   note: streamlit ^1.24.0 doesn't support python 3.9.7
+
 argsense = "~0.4.2"
 embed-python-manager = "^0.2.8"
-gen-exe = { version = "*", markers = "platform_system == 'Windows'" }
+gen-exe = { version = "*", platform = "win32" }
 lk-logger = "^5.4.7"
 lk-utils = "~2.4.1"
 pyportable-crypto = "^1.0.3"
 pysimplegui = "*"
-# extra
+
+# extras
 pillow = { version = "*", optional = true }
 pyarmor = { version = "*", optional = true }
 pyyaml = { version = "*", optional = true }
 toml = { version = "*", optional = true }
+
+[tool.poetry.group.dev.dependencies]
+streamlit = "^1.24.0"
+streamlit-antd-components = "*"
 
 [tool.poetry.extras]
 all = ["pillow", "pyarmor", "pyyaml", "toml"]
