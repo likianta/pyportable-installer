@@ -1,5 +1,6 @@
 from argsense import cli
-from lk_utils import relpath
+from lk_utils import loads
+from lk_utils import xpath
 
 
 @cli.cmd()
@@ -17,7 +18,7 @@ def init(directory='.'):
     import os
     from shutil import copyfile
     
-    file_i = relpath('./template/pyproject.json')
+    file_i = xpath('./template/pyproject.json')
     file_o = f'{directory}/pyproject.json'
     
     if not os.path.exists(directory):
@@ -51,9 +52,11 @@ def gui():
     """
     Launch PyPortable Installer GUI. [red](This is an experimental feature.)[/]
     """
-    from .user_interface import gui_on_psg
-    gui_on_psg.main()
+    from .user_interface import run_gui
+    run_gui(loads(xpath('../build/profile.yaml')))  # TEST
 
 
 if __name__ == '__main__':
+    # py -m pyportable_installer -h
+    # py -m pyportable_installer gui
     cli.run()
