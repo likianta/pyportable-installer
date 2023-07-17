@@ -1,5 +1,4 @@
 from argsense import cli
-from lk_utils import loads
 from lk_utils import xpath
 
 
@@ -52,8 +51,9 @@ def gui():
     """
     Launch PyPortable Installer GUI. [red](This is an experimental feature.)[/]
     """
+    from .main_flow.step1 import main as load_config
     from .user_interface import run_gui
-    run_gui(loads(xpath('../build/profile.yaml')))  # TEST
+    run_gui(load_config(xpath('../build/profile.yaml')))  # TEST
 
 
 if __name__ == '__main__':

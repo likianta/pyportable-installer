@@ -31,6 +31,10 @@ def get_tree_model(root: str) -> T.TreeModel:
             return node
 
         for i, d in enumerate(fs.find_dirs(path)):
+            if d.name == '__pycache__':
+                continue
+            if d.name in ('dist', 'examples'):  # TEST
+                continue
             if i > 100:
                 print(':v3', 'too many folders (>100), stop recusion!')
                 return node

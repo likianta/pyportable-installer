@@ -29,6 +29,7 @@ toml = { version = "*", optional = true }
 
 [tool.poetry.group.ui.dependencies]
 dash = "*"
+dash-mantine-components = "*"
 feffery-antd-components = "*"
 # pysimplegui = "*"
 # streamlit = "^1.24.0"
