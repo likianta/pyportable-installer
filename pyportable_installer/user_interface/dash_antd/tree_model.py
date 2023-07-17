@@ -57,6 +57,6 @@ def get_tree_model(root: str) -> T.TreeModel:
         return node
 
     tree = recurse(
-        {'key': 'source_root', 'title': root, 'children': []}, root
+        {'key': 'root', 'title': fs.dirname(root), 'children': []}, root
     )
     return [tree]
