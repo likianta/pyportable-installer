@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from lk_utils.read_and_write import read_lines
-from lk_utils.subproc import format_cmd  # noqa
 
 
 def bat_2_exe(file_i, file_o, icon='', show_console=True):

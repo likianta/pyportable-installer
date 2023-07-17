@@ -1,28 +1,25 @@
 [tool.poetry]
 name = "pyportable-installer"
-version = "5.5.0a0"
+version = "5.0.0a1"
 homepage = "https://github.com/likianta/pyportable-installer"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 readme = "README.md"
 authors = ["Likianta <likianta@foxmail.com>"]
 license = "MIT"
 
-[[tool.poetry.source]]
-name = "tsinghua"
-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
-priority = "default"
-
 [tool.poetry.dependencies]
-python = "^3.9,!=3.9.7"
+python = "^3.8"
+# python = "^3.9,!=3.9.7"
+#   note: streamlit-antd-components requires python >=3.9
 #   note: streamlit ^1.24.0 doesn't support python 3.9.7
 
-argsense = "~0.4.2"
-embed-python-manager = "^0.2.8"
-gen-exe = { version = "*", platform = "win32" }
-lk-logger = "^5.4.7"
-lk-utils = "~2.4.1"
-pyportable-crypto = "^1.0.3"
-pysimplegui = "*"
+argsense = "^0.5.2"
+# embed-python-manager = "^0.2.8"  # DELETE
+gen-exe = { version = "*", platform = "win32" }  # DELETE
+lk-logger = "^5.6.2"
+lk-utils = "^2.5.6"
+pyportable-crypto = "^1.1.0"
+watchdog = "^3.0.0"
 
 # extras
 pillow = { version = "*", optional = true }
@@ -30,14 +27,28 @@ pyarmor = { version = "*", optional = true }
 pyyaml = { version = "*", optional = true }
 toml = { version = "*", optional = true }
 
+[tool.poetry.group.ui.dependencies]
+dash = "*"
+feffery-antd-components = "*"
+# pysimplegui = "*"
+# streamlit = "^1.24.0"
+# streamlit-antd-components = "*"
+
 [tool.poetry.group.dev.dependencies]
-streamlit = "^1.24.0"
-streamlit-antd-components = "*"
+faker = "*"
 
 [tool.poetry.extras]
 all = ["pillow", "pyarmor", "pyyaml", "toml"]
 tml = ["toml"]
 yml = ["pyyaml"]
+
+[[tool.poetry.source]]
+name = "tsinghua"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+priority = "default"
+
+[tool.pyportable-installer]
+redirect_path = './build/profile.yaml'
 
 [build-system]
 requires = ["poetry"]

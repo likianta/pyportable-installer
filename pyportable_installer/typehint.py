@@ -96,11 +96,10 @@ _TMark = Literal[
     'compile',
     'only_folder', 'only_folders',
 ]
-_TMarks = Literal[
-    ('asset',), ('assets',), ('root_assets',),
-    ('only_folder',), ('only_folders',),
-    ('asset', 'compile'), ('assets', 'compile'), ('root_assets', 'compile')
-]
+_TMarkCombinations = ...
+#   ('asset',), ('assets',), ('root_assets',),
+#   ('only_folder',), ('only_folders',),
+#   ('asset', 'compile'), ('assets', 'compile'), ('root_assets', 'compile')
 
 
 class _TAttachmentsValue(TypedDict):

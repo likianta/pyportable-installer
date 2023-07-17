@@ -1,14 +1,18 @@
 import os
 import os.path as xpath
 
-from lk_utils.filesniff import currdir
+from lk_utils.filesniff import get_current_dir
 from lk_utils.filesniff import normpath
 
 from ._env import ASSETS_ENTRY  # str['STANDALONE', 'PACKAGE']
 
-print(':v1', ASSETS_ENTRY)
+__all__ = [
+    'src_2_dst', 'relpath',
+    'prj_model', 'src_model', 'dst_model'
+]
 
-_cur_dir = currdir()
+_pkg_root = get_current_dir()
+print(':lv2', ASSETS_ENTRY, _pkg_root)
 
 
 def src_2_dst(src_path, src_dir='', dst_dir=''):
@@ -33,8 +37,7 @@ def relpath(path, start):
 
 class PyPortablePathModel:
     # current dir based
-    cur_root = _cur_dir
-    print(':v1', cur_root)
+    cur_root = _pkg_root
     
     (
         bat_2_exe_converter,
@@ -141,7 +144,7 @@ class SourcePathModel:
         assert self.src_root and self.prj_root
 
 
-class DistributedPathModel:
+class DistributionPathModel:
     """
     Tree:
         dist
@@ -196,11 +199,6 @@ class DistributedPathModel:
 
 prj_model = PyPortablePathModel()
 src_model = SourcePathModel()
-dst_model = DistributedPathModel()
+dst_model = DistributionPathModel()
 
 prj_model.build_dirs()
-
-__all__ = [
-    'src_2_dst', 'relpath',
-    'prj_model', 'src_model', 'dst_model'
-]

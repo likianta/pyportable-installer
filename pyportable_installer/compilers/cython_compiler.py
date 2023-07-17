@@ -117,8 +117,8 @@ class CythonCompiler(BaseCompiler):
             filename=filename
         ), _setup := f'{tmp_dir}/_setup.py')
         
-        from lk_utils.subproc import format_cmd
-        print(':v1', '[D5200]', format_cmd(
+        from lk_utils.subproc import compose_cmd
+        print(':v1', '[D5200]', compose_cmd(
             self._interpreter, _setup, 'build_ext', '--inplace'))
         
         run_cmd_args(self._interpreter, _setup, 'build_ext', '--inplace')
