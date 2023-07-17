@@ -54,12 +54,14 @@ class PyPortablePathModel:
         pyportable_runtime_py38,
         pyportable_runtime_py39,
         pyportable_runtime_py310,
+        pyportable_runtime_py311,
         pyportable_runtime_py38_linux,
     ) = (
         f'{cur_root}/compilers/lib',
         f'{cur_root}/compilers/lib/pyportable_runtime_py38/pyportable_runtime',
         f'{cur_root}/compilers/lib/pyportable_runtime_py39/pyportable_runtime',
         f'{cur_root}/compilers/lib/pyportable_runtime_py310/pyportable_runtime',
+        f'{cur_root}/compilers/lib/pyportable_runtime_py311/pyportable_runtime',
         f'{cur_root}/compilers/lib/linux/pyportable_runtime_py38/pyportable_runtime',
     )
     

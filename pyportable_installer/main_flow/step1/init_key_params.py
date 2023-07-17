@@ -99,6 +99,7 @@ def _init_pyportable_runtime_package():
             'python38' : prj_model.pyportable_runtime_py38,
             'python39' : prj_model.pyportable_runtime_py39,
             'python310': prj_model.pyportable_runtime_py310,
+            'python311': prj_model.pyportable_runtime_py311,
         }[gconf.current_pyversion]
         sys.path.insert(0, os.path.dirname(runtime_dir))
     else:
