@@ -71,19 +71,30 @@ def _tree_view(
                         id=f'{id}-test_btn',
                         className='btn mt-2',
                     ),
-                    fac.AntdTree(
-                        id=id,
-                        checkable=checkable,
-                        expandedKeys=['root'],
-                        # defaultExpandAll=True,
-                        treeData=data,
-                        treeDataMode='flat',
+                    html.Div(  # wrapper
+                        [
+                            fac.AntdTree(
+                                id=id,
+                                checkable=checkable,
+                                expandedKeys=['root'],
+                                # defaultExpandAll=True,
+                                treeData=data,
+                                treeDataMode='flat',
+                            )
+                        ],
+                        style={
+                            'overflow': 'auto',
+                            'height': '400px',
+                            'max-height': '400px',
+                        },
                     ),
                 ],
-                className='d-flex '
-                'flex-column '
-                'justify-content-center '
-                'align-items-center',
+                className=(
+                    'd-flex '
+                    'flex-column '
+                    'justify-content-center '
+                    'align-items-center'
+                ),
             )
         ],
         className='flex-1 p-4',
@@ -102,9 +113,9 @@ def _on_check(
     print(keys, ':vl')
     global _checked_keys
     _checked_keys = keys
-
+    
     if keys:
-
+        
         def recurse(node0, node1):
             for item in node0:
                 if item['key'] in keys:
@@ -120,7 +131,7 @@ def _on_check(
                                 'children': sublist,
                             }
                         )
-
+        
         data1[0]['children'].clear()
         recurse(data0[0]['children'], data1[0]['children'])
     else:
@@ -160,12 +171,12 @@ def _refresh_tree(
 ) -> t.Tuple[T.TreeData, T.CheckedKeys]:
     if not n:
         return data, _checked_keys
-
+    
     def recurse(node: t.List[dict]):
         for item in node:
             item['title'] = fake.name()
             if item['children']:
                 recurse(item['children'])
-
+    
     recurse(data)
     return data, _checked_keys

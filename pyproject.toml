@@ -37,6 +37,7 @@ feffery-antd-components = "*"
 
 [tool.poetry.group.dev.dependencies]
 faker = "*"
+lkfmt = "*"
 
 [tool.poetry.extras]
 all = ["pillow", "pyarmor", "pyyaml", "toml"]
