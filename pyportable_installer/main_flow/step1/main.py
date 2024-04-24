@@ -1,7 +1,6 @@
-from os.path import abspath
 from os.path import dirname
 
-from lk_utils.filesniff import normpath
+from lk_utils.filesniff import abspath
 
 from .indexing_paths import indexing_paths
 from .init_key_params import init_key_params
@@ -14,7 +13,7 @@ def main(pyproj_file: TPath,
          addional_conf: Optional[TConf] = None,
          path_format: TPathFormat = 'abspath',
          _skip_init_key_params=False) -> TConf:
-    pyproj_file = normpath(abspath(pyproj_file))
+    pyproj_file = abspath(pyproj_file)
     pyproj_dir = dirname(pyproj_file)
     print(pyproj_dir)
     

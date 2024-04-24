@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyportable-installer"
-version = "4.4.2"
+version = "5.0.0a1"
 homepage = "https://github.com/likianta/pyportable-installer"
 description = "Build and distribute portable Python application by all-in-one configuration file."
 readme = "README.md"

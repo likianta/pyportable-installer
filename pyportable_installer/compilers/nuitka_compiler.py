@@ -15,7 +15,7 @@ from shutil import rmtree
 from uuid import uuid1
 
 from lk_utils import find_dirs
-from lk_utils import send_cmd
+from lk_utils import run_cmd_shell
 from lk_utils.subproc import run_new_thread
 
 from .base_compiler import BaseCompiler
@@ -56,8 +56,10 @@ class NuitkaCompiler(BaseCompiler):
         copyfile(src_file, tmp_file)
         
         # compiling
-        send_cmd('{} -m nuitka --module --nofollow-imports --output-dir="{}" '
-                 '--no-pyi-file {}'.format(sys.executable, tmp_dir, tmp_file))
+        run_cmd_shell(
+            '{} -m nuitka --module --nofollow-imports --output-dir="{}" '
+            '--no-pyi-file {}'.format(sys.executable, tmp_dir, tmp_file)
+        )
         # cmd = subprocess.run([
         #     sys.executable, 'nuitka', '--module', '--nofollow-imports',
         #     '--output-dir="{}"'.format(tmp_dir), '--no-pyi-file', tmp_file

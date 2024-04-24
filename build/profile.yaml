@@ -1,0 +1,41 @@
+app_name: 'PyPortable Installer'
+app_version: '5.0.0a1'
+description: 'Build and distribute portable Python application by all-in-one configuration file.'
+authors:
+    - 'Likianta <likianta@foxmail.com>'
+build:
+    proj_dir: '..'
+    dist_dir: '../dist/{app_name_kebab}-{app_version}'
+    launchers:
+        '{app_name}':
+            file: ''
+            icon: ''
+            function: 'main'
+            args: [ ]
+            kwargs: { }
+    readme: '../README.md'
+    attachments: { }
+    attachments_exclusions: [ ]
+    attachments_exist_scheme: 'overwrite'
+    module_paths: [ ]
+    module_paths_scheme: 'translate'
+    python_version: '3.8'
+    venv:
+        enabled: true
+        mode: 'source_venv'
+        options:
+            source_venv:
+                path: ''
+                copy_venv: false
+    compiler:
+        enabled: true
+        mode: 'pyportable_crypto'
+        options:
+            pyportable_crypto:
+                key: '{random}'
+    experimental_features:
+        add_pywin32_support: false
+        platform: 'system_default'
+    enable_console: true
+note: ''
+pyportable_installer_vesion: '5.5.0'

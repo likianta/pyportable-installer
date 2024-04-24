@@ -5,7 +5,7 @@ from textwrap import dedent
 
 from lk_utils import dumps
 from lk_utils import loads
-from lk_utils import send_cmd
+from lk_utils import run_cmd_shell
 from lk_utils.subproc import new_thread
 
 from .base_compiler import BaseCompiler
@@ -52,7 +52,7 @@ class PyArmorCompiler(BaseCompiler):
         dir_o = f'{lib_dir}/pytransform'
         
         if not ospath.exists(dir_i):
-            send_cmd(f'{self._head} runtime -O "{local_dir}"')
+            run_cmd_shell(f'{self._head} runtime -O "{local_dir}"')
             #   note the target dir is `local_dir`, not `dir_i`
             #   see `cmd:pyarmor runtime -h`
         copytree(dir_i, dir_o)
@@ -143,7 +143,7 @@ class PyArmorCompiler(BaseCompiler):
         #       --no-runtime    do not generate runtime files (cause we have
         #                       generated runtime files in `{dst}/lib`)
         try:
-            send_cmd(cmd)
+            run_cmd_shell(cmd)
         except Exception as e:
             print(':v4', '[E1747]', 'compile failed', e)
             if ospath.exists(dst_file): remove(dst_file)
