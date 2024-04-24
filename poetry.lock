@@ -393,6 +393,10 @@ python-versions = "*"
 files = [
     {file = "feffery_antd_components-0.2.11-py3-none-any.whl", hash = "sha256:e3d5bf965140dd52a62cf82ba4d5aea345dcf66aa42a075d3a34cd973157eeed"},
     {file = "feffery_antd_components-0.2.11.tar.gz", hash = "sha256:14c90203841698aeafca2bf14b14bb8ae713db5f244e595d65d2358387b85496"},
+]
+
+[package.dependencies]
+dash = ">=2.10.2"
 
 [package.source]
 type = "legacy"
@@ -1899,8 +1903,11 @@ name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
 optional = false
-optional = true
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
+]
 
 [package.source]
 type = "legacy"
